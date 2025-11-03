@@ -1,0 +1,11 @@
+{
+  "name": "mahjong",
+  "version": "1.0.0",
+  "description": "Mahjong project",
+  "main": "main.py",
+  "scripts": {
+    "start": "python main.py"
+  },
+  "author": "Le Minh Chanh",
+  "license": "ISC"
+}
