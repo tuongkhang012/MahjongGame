@@ -62,31 +62,43 @@ class GameBuilder:
         )
 
         for idx, tile in enumerate(player_decks):
-            print(f"Player {player_idx}: ", tile.number, tile.type, tile.hidden)
             if tile.hidden:
-                surface = self.tiles_cutter.cut_hidden_tiles(True, player_idx)
+                tile_surface = self.tiles_cutter.cut_hidden_tiles(True, player_idx)
 
             else:
-                surface = self.tiles_cutter.cut_tiles(
+                tile_surface = self.tiles_cutter.cut_tiles(
                     tile.type, tile.number, player_idx
                 )
+
+            tile_width, tile_height = tile_surface.get_size()
+            position = None
             match player_idx:
                 case 1:
-                    self.screen.blit(
-                        surface, (start_x_center + 16 * idx, start_y_center)
-                    )
+                    position = (start_x_center + tile_width * idx, start_y_center)
+
                 case 2:
-                    self.screen.blit(
-                        surface, (start_x_center, start_y_center + 16 * idx)
-                    )
+                    position = (start_x_center, start_y_center + tile_height * idx)
+
                 case 3:
-                    self.screen.blit(
-                        surface, (start_x_center + 16 * idx, start_y_center)
-                    )
+                    position = (start_x_center + tile_width * idx, start_y_center)
+
                 case 4:
-                    self.screen.blit(
-                        surface, (start_x_center, start_y_center + 16 * idx)
-                    )
+                    position = (start_x_center, start_y_center + tile_height * idx)
+
+            self.screen.blit(tile_surface, position)
+            tile.update_position(
+                position[0],
+                position[1],
+                tile_width,
+                tile_height,
+            )
+            print(
+                f"Player {player_idx}: ",
+                tile.number,
+                tile.type,
+                tile.hidden,
+                tile.get_position(),
+            )
 
     def visualize_tile(
         self,

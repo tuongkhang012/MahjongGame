@@ -7,8 +7,6 @@ game = GameManager()
 running = True
 while running:
     running = game.run()
-    
-
 
     # fill the screen with a color to wipe away anything from last frame
 

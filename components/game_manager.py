@@ -1,5 +1,5 @@
 import pygame
-from utils.constants import WINDOW_SIZE, FPS_LIMIT
+from utils.constants import WINDOW_SIZE, FPS_LIMIT, GAME_TITLE
 from components.game_builder import GameBuilder
 from utils.enums import Direction
 from components.events.mouse_button_down import MouseButtonDown
@@ -8,10 +8,14 @@ from components.events.mouse_button_down import MouseButtonDown
 class GameManager:
     def __init__(self):
         pygame.init()
+        # pygame.mixer.init()
+        # pygame.freetype.init()
+
+        pygame.display.set_caption(GAME_TITLE)
+
         # Display setting
         self.screen = pygame.display.set_mode(WINDOW_SIZE)
-        self.screen.fill("purple")
-
+        self.screen.fill("aquamarine4")
         self.clock = pygame.time.Clock()
         self.clock.tick(FPS_LIMIT)  # limits FPS to 60
 
@@ -20,9 +24,12 @@ class GameManager:
         # Init game
 
         self.new()
-        self.mouse_button_controller = MouseButtonDown(self.screen)
 
     def run(self) -> bool:
+        # Rendering
+        self.screen.blit(
+            pygame.transform.scale(self.screen, self.screen.get_size()), (0, 0)
+        )
 
         # Listen user event
         event = self.listenEvent()
@@ -37,7 +44,7 @@ class GameManager:
                 case pygame.QUIT:
                     return {"exit": True}
                 case pygame.MOUSEBUTTONDOWN:
-                    self.mouse_button_controller.run(event)
+                    MouseButtonDown(self.screen, self.new_deck).run(event)
 
                 case pygame.MOUSEMOTION:
                     pass
