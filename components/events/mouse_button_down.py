@@ -1,6 +1,6 @@
 from pygame import Surface
 import pygame
-from components.tile import Tile
+from components.buttons.tile import Tile
 from pygame.event import Event
 from components.events.event_controller import EventController
 
@@ -13,19 +13,30 @@ class MouseButtonDown(EventController):
 
     def run(self, event: Event):
         update_tiles: list[Tile] = []
-        for tile in self.get_tiles_list():
-            if tile.hidden:
-                continue
-            if tile.check_collidepoint(event.pos):
-                tile.clicked()
-                update_tiles.append(tile)
-                break
-            else:
-                for tmp_tile in filter(
-                    lambda tile: tile.is_clicked == True, self.get_tiles_list()
-                ):
-                    tmp_tile.unclicked()
-                    update_tiles.append(tile)
+
+        # Check for collide tiles
+        collide_tiles = list(
+            filter(
+                lambda tile: tile.check_collidepoint(event.pos) and not tile.hidden,
+                self.get_tiles_list(),
+            )
+        )
+        for tile in collide_tiles:
+            tile.clicked()
+            update_tiles.append(tile)
+
+        # Check for uncollided clicked tiles
+        remaining_clicked_tiles = list(
+            filter(
+                lambda tile: not tile.check_collidepoint(event.pos)
+                and not tile.hidden
+                and tile.is_clicked,
+                self.get_tiles_list(),
+            )
+        )
+        for tile in remaining_clicked_tiles:
+            tile.unclicked()
+            update_tiles.append(tile)
 
         for tile in update_tiles:
             tile.update()
