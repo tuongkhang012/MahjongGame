@@ -8,7 +8,7 @@ class Direction(Enum):
     WEST = 3
 
 
-class TilesType(Enum):
+class TileType(Enum):
     MAN = 0
     SOU = 1
     PIN = 2
@@ -16,8 +16,13 @@ class TilesType(Enum):
     DRAGON = 4
 
 
+class TileSource(Enum):
+    DRAW = 0
+    PLAYER = 1
+
+
 class CallType(Enum):
-    Ron = 0
-    Kan = 1
-    Pon = 2
-    Chi = 3
+    RON = 0
+    KAN = 1
+    PON = 2
+    CHI = 3
