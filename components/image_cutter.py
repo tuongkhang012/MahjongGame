@@ -12,33 +12,50 @@ class TilesCutter:
         self,
         tiles_type: TilesType,
         tiles_number: int,
+        aka: bool,
         player_idx: int = 1,
     ) -> Surface:
-        match tiles_type:
-            case TilesType.MAN:
-                vertical_line_order = 0
-            case TilesType.SOU:
-                vertical_line_order = 1
-            case TilesType.PIN:
-                vertical_line_order = 2
-            case TilesType.WIND | TilesType.DRAGON:
-                vertical_line_order = 3
-            case TilesType.AKA:
-                vertical_line_order = 4
+        if aka:
+            vertical_line_order = 4
+        else:
+            match tiles_type:
+                case TilesType.MAN:
+                    vertical_line_order = 0
+                case TilesType.SOU:
+                    vertical_line_order = 1
+                case TilesType.PIN:
+                    vertical_line_order = 2
+                case TilesType.WIND | TilesType.DRAGON:
+                    vertical_line_order = 3
 
         match player_idx:
-            case 1:
+            case 0:
                 image_section = 1
-            case 2:
+            case 1:
                 image_section = 4
-            case 3:
+            case 2:
                 image_section = 3
-            case 4:
+            case 3:
                 image_section = 2
-        x_left = (
-            tiles_number - 1 if tiles_type != TilesType.DRAGON else tiles_number + 3
-        )
+
+        # Handle image vertical line for each tile type
         y_top = 3 + vertical_line_order + 5 * image_section
+
+        # Handle image index for each vertical line in image
+        if aka:
+            match tiles_type:
+                case TilesType.MAN:
+                    x_left = 0
+
+                case TilesType.SOU:
+                    x_left = 1
+
+                case TilesType.PIN:
+                    x_left = 2
+        else:
+            x_left = (
+                tiles_number - 1 if tiles_type != TilesType.DRAGON else tiles_number + 3
+            )
 
         tile_surface = self.image.subsurface(
             pygame.Rect(
@@ -55,11 +72,11 @@ class TilesCutter:
     ) -> Surface:
         line = 2
         match player_idx:
-            case 1:
+            case 0:
                 surface = self.image.subsurface(
                     pygame.Rect(self._tile_offset_surface(0, line))
                 )
-            case 2:
+            case 1:
                 if standing:
                     surface = self.image.subsurface(
                         pygame.Rect(self._tile_offset_surface(8, line))
@@ -69,7 +86,7 @@ class TilesCutter:
                         pygame.Rect(self._tile_offset_surface(6, line))
                     )
                 surface = pygame.transform.flip(surface, True, False)
-            case 3:
+            case 2:
                 if standing:
                     surface = self.image.subsurface(
                         pygame.Rect(self._tile_offset_surface(2, line))
@@ -78,7 +95,7 @@ class TilesCutter:
                     surface = self.image.subsurface(
                         pygame.Rect(self._tile_offset_surface(3, line))
                     )
-            case 4:
+            case 3:
                 if standing:
                     surface = self.image.subsurface(
                         pygame.Rect(self._tile_offset_surface(8, line))
