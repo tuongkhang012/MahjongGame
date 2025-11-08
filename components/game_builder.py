@@ -89,8 +89,8 @@ class GameBuilder:
 
         middle_height = self.screen.get_height() * 1 / 2
         middle_width = self.screen.get_width() * 1 / 2
-        quarter_height = self.screen.get_height() * 1 / 3
-        quarter_width = self.screen.get_width() * 1 / 3
+        offset_height = self.screen.get_height() * 1 / 3
+        offset_width = self.screen.get_width() * 1 / 3
 
         total_width = list(
             map(lambda tile: tile.get_surface().get_bounding_rect().width, deck_list)
@@ -103,11 +103,11 @@ class GameBuilder:
                 return (
                     middle_width
                     - (deck_size * (sum(total_width) / len(total_width)) / 2),
-                    middle_height + quarter_height,
+                    middle_height + offset_height,
                 )
             case 1:
                 return (
-                    middle_width - quarter_width,
+                    middle_width - offset_width,
                     middle_height
                     - (deck_size * (sum(total_heigth) / len(total_heigth)) / 4),
                 )
@@ -115,11 +115,11 @@ class GameBuilder:
                 return (
                     middle_width
                     - (deck_size * (sum(total_width) / len(total_width)) / 2),
-                    middle_height - quarter_height,
+                    middle_height - offset_height,
                 )
             case 3:
                 return (
-                    middle_width + quarter_width,
+                    middle_width + offset_width,
                     middle_height
                     - (deck_size * (sum(total_heigth) / len(total_heigth)) / 4),
                 )
