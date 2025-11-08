@@ -1,0 +1,107 @@
+from pygame import Rect, Color, Surface
+import pygame
+
+
+class Button:
+    screen: Surface
+    _surface: Surface
+    _original_surface = None
+    _highlight_surface = None
+    _hidden_surface = None
+
+    _position: Rect
+    _base_position: Rect
+
+    text: str
+    color: Color
+    hidden: bool
+    hover_color: Color
+
+    is_hovered: bool
+    is_clicked: bool
+    is_highlighted: bool
+
+    def __init__(
+        self,
+        text: str = None,
+        color: Color = None,
+        hover_color: Color = None,
+    ):
+        # Screen relative
+        self._position = Rect(0, 0, 0, 0)
+        self._base_position = Rect(0, 0, 0, 0)
+
+        # Button information
+        self.text = text
+
+        # Button color
+        self.color = color
+        self.hover_color = hover_color
+
+        # Button state
+        self.is_hovered = False
+        self.is_clicked = False
+        self.is_highlighted = False
+
+    def render(self, screen: Surface):
+        screen.blit(self._surface, (self._position.x, self._position.y))
+
+    def update_position(self, x: float, y: float, width: float, height: float):
+        self._position.x = x
+        self._position.y = y
+        self._position.width = width
+        self._position.height = height
+
+        # Store for base value, whenever bobbing effect
+        self._base_position.x = x
+        self._base_position.y = y
+        self._base_position.width = width
+        self._base_position.height = height
+
+    def clicked(self):
+        self.is_clicked = not self.hidden and True
+
+    def unclicked(self):
+        self.is_clicked = not self.hidden and False
+
+    def hovered(self):
+        self.is_hovered = not self.hidden and True
+
+    def unhovered(self):
+        self.is_hovered = not self.hidden and False
+
+    def highlighted(self):
+        self.is_highlighted = not self.hidden and True
+
+    def unhighlighted(self):
+        self.is_highlighted = not self.hidden and False
+
+    def check_collidepoint(self, position: tuple[int, int]) -> bool:
+        return (
+            self._position.collidepoint(position[0], position[1])
+            if self._position is not None
+            else False
+        )
+
+    def _create_highlight_surface(
+        self, surface: Surface, highlight_color: Color
+    ) -> Surface:
+        """Creates a highlighted version of the input surface."""
+        # Create a copy to draw on
+        # .convert_alpha() ensures it has the correct pixel format for transparency
+        hover_surface = surface.copy().convert_alpha()
+
+        # Fill the surface with this color using an "ADD" blend mode.
+        # This brightens the image without washing it out.
+        hover_surface.fill(highlight_color, None, pygame.BLEND_RGBA_MULT)
+
+        return hover_surface
+
+    def get_position(self) -> Rect:
+        return self._position
+
+    def get_surface(self) -> Surface:
+        return self._surface
+
+    def get_hidden_surface(self):
+        return self._hidden_surface
