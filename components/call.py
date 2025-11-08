@@ -1,5 +1,5 @@
 from utils.enums import CallType
-from components.tile import Tile
+from components.buttons.tile import Tile
 
 
 class Call:
@@ -10,9 +10,9 @@ class Call:
         tiles.sort(key=lambda tile: (tile.type.value, tile.number))
         first_tile = tiles[0]
         match type:
-            case CallType.Ron:
+            case CallType.RON:
                 pass
-            case CallType.Kan:
+            case CallType.KAN:
                 if (
                     len(
                         list(
@@ -29,7 +29,7 @@ class Call:
                     raise ValueError(
                         f"Wrong Kan format! The tiles are {tiles} which are not the correct for Kan"
                     )
-            case CallType.Pon:
+            case CallType.PON:
                 if (
                     len(
                         list(
@@ -46,7 +46,7 @@ class Call:
                     raise ValueError(
                         f"Wrong Pon format! The tiles are {tiles} which are not the correct for Pon"
                     )
-            case CallType.Chi:
+            case CallType.CHI:
                 if not (
                     len(tiles) == 3
                     and tiles[0].number + 1 == tiles[1].number
