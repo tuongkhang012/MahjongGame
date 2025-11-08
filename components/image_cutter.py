@@ -1,6 +1,7 @@
 import pygame
 from pygame import Surface
 from utils.enums import TilesType
+from utils.constants import TILE_SCALE_BY
 
 
 class TilesCutter:
@@ -39,11 +40,13 @@ class TilesCutter:
         )
         y_top = 3 + vertical_line_order + 5 * image_section
 
-        return self.image.subsurface(
+        tile_surface = self.image.subsurface(
             pygame.Rect(
                 self._tile_offset_surface(x_left, y_top),
             )
         )
+
+        return self._scale_surface(self._trimmed_surface(tile_surface), TILE_SCALE_BY)
 
     def cut_hidden_tiles(
         self,
@@ -84,7 +87,17 @@ class TilesCutter:
                     surface = self.image.subsurface(
                         pygame.Rect(self._tile_offset_surface(6, line))
                     )
-        return surface
+        return self._scale_surface(self._trimmed_surface(surface), TILE_SCALE_BY)
 
     def _tile_offset_surface(self, x: int, y: int) -> tuple[int, int, int, int]:
         return (x * 32, y * 32, 32, 32)
+
+    def _trimmed_surface(self, surface: Surface) -> Surface:
+        pixel_rect = surface.get_bounding_rect()
+
+        trimmed_surface = pygame.Surface(pixel_rect.size, pygame.SRCALPHA)
+        trimmed_surface.blit(surface, (0, 0), pixel_rect)
+        return trimmed_surface
+
+    def _scale_surface(self, surface: Surface, scale_by: int = 1) -> Surface:
+        return pygame.transform.scale_by(surface, scale_by)
