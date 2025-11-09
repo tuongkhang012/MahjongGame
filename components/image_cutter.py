@@ -1,6 +1,6 @@
 import pygame
 from pygame import Surface
-from utils.enums import TilesType
+from utils.enums import TileType
 from utils.constants import TILE_SCALE_BY
 
 
@@ -10,7 +10,7 @@ class TilesCutter:
 
     def cut_tiles(
         self,
-        tiles_type: TilesType,
+        tiles_type: TileType,
         tiles_number: int,
         aka: bool,
         player_idx: int = 1,
@@ -19,13 +19,13 @@ class TilesCutter:
             vertical_line_order = 4
         else:
             match tiles_type:
-                case TilesType.MAN:
+                case TileType.MAN:
                     vertical_line_order = 0
-                case TilesType.SOU:
+                case TileType.SOU:
                     vertical_line_order = 1
-                case TilesType.PIN:
+                case TileType.PIN:
                     vertical_line_order = 2
-                case TilesType.WIND | TilesType.DRAGON:
+                case TileType.WIND | TileType.DRAGON:
                     vertical_line_order = 3
 
         match player_idx:
@@ -44,17 +44,17 @@ class TilesCutter:
         # Handle image index for each vertical line in image
         if aka:
             match tiles_type:
-                case TilesType.MAN:
+                case TileType.MAN:
                     x_left = 0
 
-                case TilesType.SOU:
+                case TileType.SOU:
                     x_left = 1
 
-                case TilesType.PIN:
+                case TileType.PIN:
                     x_left = 2
         else:
             x_left = (
-                tiles_number - 1 if tiles_type != TilesType.DRAGON else tiles_number + 3
+                tiles_number - 1 if tiles_type != TileType.DRAGON else tiles_number + 3
             )
 
         tile_surface = self.image.subsurface(

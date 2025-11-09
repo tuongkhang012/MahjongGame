@@ -1,6 +1,7 @@
-from components.tile import Tile
+from components.buttons.tile import Tile
 from components.call import Call
-from utils.enums import CallType
+from utils.enums import CallType, TileSource
+from pygame import Surface
 
 
 class Player:
@@ -22,10 +23,10 @@ class Player:
         self.call_tiles = call_tiles if call_tiles is not None else []
 
     def draw(self, draw_deck: list[Tile]):
-        draw_tile = draw_deck.pop()
-        self.player_deck.append(draw_tile)
-        draw_tile.update_tile_surface(self.player_idx)
-        return draw_tile
+        self.__draw_tile = draw_deck.pop()
+        self.__draw_tile.source = TileSource.DRAW
+        self.player_deck.append(self.__draw_tile)
+        self.__draw_tile.update_tile_surface(self.player_idx)
 
     def discard(self, tile: Tile):
         tile.reveal()
@@ -52,3 +53,7 @@ class Player:
 
         tile_idx = randint(0, len(self.player_deck) - 1)
         self.discard(self.player_deck[tile_idx])
+
+    def render_player_deck(self, screen: Surface):
+        for tile in self.player_deck:
+            tile.render(screen)

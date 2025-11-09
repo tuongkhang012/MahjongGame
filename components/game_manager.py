@@ -4,7 +4,7 @@ from components.game_builder import GameBuilder
 from utils.enums import Direction
 from components.events.mouse_button_down import MouseButtonDown
 from components.events.mouse_motion import MouseMotion
-from components.tile import Tile
+from components.buttons.tile import Tile
 from pygame import Surface
 from components.player import Player
 
@@ -30,7 +30,7 @@ class GameManager:
 
     # AI relevant
     bot_move_timer: float = 0
-    BOT_MOVE_DELAY: float = 0.5  # AI "thinks" for 0.5 seconds
+    BOT_MOVE_DELAY: float = 1  # AI "thinks" for 1 seconds
 
     def __init__(self):
         pygame.init()
@@ -70,12 +70,12 @@ class GameManager:
 
         # --- Rendering ---
         self.screen.fill("aquamarine4")
-        for player_idx, player in enumerate(self.player_list):
-            if player_idx == 0:
+        for player in self.player_list:
+            if player.player_idx == 0:
                 player.reveal_hand()
 
-            for tile in player.player_deck:
-                tile.render(self.screen)
+            player.render_player_deck(self.screen)
+
         self.__default_screen.blit(self.screen, (0, 0))
 
         # Listen user event
@@ -114,7 +114,9 @@ class GameManager:
         current_bot = self.player_list[current_bot_index]
 
         current_bot.make_move()
-        self.builder.build_tiles_poistion(current_bot_index, current_bot)
+        self.builder.build_tiles_poistion(current_bot)
+
+        self.bot_move_timer = 0
 
         # Next turn
         self.switch_turn()
@@ -132,7 +134,7 @@ class GameManager:
         current_player_idx = self.direction.index(self.current_turn)
         current_player = self.player_list[current_player_idx]
         current_player.draw(self.draw_deck)
-        self.builder.build_tiles_poistion(current_player_idx, current_player)
+        self.builder.build_tiles_poistion(current_player)
 
     def listenEvent(self) -> dict[str, bool]:
         for event in pygame.event.get():
@@ -170,27 +172,30 @@ class GameManager:
 
         # Draw tiles (13 tiles, main draws 14 tiles)
         for i in range(4):
-            for k in range(0, 4):
+            for k in range(4):
                 player_idx = self.direction.index(Direction(k))
                 player = self.player_list[player_idx]
                 if i == 3:
                     player.draw(self.draw_deck)
                 else:
-                    for j in range(0, 4):
+                    for j in range(4):
                         player.draw(self.draw_deck)
-        main_player = self.player_list[self.direction.index(Direction(0))]
-        main_player.draw(self.draw_deck)
 
         # Rearrange deck for each player
         for player in self.player_list:
             player.rearrange_deck()
-            self.builder.build_tiles_poistion(player.player_idx, player)
-
-        # View Dora
-        self.dora = self.death_wall[5]
+            self.builder.build_tiles_poistion(player)
 
         # Assign Turn
         self.current_turn = Direction(1)
+
+        main_player = self.player_list[self.direction.index(Direction(1))]
+        main_player.draw(self.draw_deck)
+        self.builder.build_tiles_poistion(main_player)
+        self.player_list[0].reveal_hand()
+
+        # View Dora
+        self.dora = self.death_wall[5]
 
     def rearrange_deck(self, player_deck: list[Tile]):
         player_deck.sort(key=lambda tile: (tile.type.value, tile.number))

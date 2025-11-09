@@ -1,5 +1,4 @@
 import pygame
-from utils.constants import FPS_LIMIT, WINDOW_SIZE
 from components.game_manager import GameManager
 
 # Run game
