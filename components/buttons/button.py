@@ -21,6 +21,10 @@ class Button:
     is_clicked: bool
     is_highlighted: bool
 
+    # Timer
+    animation_timer: float
+    animation_duration: float
+
     def __init__(
         self,
         text: str = None,
@@ -43,6 +47,10 @@ class Button:
         self.is_clicked = False
         self.is_highlighted = False
 
+        # Timer
+        self.animation_timer = 0.0
+        self.animation_duration = 1.0
+
     def render(self, screen: Surface):
         screen.blit(self._surface, (self._position.x, self._position.y))
 
@@ -59,22 +67,22 @@ class Button:
         self._base_position.height = height
 
     def clicked(self):
-        self.is_clicked = not self.hidden and True
+        self.is_clicked = True
 
     def unclicked(self):
-        self.is_clicked = not self.hidden and False
+        self.is_clicked = False
 
     def hovered(self):
-        self.is_hovered = not self.hidden and True
+        self.is_hovered = True
 
     def unhovered(self):
-        self.is_hovered = not self.hidden and False
+        self.is_hovered = False
 
     def highlighted(self):
-        self.is_highlighted = not self.hidden and True
+        self.is_highlighted = True
 
     def unhighlighted(self):
-        self.is_highlighted = not self.hidden and False
+        self.is_highlighted = False
 
     def check_collidepoint(self, position: tuple[int, int]) -> bool:
         return (

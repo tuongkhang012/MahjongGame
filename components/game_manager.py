@@ -1,12 +1,24 @@
 import pygame
-from utils.constants import WINDOW_SIZE, FPS_LIMIT, GAME_TITLE
+from utils.constants import (
+    WINDOW_SIZE,
+    FPS_LIMIT,
+    GAME_TITLE,
+    TILE_ANIMATION_DURATION,
+    TILE_POPUP_DURATION,
+    TILE_SCALE_BY,
+)
 from components.game_builder import GameBuilder
 from utils.enums import Direction
 from components.events.mouse_button_down import MouseButtonDown
 from components.events.mouse_motion import MouseMotion
-from components.buttons.tile import Tile
+
 from pygame import Surface
 from components.player import Player
+from components.deck import Deck
+from utils.helper import build_center_rect
+import typing
+
+from components.buttons.tile import Tile
 
 
 class GameManager:
@@ -17,20 +29,17 @@ class GameManager:
     player_list: list[Player] = []
 
     # Deck
-    new_deck: list[Tile] = []
-    death_wall: list[Tile] = []
-    draw_deck: list[Tile] = []
-
-    # Dora relative
-    dora: list[Tile] = []
-    ura_dora: list[Tile] = []
+    deck: Deck
 
     # Turn
     current_turn: Direction
 
     # AI relevant
     bot_move_timer: float = 0
-    BOT_MOVE_DELAY: float = 1  # AI "thinks" for 1 seconds
+    BOT_MOVE_DELAY: float = 2  # AI "thinks" for 1 seconds
+
+    # Animation related
+    animation_tile: Tile | None = None
 
     def __init__(self):
         pygame.init()
@@ -56,8 +65,8 @@ class GameManager:
         self.new()
 
         # Create class event listener
-        self.mouse_button_down = MouseButtonDown(self.screen, self.new_deck)
-        self.mouse_motion = MouseMotion(self.screen, self.new_deck)
+        self.mouse_button_down = MouseButtonDown(self.screen, self, self.deck.full_deck)
+        self.mouse_motion = MouseMotion(self.screen, self, self.deck.full_deck)
 
     def run(self) -> bool:
         # --- Calculate Delta Time ---
@@ -76,6 +85,9 @@ class GameManager:
 
             player.render_player_deck(self.screen)
 
+        if self.animation_tile:
+            self.render_discarded_animation(self.animation_tile)
+
         self.__default_screen.blit(self.screen, (0, 0))
 
         # Listen user event
@@ -85,7 +97,65 @@ class GameManager:
         else:
             return True
 
+    def render_discarded_animation(self, tile: Tile):
+        if not self.animation_tile:
+            return
+
+        # Calculate animation progress (0.0 to 1.0)
+        progress = self.animation_timer / TILE_ANIMATION_DURATION
+
+        # Zoom from 1x scale up to 3x scale
+        scale = 1.0 + progress if 1.0 + progress < TILE_SCALE_BY else TILE_SCALE_BY
+
+        base_image = tile.tiles_cutter.cut_tiles(tile.type, tile.number, tile.aka)
+
+        # Apply scale and alpha
+        scaled_image = pygame.transform.rotozoom(base_image, 0, scale)
+
+        # Get position to center it on the screen
+        pos = build_center_rect(self.screen, scaled_image)
+
+        # Draw the animating tile
+        self.screen.blit(scaled_image, pos)
+
+    def start_discarded_animation(self, tile: Tile):
+        if self.animation_tile:
+            return
+
+        # Start the animation
+        self.animation_tile = tile
+        self.animation_timer = 0.0
+        self.current_discard_player_direction = self.current_turn
+
+    def finish_discarded_animation(self):
+        if not self.animation_tile or self.current_discard_player_direction is None:
+            return
+
+        self.player_list[self.direction.index(self.current_turn)].play_tiles.append(
+            self.animation_tile
+        )
+
+        # Reset animation state
+        self.animation_tile = None
+        self.animation_timer = 0.0
+        self.current_discard_player_direction = None
+        pass
+
     def update(self, delta_time: float):
+        # --- Handle animation FIRST ---
+        if self.animation_tile:
+            self.animation_timer += delta_time
+
+            # Check if animation is finished
+            if (
+                self.animation_timer >= TILE_ANIMATION_DURATION
+                and self.animation_timer >= TILE_POPUP_DURATION
+            ):
+                self.finish_discarded_animation()
+
+            # While animating, do nothing else (no AI moves, no input)
+            return
+
         current_player_direction = self.direction[0]
         if self.current_turn == current_player_direction:
             current_player = self.player_list[0]
@@ -113,8 +183,9 @@ class GameManager:
         # Get BOT player
         current_bot = self.player_list[current_bot_index]
 
-        current_bot.make_move()
-        self.builder.build_tiles_poistion(current_bot)
+        current_bot.make_move(self)
+        current_bot.rearrange_deck()
+        self.builder.build_tiles_position(current_bot)
 
         self.bot_move_timer = 0
 
@@ -133,10 +204,17 @@ class GameManager:
 
         current_player_idx = self.direction.index(self.current_turn)
         current_player = self.player_list[current_player_idx]
-        current_player.draw(self.draw_deck)
-        self.builder.build_tiles_poistion(current_player)
+        current_player.draw(self.deck.draw_deck)
+        self.builder.build_tiles_position(current_player)
 
     def listenEvent(self) -> dict[str, bool]:
+        if self.animation_tile:
+            # Still need to check for QUIT event
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    return {"exit": True}
+            return {"exit": False}  # Ignore all other events
+
         for event in pygame.event.get():
             match event.type:
                 case pygame.QUIT:
@@ -150,52 +228,12 @@ class GameManager:
         return {"exit": False}
 
     def new(self):
-        # Choose direction for player
-        self.direction = self.builder.direction()
-        print(f"Current player direction is {self.direction[0]}")
-        # Build tiles wall
-        self.new_deck = self.builder.create_new_deck()
-
-        # Role 2 dices (from 2 -> 12)
-        dices_score = self.builder.roll_dices()
-        # Cut wall
-        cutting_points = 34 * ((dices_score - 1) % 4 + 1) - 2 * dices_score
-        self.new_deck = (
-            self.new_deck[cutting_points:] + self.new_deck[0 : cutting_points - 1]
-        )
-        self.draw_deck = self.new_deck[2 * 7 :]
-        self.death_wall = self.new_deck[0 : 2 * 7 - 1]
-
-        # Create player
-        for i in range(4):
-            self.player_list.append(Player(i))
-
-        # Draw tiles (13 tiles, main draws 14 tiles)
-        for i in range(4):
-            for k in range(4):
-                player_idx = self.direction.index(Direction(k))
-                player = self.player_list[player_idx]
-                if i == 3:
-                    player.draw(self.draw_deck)
-                else:
-                    for j in range(4):
-                        player.draw(self.draw_deck)
-
-        # Rearrange deck for each player
-        for player in self.player_list:
-            player.rearrange_deck()
-            self.builder.build_tiles_poistion(player)
+        self.direction, self.player_list, self.deck = self.builder.init_game()
 
         # Assign Turn
-        self.current_turn = Direction(1)
-
-        main_player = self.player_list[self.direction.index(Direction(1))]
-        main_player.draw(self.draw_deck)
-        self.builder.build_tiles_poistion(main_player)
-        self.player_list[0].reveal_hand()
-
-        # View Dora
-        self.dora = self.death_wall[5]
+        for player in self.player_list:
+            print(len(player.player_deck))
+        self.current_turn = Direction(0)
 
     def rearrange_deck(self, player_deck: list[Tile]):
         player_deck.sort(key=lambda tile: (tile.type.value, tile.number))

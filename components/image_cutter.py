@@ -13,7 +13,7 @@ class TilesCutter:
         tiles_type: TileType,
         tiles_number: int,
         aka: bool,
-        player_idx: int = 1,
+        player_idx: int = 0,
     ) -> Surface:
         if aka:
             vertical_line_order = 4
@@ -32,11 +32,11 @@ class TilesCutter:
             case 0:
                 image_section = 1
             case 1:
-                image_section = 4
+                image_section = 2
             case 2:
                 image_section = 3
             case 3:
-                image_section = 2
+                image_section = 4
 
         # Handle image vertical line for each tile type
         y_top = 3 + vertical_line_order + 5 * image_section
@@ -85,7 +85,6 @@ class TilesCutter:
                     surface = self.image.subsurface(
                         pygame.Rect(self._tile_offset_surface(6, line))
                     )
-                surface = pygame.transform.flip(surface, True, False)
             case 2:
                 if standing:
                     surface = self.image.subsurface(
@@ -104,6 +103,8 @@ class TilesCutter:
                     surface = self.image.subsurface(
                         pygame.Rect(self._tile_offset_surface(6, line))
                     )
+                surface = pygame.transform.flip(surface, True, False)
+
         return self._scale_surface(self._trimmed_surface(surface), TILE_SCALE_BY)
 
     def _tile_offset_surface(self, x: int, y: int) -> tuple[int, int, int, int]:

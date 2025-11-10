@@ -2,8 +2,12 @@ from utils.enums import TileType, TileSource
 import pygame
 from pygame import Surface
 from components.image_cutter import TilesCutter
-from utils.constants import TILES_IMAGE_LINK
+from utils.constants import TILES_IMAGE_LINK, TILE_ANIMATION_DURATION
 from components.buttons.button import Button
+import typing
+
+if typing.TYPE_CHECKING:
+    from components.game_manager import GameManager
 
 
 class Tile(Button):
@@ -19,18 +23,22 @@ class Tile(Button):
 
         # Hovering section
         self.hover_offset_y = 12
-        self.animation_speed = 0.1
+        self.animation_speed = 0.5
+        self.animation_duration = TILE_ANIMATION_DURATION
 
         # Image Cutter for tile surface
         self.tiles_cutter = TilesCutter(TILES_IMAGE_LINK)
 
-    def update(self):
+    def update_hover(self):
         """Handles all frame-by-frame logic, like animation."""
         if self.hidden:
             return
 
         self.handle_hover()
         self.handle_highlight()
+
+    def update_clicked(self, game_manager: "GameManager"):
+        self.handle_clicked(game_manager)
 
     def handle_hover(self):
         target_y = self._position.y
@@ -49,6 +57,10 @@ class Tile(Button):
             self._surface = self._highlight_surface
         else:
             self._surface = self._original_surface
+
+    def handle_clicked(self, game_manager: "GameManager"):
+        if self.is_clicked:
+            game_manager.start_discarded_animation(self)
 
     def render(self, screen: Surface):
         if self.hidden:

@@ -3,12 +3,19 @@ from components.buttons.tile import Tile
 from pygame.event import Event
 from components.events.event_controller import EventController
 from components.mouse import Mouse
+import typing
+
+if typing.TYPE_CHECKING:
+    from components.game_manager import GameManager
 
 
 class MouseMotion(EventController):
-    def __init__(self, screen: Surface, tiles_list: list[Tile] = []):
+    def __init__(
+        self, screen: Surface, game_manager: "GameManager", tiles_list: list[Tile] = []
+    ):
         super().__init__(tiles_list)
         self.screen = screen
+        self.game_manager = game_manager
         self.mouse = Mouse()
 
     def run(self, event: Event):
@@ -22,7 +29,6 @@ class MouseMotion(EventController):
             )
         )
         for tile in collide_tile:
-            # Hover tile
             tile.hovered()
             update_tile_list.append(tile)
 
@@ -54,4 +60,4 @@ class MouseMotion(EventController):
                 update_tile_list.append(tmp_tile)
 
         for tile in update_tile_list:
-            tile.update()
+            tile.update_hover()
