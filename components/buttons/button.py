@@ -5,9 +5,9 @@ import pygame
 class Button:
     screen: Surface
     _surface: Surface
-    _original_surface = None
-    _highlight_surface = None
-    _hidden_surface = None
+    _original_surface: Surface = None
+    _highlight_surface: Surface = None
+    _hidden_surface: Surface = None
 
     _position: Rect
     _base_position: Rect

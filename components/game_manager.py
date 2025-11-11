@@ -83,7 +83,7 @@ class GameManager:
             if player.player_idx == 0:
                 player.reveal_hand()
 
-            player.render_player_deck(self.screen)
+            player.deck_field.render(player)
 
         if self.animation_tile:
             self.render_discarded_animation(self.animation_tile)
@@ -185,7 +185,7 @@ class GameManager:
 
         current_bot.make_move(self)
         current_bot.rearrange_deck()
-        self.builder.build_tiles_position(current_bot)
+        current_bot.play_field.build_tiles_position(current_bot)
 
         self.bot_move_timer = 0
 
@@ -193,19 +193,19 @@ class GameManager:
         self.switch_turn()
 
     def switch_turn(self, turn: Direction = None):
-        prev_turn = self.direction.index(self.current_turn)
-        prev_player = self.player_list[prev_turn]
-        prev_player.rearrange_deck()
+        self.find_player(self.current_turn).rearrange_deck()
 
         if turn is None:
             self.current_turn = Direction((self.current_turn.value + 1) % 4)
         else:
             self.current_turn = turn
 
-        current_player_idx = self.direction.index(self.current_turn)
-        current_player = self.player_list[current_player_idx]
-        current_player.draw(self.deck.draw_deck)
-        self.builder.build_tiles_position(current_player)
+        self.current_player = self.find_player(self.current_turn)
+        self.current_player.draw(self.deck.draw_deck)
+        self.current_player.play_field.build_tiles_position(self.current_player)
+
+    def find_player(self, turn: Direction) -> Player:
+        return self.player_list[self.direction.index(turn)]
 
     def listenEvent(self) -> dict[str, bool]:
         if self.animation_tile:

@@ -64,9 +64,11 @@ class Tile(Button):
 
     def render(self, screen: Surface):
         if self.hidden:
-            screen.blit(self._hidden_surface, (self._position.x, self._position.y))
+            self._surface = self._hidden_surface
         else:
-            screen.blit(self._surface, (self._position.x, self._position.y))
+            self._surface = self._original_surface
+
+        screen.blit(self._surface, (self._position.x, self._position.y))
 
     def update_tile_surface(self, player_idx: int) -> None:
         hidden_surface = self.tiles_cutter.cut_hidden_tiles(True, player_idx)

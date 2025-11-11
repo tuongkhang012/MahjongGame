@@ -4,6 +4,9 @@ from utils.enums import CallType, TileSource
 from pygame import Surface
 import typing
 from utils.enums import Direction
+from components.fields.play_field import PlayField
+from components.fields.deck_field import DeckField
+from components.fields.call_field import CallField
 
 if typing.TYPE_CHECKING:
     from components.game_manager import GameManager
@@ -15,10 +18,15 @@ class Player:
     play_tiles: list[Tile]
     call_tiles: list[Call]
     direction: Direction
-    # Play area
+
+    # All fields
+    play_field: PlayField
+    call_field: CallField
+    deck_field: DeckField
 
     def __init__(
         self,
+        screen: Surface,
         player_idx: int,
         direction: Direction,
         player_deck: list[Tile] = None,
@@ -30,6 +38,10 @@ class Player:
         self.player_deck = player_deck if player_deck is not None else []
         self.play_tiles = play_tiles if play_tiles is not None else []
         self.call_tiles = call_tiles if call_tiles is not None else []
+
+        self.play_field = PlayField(screen, self.play_tiles)
+        self.call_field = CallField(screen, self.call_tiles)
+        self.deck_field = DeckField(screen, self.player_deck)
 
     def draw(self, draw_deck: list[Tile]):
         self.__draw_tile = draw_deck.pop()
@@ -64,16 +76,8 @@ class Player:
         self.discard(discarded_tile)
         game_manager.start_discarded_animation(discarded_tile)
 
-    def render_player_deck(self, screen: Surface):
-        if (
-            self.player_idx == 1
-            and self.__draw_tile == self.player_deck[-1]
-            and len(self.player_deck) >= 14
-        ):
-            self.player_deck[-1].render(screen)
-            for tile in self.player_deck[:-1]:
-                tile.render(screen)
+    def get_draw_tile(self) -> Tile:
+        return self.__draw_tile
 
-        else:
-            for tile in self.player_deck:
-                tile.render(screen)
+    def total_tiles(self) -> int:
+        return len(self.deck_field.tiles_list) + len(self.call_field.tiles_list)
