@@ -1,12 +1,15 @@
 import pygame
-from pygame import Surface
+from pygame import Surface, Rect
 from utils.enums import TileType
-from utils.constants import TILE_SCALE_BY
+from utils.constants import TILE_SCALE_BY, TILE_WIDTH, TILE_HEIGHT
 
 
-class TilesCutter:
-    def __init__(self, deckImage: str):
-        self.image = pygame.image.load(deckImage).convert_alpha()
+class ImageCutter:
+    def __init__(self, image: str):
+        self.image = pygame.image.load(image).convert_alpha()
+
+    def cut_image(self, x: int, y: int, width: float, height: float) -> Surface:
+        return self.image.subsurface(Rect(x * width, y * height, width, height))
 
     def cut_tiles(
         self,
@@ -57,10 +60,11 @@ class TilesCutter:
                 tiles_number - 1 if tiles_type != TileType.DRAGON else tiles_number + 3
             )
 
-        tile_surface = self.image.subsurface(
-            pygame.Rect(
-                self._tile_offset_surface(x_left, y_top),
-            )
+        tile_surface = self.cut_image(
+            x_left,
+            y_top,
+            32,
+            32,
         )
 
         return self._scale_surface(self._trimmed_surface(tile_surface), TILE_SCALE_BY)
@@ -73,42 +77,33 @@ class TilesCutter:
         line = 2
         match player_idx:
             case 0:
-                surface = self.image.subsurface(
-                    pygame.Rect(self._tile_offset_surface(0, line))
-                )
+                surface = self.cut_image(0, line, TILE_WIDTH, TILE_HEIGHT)
             case 1:
                 if standing:
-                    surface = self.image.subsurface(
-                        pygame.Rect(self._tile_offset_surface(8, line))
-                    )
+                    surface = self.cut_image(8, line, TILE_WIDTH, TILE_HEIGHT)
+
                 else:
-                    surface = self.image.subsurface(
-                        pygame.Rect(self._tile_offset_surface(6, line))
-                    )
+                    surface = self.cut_image(6, line, TILE_WIDTH, TILE_HEIGHT)
+
             case 2:
                 if standing:
-                    surface = self.image.subsurface(
-                        pygame.Rect(self._tile_offset_surface(2, line))
-                    )
+                    surface = self.cut_image(2, line, TILE_WIDTH, TILE_HEIGHT)
+
                 else:
-                    surface = self.image.subsurface(
-                        pygame.Rect(self._tile_offset_surface(3, line))
-                    )
+                    surface = self.cut_image(3, line, TILE_WIDTH, TILE_HEIGHT)
+
             case 3:
                 if standing:
-                    surface = self.image.subsurface(
-                        pygame.Rect(self._tile_offset_surface(8, line))
-                    )
+                    surface = self.cut_image(8, line, TILE_WIDTH, TILE_HEIGHT)
                 else:
-                    surface = self.image.subsurface(
-                        pygame.Rect(self._tile_offset_surface(6, line))
-                    )
+                    surface = self.cut_image(6, line, TILE_WIDTH, TILE_HEIGHT)
+
                 surface = pygame.transform.flip(surface, True, False)
 
         return self._scale_surface(self._trimmed_surface(surface), TILE_SCALE_BY)
 
-    def _tile_offset_surface(self, x: int, y: int) -> tuple[int, int, int, int]:
-        return (x * 32, y * 32, 32, 32)
+    def _tile_offset_surface(self, x: int, y: int) -> Rect:
+        return Rect(x * 32, y * 32, 32, 32)
 
     def _trimmed_surface(self, surface: Surface) -> Surface:
         pixel_rect = surface.get_bounding_rect()

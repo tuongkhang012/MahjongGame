@@ -16,6 +16,8 @@ from pygame import Surface
 from components.player import Player
 from components.deck import Deck
 from utils.helper import build_center_rect
+from components.fields.center_board_field import CenterBoardField
+from components.fields.discard_field import DiscardField
 import typing
 
 from components.buttons.tile import Tile
@@ -36,7 +38,7 @@ class GameManager:
 
     # AI relevant
     bot_move_timer: float = 0
-    BOT_MOVE_DELAY: float = 2  # AI "thinks" for 1 seconds
+    BOT_MOVE_DELAY: float = 1  # AI "thinks" for 1 seconds
 
     # Animation related
     animation_tile: Tile | None = None
@@ -79,6 +81,8 @@ class GameManager:
 
         # --- Rendering ---
         self.screen.fill("aquamarine4")
+        self.center_board_field.render(self.current_turn)
+
         for player in self.player_list:
             if player.player_idx == 0:
                 player.reveal_hand()
@@ -131,15 +135,10 @@ class GameManager:
         if not self.animation_tile or self.current_discard_player_direction is None:
             return
 
-        self.player_list[self.direction.index(self.current_turn)].play_tiles.append(
-            self.animation_tile
-        )
-
         # Reset animation state
         self.animation_tile = None
         self.animation_timer = 0.0
         self.current_discard_player_direction = None
-        pass
 
     def update(self, delta_time: float):
         # --- Handle animation FIRST ---
@@ -185,7 +184,7 @@ class GameManager:
 
         current_bot.make_move(self)
         current_bot.rearrange_deck()
-        current_bot.play_field.build_tiles_position(current_bot)
+        current_bot.deck_field.build_tiles_position(current_bot)
 
         self.bot_move_timer = 0
 
@@ -202,25 +201,21 @@ class GameManager:
 
         self.current_player = self.find_player(self.current_turn)
         self.current_player.draw(self.deck.draw_deck)
-        self.current_player.play_field.build_tiles_position(self.current_player)
+        self.current_player.deck_field.build_tiles_position(self.current_player)
+        print(f"Current turn is Player {self.current_player.player_idx}")
 
     def find_player(self, turn: Direction) -> Player:
         return self.player_list[self.direction.index(turn)]
 
     def listenEvent(self) -> dict[str, bool]:
-        if self.animation_tile:
-            # Still need to check for QUIT event
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    return {"exit": True}
-            return {"exit": False}  # Ignore all other events
 
         for event in pygame.event.get():
             match event.type:
                 case pygame.QUIT:
                     return {"exit": True}
                 case pygame.MOUSEBUTTONDOWN:
-                    self.mouse_button_down.run(event)
+                    if self.animation_tile is None:
+                        self.mouse_button_down.run(event)
 
                 case pygame.MOUSEMOTION:
                     self.mouse_motion.run(event)
@@ -231,9 +226,16 @@ class GameManager:
         self.direction, self.player_list, self.deck = self.builder.init_game()
 
         # Assign Turn
-        for player in self.player_list:
-            print(len(player.player_deck))
+
         self.current_turn = Direction(0)
+        discards_fields: list[DiscardField] = []
+
+        for player in self.player_list:
+            discards_fields.append(player.discard_field)
+
+        self.center_board_field = CenterBoardField(
+            self.screen, self.direction, discards_fields
+        )
 
     def rearrange_deck(self, player_deck: list[Tile]):
         player_deck.sort(key=lambda tile: (tile.type.value, tile.number))

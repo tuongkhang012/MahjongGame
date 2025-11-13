@@ -4,7 +4,7 @@ import pygame
 
 class Button:
     screen: Surface
-    _surface: Surface
+    surface: Surface = None
     _original_surface: Surface = None
     _highlight_surface: Surface = None
     _hidden_surface: Surface = None
@@ -52,7 +52,7 @@ class Button:
         self.animation_duration = 1.0
 
     def render(self, screen: Surface):
-        screen.blit(self._surface, (self._position.x, self._position.y))
+        screen.blit(self.surface, (self._position.x, self._position.y))
 
     def update_position(self, x: float, y: float, width: float, height: float):
         self._position.x = x
@@ -86,8 +86,8 @@ class Button:
 
     def check_collidepoint(self, position: tuple[int, int]) -> bool:
         return (
-            self._position.collidepoint(position[0], position[1])
-            if self._position is not None
+            self.get_position().collidepoint(position[0], position[1])
+            if self.get_position() is not None
             else False
         )
 
@@ -109,7 +109,7 @@ class Button:
         return self._position
 
     def get_surface(self) -> Surface:
-        return self._surface
+        return self.surface
 
     def get_hidden_surface(self):
         return self._hidden_surface

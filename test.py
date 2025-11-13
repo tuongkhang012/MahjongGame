@@ -1,8 +1,9 @@
-def func():
-    a = [1]
-    b = [2]
-    return {"a": a, "b": b}
+def func1():
+    print("Hello")
 
 
-c, d = func()
-print(c, d)
+def func2():
+    print("World")
+
+
+True and func1() and func2()

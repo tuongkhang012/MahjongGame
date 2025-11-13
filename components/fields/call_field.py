@@ -8,5 +8,14 @@ if typing.TYPE_CHECKING:
 
 
 class CallField(TilesField):
-    def __init__(self, screen: Surface, tiles_list: list["Tile"]):
-        super().__init__(screen, tiles_list)
+    def __init__(
+        self,
+        screen: Surface,
+        player_idx: int,
+        tiles_list: list["Tile"],
+        full_tiles_list: list["Tile"],
+    ):
+        super().__init__(screen, player_idx, tiles_list, full_tiles_list)
+
+    def click(self):
+        return

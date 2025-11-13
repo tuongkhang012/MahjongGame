@@ -1,5 +1,5 @@
 from utils.enums import Direction
-from components.image_cutter import TilesCutter
+from components.image_cutter import ImageCutter
 from utils.constants import TILES_IMAGE_LINK
 from components.buttons.tile import Tile
 from pygame import Surface
@@ -33,7 +33,7 @@ class GameBuilder:
         # Create player
         player_list: list[Player] = []
         for i in range(4):
-            player_list.append(Player(self.screen, i, direction[i]))
+            player_list.append(Player(self.screen, i, direction[i], deck.full_deck))
 
         # Draw tiles (13 tiles, main draws 14 tiles)
         for i in range(4):
@@ -49,11 +49,12 @@ class GameBuilder:
         # Rearrange deck for each player
         for player in player_list:
             player.rearrange_deck()
-            player.play_field.build_tiles_position(player)
+            player.deck_field.build_field_surface(player)
+            player.deck_field.build_tiles_position(player)
 
         main_player = player_list[direction.index(Direction(0))]
         main_player.draw(deck.draw_deck)
-        main_player.play_field.build_tiles_position(main_player)
+        main_player.deck_field.build_tiles_position(main_player)
         player_list[0].reveal_hand()
 
         return (direction, player_list, deck)

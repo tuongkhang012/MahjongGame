@@ -2,157 +2,138 @@ from pygame import Rect, Surface
 from components.fields.field import Field
 import pygame
 import typing
-import math
+from pygame.event import Event
+from components.mouse import Mouse
 
 if typing.TYPE_CHECKING:
     from components.player import Player
     from components.buttons.tile import Tile
+    from components.game_manager import GameManager
 
 
 class TilesField(Field):
-    tiles_list: list["Tile"]
+    __tiles_list: list["Tile"]
+    __full_tiles_list: list["Tile"]
+
     draw_tile_offset: int = 20
 
-    def __init__(self, screen: Surface, tiles_list: list["Tile"]):
+    def __init__(
+        self,
+        screen: Surface,
+        player_idx: int,
+        tiles_list: list["Tile"],
+        full_tiles_list: list["Tile"],
+    ):
         super().__init__()
         self.screen = screen
-        self.tiles_list = tiles_list
+        self.__tiles_list = tiles_list
+        self.__full_tiles_list = full_tiles_list
+        self.player_idx = player_idx
+        self.mouse = Mouse()
 
-    def hover(self):
-        pass
+    def click(self, event: Event, game_manager: "GameManager"):
+        player = game_manager.player_list[0]
 
-    def click(self):
-        pass
+        update_tiles: list[Tile] = []
 
-    def build_field_surface(self, player: "Player"):
-        first_tile = self.tiles_list[0]
-        tile_width, tile_height = first_tile.get_surface().get_size()
-
-        match player.player_idx:
-            case 0 | 2:
-                self.surface = Surface(
-                    (
-                        tile_width * len(player.player_deck)
-                        + (self.draw_tile_offset if player.total_tiles() >= 14 else 0),
-                        tile_height,
-                    ),
-                    pygame.SRCALPHA,
-                )
-
-            case 1 | 3:
-                self.surface = Surface(
-                    (
-                        tile_width,
-                        tile_height * (math.ceil(len(player.player_deck) / 2) + 1)
-                        + tile_height
-                        + (self.draw_tile_offset if player.total_tiles() >= 14 else 0),
-                    ),
-                    pygame.SRCALPHA,
-                )
-
-    def build_tiles_position(self, player: "Player"):
-        for idx, tile in enumerate(player.player_deck):
-            tile.update_tile_surface(player.player_idx)
-            tile_surface = (
-                tile.get_hidden_surface() if tile.hidden else tile.get_surface()
+        # Check for collide tiles
+        collide_tiles = list(
+            filter(
+                lambda tile: tile.check_collidepoint(self.build_local_mouse(event.pos))
+                and not tile.hidden,
+                self.get_tiles_list(),
             )
-            tile_width, tile_height = tile_surface.get_size()
-
-            match player.player_idx:
-                case 0:
-                    if (
-                        tile == player.player_deck[-1]
-                        and player.total_tiles() >= 14
-                        and player.get_draw_tile() == tile
-                    ):
-                        position_x = self.draw_tile_offset + tile_width * idx
-
-                    else:
-                        position_x = tile_width * idx
-
-                    position_y = 0
-
-                case 2:
-                    start_x_position = 0
-                    if (
-                        tile == player.player_deck[-1]
-                        and player.total_tiles() >= 14
-                        and player.get_draw_tile() == tile
-                    ):
-
-                        position_x = 0
-                        start_x_position = tile_width + self.draw_tile_offset
-
-                    else:
-                        position_x = start_x_position + tile_width * idx
-
-                    position_y = 0
-
-                case 3:
-                    position_x = 0
-
-                    if (
-                        tile == player.player_deck[-1]
-                        and player.total_tiles() >= 14
-                        and tile == player.get_draw_tile()
-                    ):
-                        position_y = self.draw_tile_offset + tile_height / 2 * idx
-
-                    else:
-                        position_y = (tile_height / 2) * idx
-
-                case 1:
-                    position_x = 0
-
-                    start_y_position = 0
-                    if (
-                        tile == player.player_deck[-1]
-                        and player.total_tiles() >= 14
-                        and tile == player.get_draw_tile()
-                    ):
-                        position_y = 0
-                        start_y_position = tile_height + self.draw_tile_offset
-                    else:
-                        position_y = start_y_position + tile_height / 2 * idx
-
-            tile.update_position(position_x, position_y, tile_width, tile_height)
-
-    def calculate_center_range(self, deck_list: list["Tile"], player_idx: int):
-        deck_size = len(deck_list)
-
-        middle_height = self.screen.get_height() * 1 / 2
-        middle_width = self.screen.get_width() * 1 / 2
-        offset_height = self.screen.get_height() * 1 / 3
-        offset_width = self.screen.get_width() * 1 / 3
-
-        total_width = list(
-            map(lambda tile: tile.get_surface().get_bounding_rect().width, deck_list)
         )
-        total_heigth = list(
-            map(lambda tile: tile.get_surface().get_bounding_rect().height, deck_list)
+        for tile in collide_tiles:
+            tile.clicked()
+            update_tiles.append(tile)
+
+        # Check for uncollided clicked tiles
+        remaining_clicked_tiles = list(
+            filter(
+                lambda tile: not tile.check_collidepoint(
+                    self.build_local_mouse(event.pos)
+                )
+                and not tile.hidden
+                and tile.is_clicked,
+                self.get_tiles_list(),
+            )
         )
-        match player_idx:
-            case 0:
-                return (
-                    middle_width
-                    - (deck_size * (sum(total_width) / len(total_width)) / 2),
-                    middle_height + offset_height,
+        for tile in remaining_clicked_tiles:
+            tile.unclicked()
+            update_tiles.append(tile)
+
+        for tile in update_tiles:
+            tile.update_clicked(game_manager)
+
+    def unclicked(self, event: Event):
+        pass
+
+    def hover(
+        self, event: Event, hover_animation: bool = True, hover_highlight: bool = True
+    ):
+        update_tile_list: list[Tile] = []
+        # Check for collide tiles
+        collide_tile = list(
+            filter(
+                lambda tile: tile.check_collidepoint(self.build_local_mouse(event.pos))
+                and not tile.hidden,
+                self.get_tiles_list(),
+            )
+        )
+        for tile in collide_tile:
+            if hover_animation:
+                tile.hovered()
+                update_tile_list.append(tile)
+
+            # Change mouse display
+            self.mouse.hover()
+
+            # Highlight all same tiles
+            for tmp_tile in self.__full_tiles_list:
+                if (
+                    tmp_tile.number == tile.number
+                    and tmp_tile.type == tile.type
+                    and hover_highlight
+                ):
+                    tmp_tile.highlighted()
+                    update_tile_list.append(tmp_tile)
+
+        # Check for remaining hovered tiles
+        remaining_hovered_tiles = list(
+            filter(
+                lambda tile: not tile.check_collidepoint(
+                    self.build_local_mouse(event.pos)
                 )
-            case 1:
-                return (
-                    middle_width + offset_width,
-                    middle_height
-                    - (deck_size * (sum(total_heigth) / len(total_heigth)) / 4),
+                and not tile.hidden
+                and tile.is_hovered,
+                self.get_tiles_list(),
+            )
+        )
+        for tile in remaining_hovered_tiles:
+            tile.unhovered()
+            update_tile_list.append(tile)
+            for tmp_tile in self.__full_tiles_list:
+                tmp_tile.number == tile.number and tmp_tile.type == tile.type and tmp_tile.unhighlighted() and update_tile_list.append(
+                    tmp_tile
                 )
-            case 2:
-                return (
-                    middle_width
-                    + (deck_size * (sum(total_width) / len(total_width)) / 2),
-                    middle_height - offset_height,
-                )
-            case 3:
-                return (
-                    middle_width - offset_width,
-                    middle_height
-                    - (deck_size * (sum(total_heigth) / len(total_heigth)) / 4),
-                )
+
+        for tile in update_tile_list:
+            tile.update_hover()
+
+    def unhover(self):
+        for tile in self.get_tiles_list():
+            tile.unhovered()
+
+            # Unhighlight all tiles
+            for tmp_tile in self.__full_tiles_list:
+                tmp_tile.is_highlighted and tmp_tile.unhighlighted()
+
+            tile.update_hover()
+        self.mouse.default()
+
+    def get_tiles_list(self) -> list["Tile"]:
+        return self.__tiles_list
+
+    def update_tiles_list(self, tiles_list: list["Tile"]):
+        self.__tiles_list = tiles_list
