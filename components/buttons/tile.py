@@ -38,7 +38,8 @@ class Tile(Button):
         self.__handle_hover()
 
     def update_clicked(self, game_manager: "GameManager"):
-        self.__handle_clicked(game_manager)
+        pass
+        # self.__handle_clicked(game_manager)
 
     def __handle_hover(self):
         target_y = self._position.y
@@ -52,9 +53,9 @@ class Tile(Button):
         else:
             self._position.y = self._base_position.y
 
-    def __handle_clicked(self, game_manager: "GameManager"):
-        if self.is_clicked:
-            game_manager.start_discarded_animation(self)
+    # def __handle_clicked(self, game_manager: "GameManager"):
+    #     if self.is_clicked:
+    #         game_manager.start_discarded_animation(self)
 
     def render(self, screen: Surface):
         if self.hidden:

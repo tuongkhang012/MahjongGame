@@ -4,6 +4,7 @@ import pygame
 import typing
 from pygame.event import Event
 from components.mouse import Mouse
+from utils.enums import ActionType
 
 if typing.TYPE_CHECKING:
     from components.player import Player
@@ -47,6 +48,7 @@ class TilesField(Field):
         for tile in collide_tiles:
             tile.clicked()
             update_tiles.append(tile)
+            game_manager.action = ActionType.DISCARD
 
         # Check for uncollided clicked tiles
         remaining_clicked_tiles = list(

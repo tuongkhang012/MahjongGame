@@ -1,5 +1,7 @@
 from pygame import Rect, Color, Surface
+from pygame.freetype import Font
 import pygame
+from utils.helper import build_center_rect
 
 
 class Button:
@@ -28,7 +30,9 @@ class Button:
     def __init__(
         self,
         text: str = None,
-        color: Color = None,
+        font: Font = None,
+        text_color: Color = None,
+        bg_color: Color = None,
         hover_color: Color = None,
     ):
         # Screen relative
@@ -37,9 +41,11 @@ class Button:
 
         # Button information
         self.text = text
+        self.font = font
+        self.text_color = text_color
 
         # Button color
-        self.color = color
+        self.bg_color = bg_color
         self.hover_color = hover_color
 
         # Button state
@@ -53,6 +59,9 @@ class Button:
 
     def render(self, screen: Surface):
         screen.blit(self.surface, (self._position.x, self._position.y))
+
+    def build_text_surface(self):
+        return self.font.render(self.text, self.text_color)
 
     def update_position(self, x: float, y: float, width: float, height: float):
         self._position.x = x

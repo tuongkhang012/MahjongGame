@@ -25,4 +25,14 @@ class CallType(Enum):
     RON = 0
     KAN = 1
     PON = 2
-    CHI = 3
+    CHII = 3
+    SKIP = 4
+
+
+class ActionType(Enum):
+    RON = 0
+    KAN = 1
+    PON = 2
+    CHII = 3
+    SKIP = 4
+    DISCARD = 5

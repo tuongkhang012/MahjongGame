@@ -8,19 +8,26 @@ from utils.constants import (
     TILE_SCALE_BY,
 )
 from components.game_builder import GameBuilder
-from utils.enums import Direction
+from utils.enums import Direction, ActionType
 from components.events.mouse_button_down import MouseButtonDown
 from components.events.mouse_motion import MouseMotion
 
 from pygame import Surface
 from components.player import Player
 from components.deck import Deck
-from utils.helper import build_center_rect
+from utils.helper import build_center_rect, map_action_to_call
 from components.fields.center_board_field import CenterBoardField
 from components.fields.discard_field import DiscardField
 import typing
 
+# Tile
 from components.buttons.tile import Tile
+
+# Call Relative import
+from components.buttons.chii import Chii
+from components.buttons.pon import Pon
+from components.buttons.kan import Kan
+from components.buttons.ron import Ron
 
 
 class GameManager:
@@ -29,7 +36,9 @@ class GameManager:
 
     # Player
     player_list: list[Player] = []
-
+    current_player: Player
+    prev_player: Player
+    main_player: Player
     # Deck
     deck: Deck
 
@@ -42,6 +51,12 @@ class GameManager:
 
     # Animation related
     animation_tile: Tile | None = None
+
+    # Game logic relavent
+    latest_discarded_tile: Tile | None = None
+    call_order: list[Player] = []
+    calling_player: Player = None
+    action: ActionType = None
 
     def __init__(self):
         pygame.init()
@@ -69,6 +84,10 @@ class GameManager:
         # Create class event listener
         self.mouse_button_down = MouseButtonDown(self.screen, self, self.deck.full_deck)
         self.mouse_motion = MouseMotion(self.screen, self, self.deck.full_deck)
+        self.chi_button = Chii()
+        self.pon_button = Pon()
+        self.kan_button = Kan()
+        self.ron_button = Ron()
 
     def run(self) -> bool:
         # --- Calculate Delta Time ---
@@ -82,7 +101,7 @@ class GameManager:
         # --- Rendering ---
         self.screen.fill("aquamarine4")
         self.center_board_field.render(self.current_turn)
-
+        self.chi_button.render(self.screen)
         for player in self.player_list:
             if player.player_idx == 0:
                 player.reveal_hand()
@@ -140,6 +159,8 @@ class GameManager:
         self.animation_timer = 0.0
         self.current_discard_player_direction = None
 
+        self.last_time = pygame.time.get_ticks()
+
     def update(self, delta_time: float):
         # --- Handle animation FIRST ---
         if self.animation_tile:
@@ -155,54 +176,84 @@ class GameManager:
             # While animating, do nothing else (no AI moves, no input)
             return
 
-        current_player_direction = self.direction[0]
-        if self.current_turn == current_player_direction:
-            current_player = self.player_list[0]
-            tiles = list(
-                filter(lambda tile: tile.is_clicked, current_player.player_deck)
-            )
-            for tile in tiles:
-                current_player.discard(tile)
-                self.switch_turn()
+        if len(self.call_order) > 0 or self.calling_player is not None:
+            if self.calling_player is None:
+                self.calling_player = self.call_order.pop()
+            if self.calling_player == self.main_player:
+                if self.action:
+                    self.do_action()
+                return
+            else:
+                # --- THIS IS BOT TURN ---
+                # Add to the "thinking" timer
+                self.bot_move_timer += delta_time
+                # Wait until the "thinking" time (BOT_MOVE_DELAY) has passed
+                if self.bot_move_timer < self.BOT_MOVE_DELAY:
+                    return  # Not time to move yet
+                self.action = self.calling_player.make_move()
+                print("--- START CHI PON KAN RON ---")
 
-            self.bot_move_timer = 0
+        if self.current_player == self.main_player:
+            if self.action:
+                self.do_action()
             return
 
-        # --- THIS IS BOT TURN ---
-        # Add to the "thinking" timer
-        self.bot_move_timer += delta_time
+        if self.action is None:
+            # --- THIS IS BOT TURN ---
+            # Add to the "thinking" timer
+            self.bot_move_timer += delta_time
 
-        # Wait until the "thinking" time (BOT_MOVE_DELAY) has passed
-        if self.bot_move_timer < self.BOT_MOVE_DELAY:
-            return  # Not time to move yet
+            # Wait until the "thinking" time (BOT_MOVE_DELAY) has passed
+            if self.bot_move_timer < self.BOT_MOVE_DELAY:
+                return  # Not time to move yet
 
-        # --- BOT action ---
-        current_bot_index = self.direction.index(self.current_turn)
+            # --- BOT action ---
+            current_bot = self.current_player
+            self.action = current_bot.make_move()
 
-        # Get BOT player
-        current_bot = self.player_list[current_bot_index]
+        if self.action:
+            self.do_action()
 
-        current_bot.make_move(self)
-        current_bot.rearrange_deck()
-        current_bot.deck_field.build_tiles_position(current_bot)
+    def switch_turn(self, turn: Direction = None, draw: bool = True):
+        self.call_order = []
+        self.prev_player = self.find_player(self.current_turn)
+        self.prev_player.rearrange_deck()
 
-        self.bot_move_timer = 0
+        next_turn = Direction((self.current_turn.value + 1) % 4)
+        if self.latest_discarded_tile:
+            for player in self.player_list:
+                if player == self.prev_player:
+                    continue
+                if player.direction == next_turn:
+                    player.check_call(self.latest_discarded_tile, True)
+                else:
+                    player.check_call(self.latest_discarded_tile)
 
-        # Next turn
-        self.switch_turn()
+                if len(player.can_call) > 0:
+                    self.call_order.append(player)
+                print(player, player.can_call)
 
-    def switch_turn(self, turn: Direction = None):
-        self.find_player(self.current_turn).rearrange_deck()
+            self.call_order.sort(
+                key=lambda player: player.can_call[0].value, reverse=True
+            )
+            if len(self.call_order) > 0:
+                print("Call Order: ", self.call_order)
+                self.current_player = self.call_order[0]
+                self.current_turn = self.current_player.direction
+                return
 
         if turn is None:
-            self.current_turn = Direction((self.current_turn.value + 1) % 4)
+            self.current_turn = next_turn
         else:
             self.current_turn = turn
-
         self.current_player = self.find_player(self.current_turn)
-        self.current_player.draw(self.deck.draw_deck)
+        if draw:
+            self.current_player.draw(self.deck.draw_deck)
+
         self.current_player.deck_field.build_tiles_position(self.current_player)
-        print(f"Current turn is Player {self.current_player.player_idx}")
+        print(
+            f"Switch from turn player {self.prev_player.player_idx} to player {self.current_player.player_idx}"
+        )
 
     def find_player(self, turn: Direction) -> Player:
         return self.player_list[self.direction.index(turn)]
@@ -228,6 +279,9 @@ class GameManager:
         # Assign Turn
 
         self.current_turn = Direction(0)
+        self.current_player = self.find_player(self.current_turn)
+        self.main_player = self.player_list[0]
+
         discards_fields: list[DiscardField] = []
 
         for player in self.player_list:
@@ -237,9 +291,123 @@ class GameManager:
             self.screen, self.direction, discards_fields
         )
 
-    def rearrange_deck(self, player_deck: list[Tile]):
-        player_deck.sort(key=lambda tile: (tile.type.value, tile.number))
-        return player_deck
+    def do_action(self):
+        import random
 
-    def reset(self):
-        pass
+        # Next turn
+        latest_discarded_tile: Tile = self.latest_discarded_tile
+
+        if not self.current_player == self.main_player:
+            if self.calling_player:
+                print(f"{self.action} from {self.calling_player}")
+            try:
+                print(f"Current {self.current_player} is discarding...")
+            except:
+                pass
+        match self.action:
+            case ActionType.DISCARD:
+                tile: Tile = None
+                if self.current_turn == self.main_player.direction:
+                    try:
+                        tile = list(
+                            filter(
+                                lambda tile: tile.is_clicked,
+                                self.main_player.player_deck,
+                            )
+                        )[0]
+                    except:
+                        pass
+
+                discared_tile = self.current_player.discard(tile, self)
+                self.latest_discarded_tile = discared_tile
+                self.calling_player = None
+                self.call_order = []
+                self.action = None
+                self.switch_turn()
+
+            case ActionType.CHII:
+                self.calling_player.build_chii(latest_discarded_tile)
+
+                if self.current_turn == self.main_player.direction:
+                    pass
+
+                else:
+                    random_list = self.calling_player.callable_tiles_list[
+                        random.randint(
+                            0, len(self.calling_player.callable_tiles_list) - 1
+                        )
+                    ]
+                    self.calling_player.call(
+                        latest_discarded_tile,
+                        random_list,
+                        map_action_to_call(self.action),
+                        self.prev_player,
+                    )
+                    self.calling_player.discard(game_manager=self)
+                    self.switch_turn(
+                        Direction((self.calling_player.direction.value + 1) % 4)
+                    )
+                    self.reset_calling_state()
+
+            case ActionType.PON:
+                self.calling_player.build_pon(latest_discarded_tile)
+
+                if self.current_turn == self.main_player.direction:
+                    pass
+
+                else:
+                    random_list = self.calling_player.callable_tiles_list[
+                        random.randint(
+                            0, len(self.calling_player.callable_tiles_list) - 1
+                        )
+                    ]
+                    self.calling_player.call(
+                        latest_discarded_tile,
+                        random_list,
+                        map_action_to_call(self.action),
+                        self.prev_player,
+                    )
+                    self.calling_player.discard(game_manager=self)
+                    self.switch_turn(Direction(self.calling_player.direction.value + 1))
+                    self.reset_calling_state()
+
+            case ActionType.KAN:
+                self.calling_player.build_kan(latest_discarded_tile)
+
+                if self.current_turn == self.main_player.direction:
+                    pass
+
+                else:
+                    random_list = self.calling_player.callable_tiles_list[
+                        random.randint(
+                            0, len(self.calling_player.callable_tiles_list) - 1
+                        )
+                    ]
+                    self.calling_player.call(
+                        latest_discarded_tile,
+                        random_list,
+                        map_action_to_call(self.action),
+                        self.prev_player,
+                    )
+                    self.calling_player.discard(game_manager=self)
+                    self.switch_turn(Direction(self.calling_player.direction.value + 1))
+                    self.reset_calling_state()
+
+            case ActionType.RON:
+                pass
+
+            case ActionType.SKIP:
+                self.calling_player = None
+
+        self.bot_move_timer = 0
+        self.current_player.rearrange_deck()
+        self.current_player.deck_field.build_tiles_position(self.current_player)
+
+        print("--- DONE ACTION ---")
+
+    def reset_calling_state(self):
+        # --- RESET CALLING STATE ---
+        self.latest_discarded_tile = None
+        self.calling_player = None
+        self.call_order = []
+        self.action = None
