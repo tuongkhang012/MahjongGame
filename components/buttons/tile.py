@@ -6,6 +6,7 @@ from utils.constants import TILES_IMAGE_LINK, TILE_ANIMATION_DURATION
 from utils.helper import draw_hitbox
 from components.buttons.button import Button
 import typing
+import sys
 
 if typing.TYPE_CHECKING:
     from components.game_manager import GameManager
@@ -20,7 +21,10 @@ class Tile(Button):
         self.type = type
         self.number = number
         self.aka = aka
-        self.hidden = True
+        if len(sys.argv) > 1 and sys.argv[1] == "debug":
+            self.hidden = False
+        else:
+            self.hidden = True
 
         # Hovering section
         self.hover_offset_y = 12
@@ -111,3 +115,6 @@ class Tile(Button):
         if not isinstance(other, Tile):  # Optional: ensure comparison with same type
             return NotImplemented
         return id(self) == id(other)
+
+    def __str__(self):
+        return f"{self.type} {self.number}"

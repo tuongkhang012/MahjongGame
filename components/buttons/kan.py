@@ -4,7 +4,7 @@ from utils.constants import (
     CHI_PON_KAN_FONT_SIZE,
     MADOU_FUTO_FONT,
     CALL_TEXT_COLOR,
-    CALL__BUTTON_COLORS,
+    CALL_BUTTON_COLORS,
 )
 from pygame import Surface, Rect
 import pygame
@@ -17,5 +17,5 @@ class Kan(CallButton):
             Kan.__name__,
             Font(MADOU_FUTO_FONT, CHI_PON_KAN_FONT_SIZE),
             text_color=CALL_TEXT_COLOR,
-            bg_color=CALL__BUTTON_COLORS[Kan.__name__],
+            bg_color=CALL_BUTTON_COLORS[Kan.__name__],
         )

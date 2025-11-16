@@ -79,7 +79,6 @@ class DeckField(TilesField):
         first_tile = self.get_tiles_list()[0]
         tile_width, tile_height = first_tile.get_surface().get_size()
         hover_offset_y = first_tile.hover_offset_y
-
         match player.player_idx:
             case 0 | 2:
                 self.surface = Surface(

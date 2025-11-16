@@ -24,7 +24,7 @@ CHI_PON_KAN_FONT_SIZE = 20
 
 MADOU_FUTO_FONT = "public/fonts/MadouFutoMaruGothic-d9Xo7.ttf"
 
-CALL__BUTTON_COLORS = {
+CALL_BUTTON_COLORS = {
     # --- Winning Actions ---
     "Ron": (214, 69, 75),  # The bright Red from "Ron"
     "Tsumo": (34, 139, 34),  # (Using my previous suggestion, as it's not in the image)
@@ -37,4 +37,5 @@ CALL__BUTTON_COLORS = {
     "Skip": (112, 112, 112),  # The Medium Gray color from "Skip"
 }
 
+CALL_BUTTON_SIZE = (80, 40)
 CALL_TEXT_COLOR = (255, 255, 255)

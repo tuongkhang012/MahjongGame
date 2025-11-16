@@ -9,7 +9,6 @@ if typing.TYPE_CHECKING:
 class Call:
     type: CallType
     tiles: list[Tile]
-    player: "Player"
 
     def __init__(self, type: CallType, tiles: list[Tile]):
         tiles.sort(key=lambda tile: (tile.type.value, tile.number))
@@ -61,3 +60,5 @@ class Call:
                     raise ValueError(
                         f"Wrong Chii format! The tiles are {tiles} which are not the correct for Chii"
                     )
+        self.type = type
+        self.tiles = tiles

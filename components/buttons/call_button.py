@@ -3,6 +3,7 @@ from pygame.freetype import Font
 from pygame import Surface, Rect, Color
 import pygame
 from utils.helper import build_center_rect
+from utils.constants import CALL_BUTTON_SIZE
 
 
 class CallButton(Button):
@@ -16,7 +17,7 @@ class CallButton(Button):
         self.bg_color = bg_color
 
         # Init call button size
-        self.button_size = (80, 40)
+        self.button_size = CALL_BUTTON_SIZE
 
         # Init button
         self.init_button()

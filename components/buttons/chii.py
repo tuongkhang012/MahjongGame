@@ -3,7 +3,7 @@ from pygame.freetype import Font
 from utils.constants import (
     CHI_PON_KAN_FONT_SIZE,
     MADOU_FUTO_FONT,
-    CALL__BUTTON_COLORS,
+    CALL_BUTTON_COLORS,
     CALL_TEXT_COLOR,
 )
 from pygame import Surface, Rect
@@ -17,5 +17,5 @@ class Chii(CallButton):
             Chii.__name__,
             Font(MADOU_FUTO_FONT, CHI_PON_KAN_FONT_SIZE),
             text_color=CALL_TEXT_COLOR,
-            bg_color=CALL__BUTTON_COLORS[Chii.__name__],
+            bg_color=CALL_BUTTON_COLORS[Chii.__name__],
         )

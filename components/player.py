@@ -111,7 +111,7 @@ class Player:
         for tile in call_list:
             self.player_deck.remove(tile)
 
-        self.call_tiles.append(Call(call_type, call_list))
+        self.call_field.add_call(Call(call_type, call_list))
         print(
             f"Player {self.player_idx} call: {call_type} for {list(map(lambda tile: f"{tile.type}, {tile.number}",call_list))}"
         )
@@ -129,10 +129,10 @@ class Player:
         self.discard_tiles.append(tile)
 
         print(
-            f"Player {self.player_idx} discard tile: {tile.type} {tile.number}, discard_fields: {self.discard_tiles}"
+            f"Player {self.player_idx} discard tile: {tile.type} {tile.number}, discard_fields: {list(map(lambda tile: (tile.type, tile.number), self.discard_tiles))}"
         )
         game_manager.start_discarded_animation(tile)
-
+        game_manager.latest_discarded_tile = tile
         return tile
 
     def rearrange_deck(self):
@@ -146,7 +146,8 @@ class Player:
         from random import randint
 
         if len(self.can_call) > 0:
-            return map_call_to_action(self.can_call[0])
+            # return map_call_to_action(self.can_call[randint(0, len(self.can_call) - 1)])
+            return map_call_to_action(self.can_call[-1])
 
         return ActionType.DISCARD
 
@@ -193,6 +194,9 @@ class Player:
 
         if len(self.can_call) > 0:
             self.can_call.append(CallType.SKIP)
+
+    def reset_call(self):
+        self.can_call = []
 
     def is_chii_able(self, tile: Tile) -> bool:
         # Case 1: n - 1, n, n + 1
