@@ -146,8 +146,7 @@ class Player:
         from random import randint
 
         if len(self.can_call) > 0:
-            # return map_call_to_action(self.can_call[randint(0, len(self.can_call) - 1)])
-            return map_call_to_action(self.can_call[-1])
+            return map_call_to_action(self.can_call[randint(0, len(self.can_call) - 1)])
 
         return ActionType.DISCARD
 
