@@ -103,18 +103,24 @@ class Player:
     def call(
         self, tile: Tile, call_list: list[Tile], call_type: CallType, player: "Player"
     ):
-
-        player.discard_tiles.remove(tile)
         tile.source = TileSource.PLAYER
+        print(
+            f"Player {self.player_idx} call: {call_type} for {list(map(lambda tile: tile.__str__(),call_list))}"
+        )
+        player.discard_tiles.remove(tile)
         self.player_deck.append(tile)
 
-        for tile in call_list:
-            self.player_deck.remove(tile)
+        for tmp_tile in call_list:
+            self.player_deck.remove(tmp_tile)
 
-        self.call_field.add_call(Call(call_type, call_list))
-        print(
-            f"Player {self.player_idx} call: {call_type} for {list(map(lambda tile: f"{tile.type}, {tile.number}",call_list))}"
+        self.call_field.add_call(
+            Call(call_type, call_list, self.player_idx, player.player_idx)
         )
+
+        self.rearrange_deck()
+        print(len(self.deck_field.get_tiles_list()))
+        self.deck_field.build_field_surface(self)
+        self.deck_field.build_tiles_position(self)
 
     def discard(self, tile: Tile = None, game_manager: "GameManager" = None):
         import random
@@ -127,12 +133,8 @@ class Player:
         tile.unclicked()
         self.player_deck.remove(tile)
         self.discard_tiles.append(tile)
-
-        print(
-            f"Player {self.player_idx} discard tile: {tile.type} {tile.number}, discard_fields: {list(map(lambda tile: (tile.type, tile.number), self.discard_tiles))}"
-        )
-        game_manager.start_discarded_animation(tile)
         game_manager.latest_discarded_tile = tile
+        game_manager.start_discarded_animation(tile)
         return tile
 
     def rearrange_deck(self):
@@ -147,7 +149,7 @@ class Player:
 
         if len(self.can_call) > 0:
             return map_call_to_action(self.can_call[randint(0, len(self.can_call) - 1)])
-
+            # return map_call_to_action(self.can_call[0])
         return ActionType.DISCARD
 
     def get_draw_tile(self) -> Tile:

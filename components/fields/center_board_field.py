@@ -77,7 +77,7 @@ class CenterBoardField(Field):
             build_center_rect(surface, direction_turn_surface),
         )
         for idx, discard_field in enumerate(self.__discards_fields):
-            discard_field.render(idx)
+            discard_field.render()
             relative_position = self.build_discard_surface_position(idx)
             discard_field.update_relative_position(relative_position)
 

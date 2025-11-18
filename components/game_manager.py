@@ -103,6 +103,9 @@ class GameManager:
                     self.call_button_field.render(self.main_player.can_call)
                 player.reveal_hand()
 
+            if len(player.call_tiles) > 0:
+                player.call_field.render(self.screen)
+
         if self.animation_tile:
             self.render_discarded_animation(self.animation_tile)
 
@@ -187,7 +190,7 @@ class GameManager:
                 if self.bot_move_timer < self.BOT_MOVE_DELAY:
                     return  # Not time to move yet
                 self.action = self.calling_player.make_move()
-                print("--- START CHI PON KAN RON ---")
+                print("--- START CHII PON KAN RON ---")
 
         if self.current_player == self.main_player:
             if self.action:
@@ -389,16 +392,13 @@ class GameManager:
     def __handle_switch_turn(self):
         calling_player = self.calling_player
         self.__reset_calling_state()
-        if calling_player == self.main_player:
-            self.switch_turn(calling_player.direction, False)
-        else:
-            calling_player.discard(game_manager=self)
-            self.switch_turn(Direction((calling_player.direction.value + 1) % 4))
+        self.switch_turn(calling_player.direction, False)
 
     def __reset_calling_state(self):
         # --- RESET CALLING STATE ---
         self.latest_discarded_tile = None
         self.calling_player = None
+        self.call_order = []
         self.action = None
 
         for player in self.player_list:

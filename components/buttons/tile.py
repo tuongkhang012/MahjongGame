@@ -74,25 +74,26 @@ class Tile(Button):
 
     def update_tile_surface(
         self,
-        player_idx: int,
+        player_idx: int = None,
         reveal_surface: Surface = None,
         hidden_surface: Surface = None,
     ) -> None:
-        if hidden_surface is None:
+        if hidden_surface is None and player_idx is not None:
             hidden_surface = self.tiles_cutter.cut_hidden_tiles(True, player_idx)
 
-        if reveal_surface is None:
+        if reveal_surface is None and player_idx is not None:
             reveal_surface = self.tiles_cutter.cut_tiles(
                 self.type, self.number, self.aka, player_idx
             )
+        if reveal_surface:
+            self.surface = reveal_surface
+            self._original_surface = reveal_surface
+            self._highlight_surface = self._create_highlight_surface(
+                reveal_surface, pygame.Color(255, 247, 0, 180)
+            )
 
-        self.surface = reveal_surface
-        self._original_surface = reveal_surface
-        self._highlight_surface = self._create_highlight_surface(
-            reveal_surface, pygame.Color(255, 247, 0, 180)
-        )
-
-        self._hidden_surface = hidden_surface
+        if hidden_surface:
+            self._hidden_surface = hidden_surface
 
     def scale_surface(self, scale_by: float):
         self.surface = pygame.transform.scale_by(self.surface, scale_by)
@@ -117,4 +118,4 @@ class Tile(Button):
         return id(self) == id(other)
 
     def __str__(self):
-        return f"{self.type} {self.number}"
+        return f"{self.type} {self.number} FROM {self.source}"

@@ -63,17 +63,23 @@ class Button:
     def build_text_surface(self):
         return self.font.render(self.text, self.text_color)
 
-    def update_position(self, x: float, y: float, width: float, height: float):
+    def update_position(
+        self, x: float, y: float, width: float = None, height: float = None
+    ):
         self._position.x = x
         self._position.y = y
-        self._position.width = width
-        self._position.height = height
+        if width is not None:
+            self._position.width = width
+        if height is not None:
+            self._position.height = height
 
         # Store for base value, whenever bobbing effect
         self._base_position.x = x
         self._base_position.y = y
-        self._base_position.width = width
-        self._base_position.height = height
+        if width is not None:
+            self._base_position.width = width
+        if height is not None:
+            self._base_position.height = height
 
     def clicked(self):
         self.is_clicked = True

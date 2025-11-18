@@ -23,9 +23,9 @@ class DiscardField(TilesField):
         super().__init__(screen, player_idx, tiles_list, full_tiles_list)
         self.tiles_per_line = 6
 
-    def render(self, player_idx: int) -> Surface:
+    def render(self) -> Surface:
         self.build_field_surface()
-        self.build_tiles_position(player_idx)
+        self.build_tiles_position()
         for tile in self.get_tiles_list():
             tile.render(self.surface)
 
@@ -34,13 +34,13 @@ class DiscardField(TilesField):
     def build_field_surface(self) -> Surface:
         self.surface = Surface(DISCARD_FIELD_SIZE, pygame.SRCALPHA)
 
-    def build_tiles_position(self, player_idx: int):
+    def build_tiles_position(self):
         for idx, tile in enumerate(self.get_tiles_list()):
 
             line = math.floor(idx / 6)
             tile_width = DISCARD_FIELD_SIZE[0] / 6
             tile_height = DISCARD_FIELD_SIZE[1] / 6
-            match player_idx:
+            match self.player_idx:
                 case 0:
                     tile.scale_surface(tile_width / tile.surface.get_width())
                     tile.update_position(
