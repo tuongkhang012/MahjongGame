@@ -12,6 +12,7 @@ from components.buttons.kan import Kan
 from components.buttons.pon import Pon
 from components.buttons.ron import Ron
 from components.buttons.skip import Skip
+from components.buttons.tsumo import Tsumo
 from components.call import Call
 
 import typing
@@ -136,17 +137,19 @@ class CallButtonField(Field):
 
     def click(self, event: Event, game_manager: "GameManager"):
         local_mouse = self.build_local_mouse(event.pos)
-
+        player = game_manager.player_list[0]
         for button in self.render_button_list:
             if button.check_collidepoint(local_mouse):
                 print(f"CLICKING BUTTON {button.text.upper()}")
                 if isinstance(button, Chii):
-                    game_manager.action = ActionType.CHII
+                    game_manager.action = player.make_move(ActionType.CHII)
                 elif isinstance(button, Skip):
-                    game_manager.action = ActionType.SKIP
+                    game_manager.action = player.make_move(ActionType.SKIP)
                 elif isinstance(button, Pon):
-                    game_manager.action = ActionType.PON
+                    game_manager.action = player.make_move(ActionType.PON)
                 elif isinstance(button, Kan):
-                    game_manager.action = ActionType.KAN
+                    game_manager.action = player.make_move(ActionType.KAN)
                 elif isinstance(button, Ron):
-                    game_manager.action = ActionType.RON
+                    game_manager.action = player.make_move(ActionType.RON)
+                elif isinstance(button, Tsumo):
+                    game_manager.action = player.make_move(ActionType.TSUMO)

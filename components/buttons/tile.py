@@ -3,7 +3,7 @@ import pygame
 from pygame import Surface
 from components.image_cutter import ImageCutter
 from utils.constants import TILES_IMAGE_LINK, TILE_ANIMATION_DURATION
-from utils.helper import draw_hitbox
+from utils.helper import draw_hitbox, convert_tile_to_hand34_index
 from components.buttons.button import Button
 import typing
 import sys
@@ -30,6 +30,9 @@ class Tile(Button):
         self.hover_offset_y = 12
         self.animation_speed = 0.5
         self.animation_duration = TILE_ANIMATION_DURATION
+
+        # Hand 34 index
+        self.hand34_idx = convert_tile_to_hand34_index(self)
 
         # Image Cutter for tile surface
         self.tiles_cutter = ImageCutter(TILES_IMAGE_LINK)
@@ -117,5 +120,62 @@ class Tile(Button):
             return NotImplemented
         return id(self) == id(other)
 
-    def __str__(self):
+    def __str__(self, full: bool = False):
+        if not full:
+            tile_type = None
+            match self.type:
+                case TileType.SOU:
+                    tile_type = "s"
+                case TileType.PIN:
+                    tile_type = "p"
+                case TileType.MAN:
+                    tile_type = "m"
+                case TileType.DRAGON:
+                    if self.number == 1:
+                        return "P"
+                    elif self.number == 2:
+                        return "F"
+                    elif self.number == 3:
+                        return "C"
+                case TileType.WIND:
+                    if self.number == 1:
+                        return "E"
+                    elif self.number == 2:
+                        return "S"
+                    elif self.number == 3:
+                        return "W"
+                    elif self.number == 4:
+                        return "N"
+            return f"{self.number}{tile_type}{"r" if self.aka else ""}"
+
+        return f"{self.type} {self.number} FROM {self.source}"
+
+    def __repr__(self, full: bool = False):
+        if not full:
+            tile_type = None
+            match self.type:
+                case TileType.SOU:
+                    tile_type = "s"
+                case TileType.PIN:
+                    tile_type = "p"
+                case TileType.MAN:
+                    tile_type = "m"
+                case TileType.DRAGON:
+                    if self.number == 1:
+                        return "P"
+                    elif self.number == 2:
+                        return "F"
+                    elif self.number == 3:
+                        return "C"
+                case TileType.WIND:
+                    if self.number == 1:
+                        return "E"
+                    elif self.number == 2:
+                        return "S"
+                    elif self.number == 3:
+                        return "W"
+                    elif self.number == 4:
+                        return "N"
+            return f"{self.number}{tile_type}{"r" if self.aka else ""}"
+
         return f"{self.type} {self.number} FROM {self.source}"

@@ -47,7 +47,7 @@ class TilesField(Field):
         for tile in collide_tiles:
             tile.clicked()
             update_tiles.append(tile)
-            game_manager.action = ActionType.DISCARD
+            game_manager.action = player.make_move(ActionType.DISCARD)
 
         # Check for uncollided clicked tiles
         remaining_clicked_tiles = list(

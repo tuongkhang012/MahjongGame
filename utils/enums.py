@@ -10,8 +10,8 @@ class Direction(Enum):
 
 class TileType(Enum):
     MAN = 0
-    SOU = 1
-    PIN = 2
+    PIN = 1
+    SOU = 2
     WIND = 3
     DRAGON = 4
 
@@ -22,17 +22,41 @@ class TileSource(Enum):
 
 
 class CallType(Enum):
-    RON = 0
-    KAN = 1
-    PON = 2
-    CHII = 3
-    SKIP = 4
+    TSUMO = 0
+    RON = 1
+    KAN = 2
+    PON = 3
+    CHII = 4
+    SKIP = 5
+
+
+class CallName(Enum):
+    """
+    Name of call (naki) for easier definition
+    - CHII: chii
+    - PON: pon
+    - DAMINKAN: Daminkan
+    - ANKAN: ankan
+    - KAKAN: kakan (shouminkan)
+    - AGARI: agari
+    - RON: ron
+    """
+
+    CHII = "chii"
+    PON = "pon"
+    DAMINKAN = "damikan"
+    ANKAN = "ankan"
+    KAKAN = "kakan"
+    AGARI = "agari"
+    RON = "ron"
 
 
 class ActionType(Enum):
-    RON = 0
-    KAN = 1
-    PON = 2
-    CHII = 3
-    SKIP = 4
-    DISCARD = 5
+    TSUMO = 0
+    RON = 1
+    KAN = 2
+    PON = 3
+    CHII = 4
+    SKIP = 5
+    DRAW = 6
+    DISCARD = 7

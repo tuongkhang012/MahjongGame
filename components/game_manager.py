@@ -19,6 +19,7 @@ from utils.helper import build_center_rect, map_action_to_call
 from components.fields.center_board_field import CenterBoardField
 from components.fields.discard_field import DiscardField
 import typing
+import random
 
 # Tile
 from components.buttons.tile import Tile
@@ -54,8 +55,9 @@ class GameManager:
     call_order: list[Player] = []
     calling_player: Player = None
     action: ActionType = None
+    prev_action: ActionType = None
 
-    def __init__(self):
+    def __init__(self, start_data):
         pygame.init()
         # pygame.mixer.init()
         # pygame.freetype.init()
@@ -73,7 +75,7 @@ class GameManager:
         self.clock.tick(FPS_LIMIT)  # limits FPS to 60
         self.last_time = pygame.time.get_ticks()  # For calculating delta time
 
-        self.builder = GameBuilder(self.screen, self.clock)
+        self.builder = GameBuilder(self.screen, self.clock, start_data)
 
         # Init game
         self.new()
@@ -103,7 +105,7 @@ class GameManager:
                     self.call_button_field.render(self.main_player.can_call)
                 player.reveal_hand()
 
-            if len(player.call_tiles) > 0:
+            if len(player.call_list) > 0:
                 player.call_field.render(self.screen)
 
         if self.animation_tile:
@@ -236,7 +238,6 @@ class GameManager:
                     player.check_call(self.latest_discarded_tile, True)
                 else:
                     player.check_call(self.latest_discarded_tile)
-                print(player, player.can_call)
                 if len(player.can_call) > 0:
                     self.call_order.append(player)
 
@@ -244,7 +245,6 @@ class GameManager:
                 key=lambda player: player.can_call[0].value, reverse=True
             )
             if len(self.call_order) > 0:
-                print(self.call_order)
                 self.calling_player = self.call_order.pop()
                 return
 
@@ -253,9 +253,10 @@ class GameManager:
         else:
             self.current_turn = next_turn
 
-        self.current_player = self.find_player(self.current_turn)
         if draw:
-            self.current_player.draw(self.deck.draw_deck)
+            self.action = ActionType.DRAW
+
+        self.current_player = self.find_player(self.current_turn)
 
         self.current_player.deck_field.build_tiles_position(self.current_player)
         print(
@@ -299,10 +300,9 @@ class GameManager:
         )
 
     def do_action(self):
-        import random
 
         # Next turn
-        print(f"--- START {self.action.name.upper()} ACTION ---")
+        print(f"########## START {self.action.name.upper()} ACTION ##########")
         latest_discarded_tile: Tile = self.latest_discarded_tile
 
         if not self.current_player == self.main_player:
@@ -313,6 +313,20 @@ class GameManager:
                 print(f"Current {self.current_player} is discarding...")
 
         match self.action:
+            case ActionType.DRAW:
+                self.__reset_calling_state()
+                if self.prev_action == ActionType.KAN:
+                    self.current_player.draw(
+                        self.deck.death_wall, self.deck.death_wall[0]
+                    )
+                else:
+                    self.current_player.draw(self.deck.draw_deck)
+                if len(self.current_player.can_call) > 0:
+                    self.call_order.append(self.current_player)
+                else:
+                    self.deck.death_wall.append(self.deck.draw_deck[0])
+                    self.deck.draw_deck.remove(self.deck.draw_deck[0])
+
             case ActionType.DISCARD:
                 tile: Tile = None
                 if self.current_turn == self.main_player.direction:
@@ -333,9 +347,8 @@ class GameManager:
                 calling_player = self.calling_player
                 calling_player.build_chii(latest_discarded_tile)
 
-                random_list = calling_player.callable_tiles_list[
-                    random.randint(0, len(calling_player.callable_tiles_list) - 1)
-                ]
+                random_list = self.__get_random_callable_list(calling_player)
+
                 calling_player.call(
                     latest_discarded_tile,
                     random_list,
@@ -348,9 +361,8 @@ class GameManager:
                 calling_player = self.calling_player
                 calling_player.build_pon(latest_discarded_tile)
 
-                random_list = calling_player.callable_tiles_list[
-                    random.randint(0, len(calling_player.callable_tiles_list) - 1)
-                ]
+                random_list = self.__get_random_callable_list(calling_player)
+
                 calling_player.call(
                     latest_discarded_tile,
                     random_list,
@@ -361,21 +373,33 @@ class GameManager:
 
             case ActionType.KAN:
                 calling_player = self.calling_player
-                calling_player.build_kan(latest_discarded_tile)
+                if self.prev_action == ActionType.DRAW:
+                    calling_player.build_kan(calling_player.get_draw_tile())
+                else:
+                    calling_player.build_kan(latest_discarded_tile)
 
-                random_list = calling_player.callable_tiles_list[
-                    random.randint(0, len(calling_player.callable_tiles_list) - 1)
-                ]
-                calling_player.call(
-                    latest_discarded_tile,
-                    random_list,
-                    map_action_to_call(self.action),
-                    self.current_player,
-                )
-                self.__handle_switch_turn()
+                random_list = self.__get_random_callable_list(calling_player)
+                if self.prev_action == ActionType.DRAW:
+                    calling_player.call(
+                        calling_player.get_draw_tile(),
+                        random_list,
+                        map_action_to_call(self.action),
+                        None,
+                    )
+                else:
+                    calling_player.call(
+                        latest_discarded_tile,
+                        random_list,
+                        map_action_to_call(self.action),
+                        self.current_player,
+                    )
+
+                self.__handle_switch_turn(True)
 
             case ActionType.RON:
-                pass
+                calling_player = self.calling_player
+
+                # End game
 
             case ActionType.SKIP:
                 if len(self.call_order) == 0:
@@ -387,15 +411,16 @@ class GameManager:
         self.bot_move_timer = 0
         self.current_player.deck_field.build_tiles_position(self.current_player)
 
-        print("--- DONE ACTION ---")
+        print("########## DONE ACTION ##########")
 
-    def __handle_switch_turn(self):
+    def __handle_switch_turn(self, draw: bool = False):
         calling_player = self.calling_player
         self.__reset_calling_state()
-        self.switch_turn(calling_player.direction, False)
+        self.switch_turn(calling_player.direction, draw)
 
     def __reset_calling_state(self):
         # --- RESET CALLING STATE ---
+        self.prev_action = self.action
         self.latest_discarded_tile = None
         self.calling_player = None
         self.call_order = []
@@ -403,3 +428,12 @@ class GameManager:
 
         for player in self.player_list:
             player.reset_call()
+
+    def __get_random_callable_list(self, calling_player: Player):
+        return calling_player.callable_tiles_list[
+            random.randint(0, len(calling_player.callable_tiles_list) - 1)
+        ]
+
+    def end_match(self):
+        for player in self.player_list:
+            self.builder.calculate_player_score()

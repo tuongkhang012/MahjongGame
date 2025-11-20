@@ -80,7 +80,7 @@ class DeckField(TilesField):
         tile_width, tile_height = first_tile.get_surface().get_size()
         hover_offset_y = first_tile.hover_offset_y
         match player.player_idx:
-            case 0 | 2:
+            case 0:
                 self.surface = Surface(
                     (
                         tile_width * len(self.get_tiles_list())
@@ -95,6 +95,20 @@ class DeckField(TilesField):
                     pygame.SRCALPHA,
                 )
 
+            case 2:
+                self.surface = Surface(
+                    (
+                        tile_width * len(self.get_tiles_list())
+                        + (
+                            self.draw_tile_offset
+                            if player.get_draw_tile() == self.get_tiles_list()[-1]
+                            and player.total_tiles() >= 14
+                            else 0
+                        ),
+                        tile_height,
+                    ),
+                    pygame.SRCALPHA,
+                )
             case 1 | 3:
                 self.surface = Surface(
                     (
