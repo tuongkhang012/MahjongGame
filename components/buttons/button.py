@@ -57,7 +57,7 @@ class Button:
         self.animation_timer = 0.0
         self.animation_duration = 1.0
 
-    def render(self, screen: Surface):
+    def render(self, screen: Surface) -> tuple[Surface, Rect]:
         screen.blit(self.surface, (self._position.x, self._position.y))
 
     def build_text_surface(self):

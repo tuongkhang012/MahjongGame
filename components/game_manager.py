@@ -347,7 +347,7 @@ class GameManager:
             case ActionType.CHII:
                 calling_player = self.calling_player
                 calling_player.build_chii(latest_discarded_tile)
-
+                # TODO
                 random_list = self.__get_random_callable_list(calling_player)
 
                 calling_player.call(

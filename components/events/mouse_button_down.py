@@ -27,7 +27,7 @@ class MouseButtonDown(EventController):
         call_button_field = self.game_manager.call_button_field
 
         if (
-            player.direction == self.game_manager.current_turn
+            player == self.game_manager.current_player
             and player.deck_field.check_collide(event.pos)
         ):
             player.deck_field.click(event, self.game_manager)
