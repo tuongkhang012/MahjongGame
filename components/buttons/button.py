@@ -1,5 +1,7 @@
 from pygame import Rect, Color, Surface
+from pygame.freetype import Font
 import pygame
+from utils.helper import build_center_rect
 
 
 class Button:
@@ -28,7 +30,9 @@ class Button:
     def __init__(
         self,
         text: str = None,
-        color: Color = None,
+        font: Font = None,
+        text_color: Color = None,
+        bg_color: Color = None,
         hover_color: Color = None,
     ):
         # Screen relative
@@ -37,9 +41,11 @@ class Button:
 
         # Button information
         self.text = text
+        self.font = font
+        self.text_color = text_color
 
         # Button color
-        self.color = color
+        self.bg_color = bg_color
         self.hover_color = hover_color
 
         # Button state
@@ -51,20 +57,29 @@ class Button:
         self.animation_timer = 0.0
         self.animation_duration = 1.0
 
-    def render(self, screen: Surface):
+    def render(self, screen: Surface) -> tuple[Surface, Rect]:
         screen.blit(self.surface, (self._position.x, self._position.y))
 
-    def update_position(self, x: float, y: float, width: float, height: float):
+    def build_text_surface(self):
+        return self.font.render(self.text, self.text_color)
+
+    def update_position(
+        self, x: float, y: float, width: float = None, height: float = None
+    ):
         self._position.x = x
         self._position.y = y
-        self._position.width = width
-        self._position.height = height
+        if width is not None:
+            self._position.width = width
+        if height is not None:
+            self._position.height = height
 
         # Store for base value, whenever bobbing effect
         self._base_position.x = x
         self._base_position.y = y
-        self._base_position.width = width
-        self._base_position.height = height
+        if width is not None:
+            self._base_position.width = width
+        if height is not None:
+            self._base_position.height = height
 
     def clicked(self):
         self.is_clicked = True

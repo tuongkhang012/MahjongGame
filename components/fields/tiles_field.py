@@ -4,6 +4,7 @@ import pygame
 import typing
 from pygame.event import Event
 from components.mouse import Mouse
+from utils.enums import ActionType
 
 if typing.TYPE_CHECKING:
     from components.player import Player
@@ -29,7 +30,6 @@ class TilesField(Field):
         self.__tiles_list = tiles_list
         self.__full_tiles_list = full_tiles_list
         self.player_idx = player_idx
-        self.mouse = Mouse()
 
     def click(self, event: Event, game_manager: "GameManager"):
         player = game_manager.player_list[0]
@@ -47,6 +47,7 @@ class TilesField(Field):
         for tile in collide_tiles:
             tile.clicked()
             update_tiles.append(tile)
+            game_manager.action = player.make_move(ActionType.DISCARD)
 
         # Check for uncollided clicked tiles
         remaining_clicked_tiles = list(
@@ -71,7 +72,8 @@ class TilesField(Field):
 
     def hover(
         self, event: Event, hover_animation: bool = True, hover_highlight: bool = True
-    ):
+    ) -> bool:
+        is_hovering_tile = False
         update_tile_list: list[Tile] = []
         # Check for collide tiles
         collide_tile = list(
@@ -82,12 +84,10 @@ class TilesField(Field):
             )
         )
         for tile in collide_tile:
+            is_hovering_tile = True
             if hover_animation:
                 tile.hovered()
                 update_tile_list.append(tile)
-
-            # Change mouse display
-            self.mouse.hover()
 
             # Highlight all same tiles
             for tmp_tile in self.__full_tiles_list:
@@ -121,6 +121,8 @@ class TilesField(Field):
         for tile in update_tile_list:
             tile.update_hover()
 
+        return is_hovering_tile
+
     def unhover(self):
         for tile in self.get_tiles_list():
             tile.unhovered()
@@ -130,7 +132,6 @@ class TilesField(Field):
                 tmp_tile.is_highlighted and tmp_tile.unhighlighted()
 
             tile.update_hover()
-        self.mouse.default()
 
     def get_tiles_list(self) -> list["Tile"]:
         return self.__tiles_list

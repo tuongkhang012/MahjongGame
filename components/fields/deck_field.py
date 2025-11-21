@@ -79,25 +79,48 @@ class DeckField(TilesField):
         first_tile = self.get_tiles_list()[0]
         tile_width, tile_height = first_tile.get_surface().get_size()
         hover_offset_y = first_tile.hover_offset_y
-
         match player.player_idx:
-            case 0 | 2:
+            case 0:
                 self.surface = Surface(
                     (
                         tile_width * len(self.get_tiles_list())
-                        + (self.draw_tile_offset if player.total_tiles() >= 14 else 0),
+                        + (
+                            self.draw_tile_offset
+                            if player.get_draw_tile() == self.get_tiles_list()[-1]
+                            and player.total_tiles() >= 14
+                            else 0
+                        ),
                         tile_height + hover_offset_y,
                     ),
                     pygame.SRCALPHA,
                 )
 
+            case 2:
+                self.surface = Surface(
+                    (
+                        tile_width * len(self.get_tiles_list())
+                        + (
+                            self.draw_tile_offset
+                            if player.get_draw_tile() == self.get_tiles_list()[-1]
+                            and player.total_tiles() >= 14
+                            else 0
+                        ),
+                        tile_height,
+                    ),
+                    pygame.SRCALPHA,
+                )
             case 1 | 3:
                 self.surface = Surface(
                     (
                         tile_width,
                         (tile_height / 2) * (len(self.get_tiles_list()) - 1)
                         + tile_height
-                        + (self.draw_tile_offset if player.total_tiles() >= 14 else 0),
+                        + (
+                            self.draw_tile_offset
+                            if player.get_draw_tile() == self.get_tiles_list()[-1]
+                            and player.total_tiles() >= 14
+                            else 0
+                        ),
                     ),
                     pygame.SRCALPHA,
                 )
@@ -127,22 +150,37 @@ class DeckField(TilesField):
 
                     position_y = tile.hover_offset_y
 
-                case 2:
-                    if player.total_tiles() >= 14:
-                        start_x_position = tile_width + self.draw_tile_offset
-                    else:
-                        start_x_position = 0
+                case 1:
+                    position_x = 0
+                    if (
+                        tile == self.get_tiles_list()[-1]
+                        and tile == player.get_draw_tile()
+                        and player.total_tiles() >= 14
+                    ):
+                        position_y = 0
 
+                    elif (
+                        player.total_tiles() >= 14
+                        and self.get_tiles_list()[-1] == player.get_draw_tile()
+                    ):
+                        position_y = self.draw_tile_offset + tile_height / 2 * (idx + 1)
+                    else:
+                        position_y = tile_height / 2 * idx
+
+                case 2:
                     if (
                         tile == self.get_tiles_list()[-1]
                         and player.total_tiles() >= 14
                         and player.get_draw_tile() == tile
                     ):
-
                         position_x = 0
+                    elif (
+                        player.total_tiles() >= 14
+                        and self.get_tiles_list()[-1] == player.get_draw_tile()
+                    ):
+                        position_x = self.draw_tile_offset + tile_width * (idx + 1)
                     else:
-                        position_x = start_x_position + tile_width * idx
-
+                        position_x = tile_width * idx
                     position_y = 0
 
                 case 3:
@@ -157,23 +195,6 @@ class DeckField(TilesField):
 
                     else:
                         position_y = (tile_height / 2) * idx
-
-                case 1:
-                    position_x = 0
-
-                    if player.total_tiles() >= 14:
-                        start_y_position = tile_height / 2 + self.draw_tile_offset
-                    else:
-                        start_y_position = 0
-
-                    if (
-                        tile == self.get_tiles_list()[-1]
-                        and player.total_tiles() >= 14
-                        and tile == player.get_draw_tile()
-                    ):
-                        position_y = 0
-                    else:
-                        position_y = start_y_position + tile_height / 2 * idx
 
             tile.update_position(position_x, position_y, tile_width, tile_height)
 
