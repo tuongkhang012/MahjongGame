@@ -37,5 +37,7 @@ CALL_BUTTON_COLORS = {
     "Skip": (112, 112, 112),  # The Medium Gray color from "Skip"
 }
 
+COLOR_WHITE = (255, 255, 255)
+
 CALL_BUTTON_SIZE = (80, 40)
-CALL_TEXT_COLOR = (255, 255, 255)
+CALL_TEXT_COLOR = COLOR_WHITE

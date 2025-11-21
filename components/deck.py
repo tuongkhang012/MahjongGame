@@ -6,6 +6,7 @@ from utils.helper import (
     parse_string_tile,
     split_every_n_chars,
     find_suitable_tile_in_list,
+    convert_tiles_list_to_hand34,
 )
 import sys
 from typing import Any
@@ -67,11 +68,14 @@ class Deck:
                 self.draw_deck.insert(0, tile)
 
         else:
-            self.full_deck = (
-                new_deck[cutting_points:] + new_deck[0 : cutting_points - 1]
-            )
+            self.full_deck = new_deck[cutting_points:] + new_deck[0:cutting_points]
             self.draw_deck = self.full_deck[2 * 7 :]
-            self.death_wall = self.full_deck[0 : 2 * 7 - 1]
+            self.death_wall = self.full_deck[0 : 2 * 7]
+
+        if not all(
+            [tile_num == 4 for tile_num in convert_tiles_list_to_hand34(self.full_deck)]
+        ):
+            raise ValueError("Some tiles are missing!")
 
         self.dora.append(self.death_wall[5])
 

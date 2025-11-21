@@ -76,12 +76,12 @@ class Player:
         self.melds = []
 
         # Game properties
-        self.__is_riichi = True
+        self.__is_riichi = False
         self.__winning_tiles = []
-        # Player scores
-        self.scores = 25000
+        # Player points
+        self.points = 25000
 
-    def draw(self, draw_deck: list[Tile], tile: Tile = None):
+    def draw(self, draw_deck: list[Tile], tile: Tile = None, check_call: bool = True):
         if tile:
             self.__draw_tile = tile
             draw_deck.remove(tile)
@@ -91,7 +91,8 @@ class Player:
         self.__draw_tile.source = TileSource.DRAW
         self.player_deck.append(self.__draw_tile)
         self.__draw_tile.update_tile_surface(self.player_idx)
-        self.check_call(self.__draw_tile)
+        if check_call:
+            self.check_call(self.__draw_tile, is_current_turn=True)
         return self.__draw_tile
 
     def build_chii(self, tile: Tile):
@@ -126,16 +127,14 @@ class Player:
         self.callable_tiles_list = []
 
         if tile.source == TileSource.PLAYER:
-            self.callable_tiles_list.append(
-                list(
-                    filter(
-                        lambda player_tile: tile.number == player_tile.number
-                        and tile.type == player_tile.type,
-                        self.player_deck,
-                    )
+            callable_tiles_list = list(
+                filter(
+                    lambda player_tile: tile.number == player_tile.number
+                    and tile.type == player_tile.type,
+                    self.player_deck,
                 )
-                + [tile]
-            )
+            ) + [tile]
+            self.callable_tiles_list.append(callable_tiles_list)
         else:
             already_pon_list = list(
                 filter(
@@ -234,6 +233,9 @@ class Player:
             )
             tile = discard_tile
 
+        if game_manager.prev_action == ActionType.RIICHI:
+            tile.update_tile_surface((game_manager.current_player.player_idx - 1) % 4)
+            tile.discard_riichi()
         tile.reveal()
         tile.unclicked()
         self.player_deck.remove(tile)
@@ -253,12 +255,15 @@ class Player:
     def make_move(self, action: ActionType = None) -> ActionType:
         from random import randint
 
+        if self.__is_riichi:
+            return ActionType.DISCARD
+
         if action:
             return action
 
         if len(self.can_call) > 0:
-            # return map_call_to_action(self.can_call[randint(0, len(self.can_call) - 1)])
-            return map_call_to_action(self.can_call[-1])
+            return map_call_to_action(self.can_call[randint(0, len(self.can_call) - 1)])
+            # return map_call_to_action(self.can_call[-1])
         return ActionType.DISCARD
 
     def get_draw_tile(self) -> Tile:
@@ -280,25 +285,29 @@ class Player:
         except:
             return None
 
-    def check_call(self, tile: Tile, check_chii: bool = False):
+    def check_call(self, tile: Tile, is_current_turn: bool, check_chii: bool = False):
         print("----- Start cheking call -----")
         self.can_call = []
 
         self.__build_winning_tiles()
-        if self.is_tsumo_able():
+        if self.is_tsumo_able(tile):
             self.can_call.append(CallType.TSUMO)
 
         if self.is_ron_able(tile):
             self.can_call.append(CallType.RON)
 
-        if self.is_kan_able(tile):
-            self.can_call.append(CallType.KAN)
+        if not self.__is_riichi:
+            if self.is_riichi_able() and is_current_turn:
+                self.can_call.append(CallType.RIICHI)
 
-        if self.is_pon_able(tile):
-            self.can_call.append(CallType.PON)
+            if self.is_kan_able(tile):
+                self.can_call.append(CallType.KAN)
 
-        if self.is_chii_able(tile) and check_chii:
-            self.can_call.append(CallType.CHII)
+            if self.is_pon_able(tile):
+                self.can_call.append(CallType.PON)
+
+            if self.is_chii_able(tile) and check_chii:
+                self.can_call.append(CallType.CHII)
 
         if len(self.can_call) > 0:
             self.can_call.append(CallType.SKIP)
@@ -309,11 +318,15 @@ class Player:
     def __build_winning_tiles(self):
         self.__winning_tiles = []
         shanten_calculator = Shanten()
-        hand_34 = convert_tiles_list_to_hand34(self.player_deck)
+        before_draw_player_deck = self.player_deck.copy()
+
+        if self.get_draw_tile() in before_draw_player_deck:
+            before_draw_player_deck.remove(self.get_draw_tile())
+        hand_34 = convert_tiles_list_to_hand34(before_draw_player_deck)
 
         # If current hand is not Tenpai (0 shanten), Furiten concept doesn't apply yet
         if shanten_calculator.calculate_shanten(hand_34) != 0:
-            return False, []
+            return
 
         # Check every possible tile to see if it makes the hand complete (-1 shanten)
         for i in range(34):
@@ -363,23 +376,22 @@ class Player:
                 ]
             ):
                 return True
-
-        return convert_tiles_list_to_hand34(self.player_deck)[tile.hand34_idx] >= 3
+        if tile in self.player_deck:
+            return convert_tiles_list_to_hand34(self.player_deck)[tile.hand34_idx] == 4
+        else:
+            return convert_tiles_list_to_hand34(self.player_deck)[tile.hand34_idx] == 3
 
     def is_ron_able(self, tile: Tile) -> bool:
+        if tile == self.get_draw_tile():
+            return False
+
         for discard_tile in self.__already_discard_tiles:
             if convert_tile_to_hand34_index(discard_tile) in self.__winning_tiles:
                 return False
 
         calculator = HandCalculator()
 
-        if len(self.call_list) > 0 and any(
-            filter(lambda call: call.is_opened == True, self.call_list)
-        ):
-            config = HandConfig(is_tsumo=False, is_riichi=False)
-
-        else:
-            config = HandConfig(is_tsumo=False, is_riichi=True)
+        config = HandConfig(is_tsumo=False, is_riichi=self.__is_riichi)
 
         result = calculator.estimate_hand_value(
             convert_tiles_list_to_hand136(self.player_deck),
@@ -389,22 +401,18 @@ class Player:
         )
 
         if not result.error:
-            print(f"Player {self.player_idx} is winning: {result}")
+            print(f"Player {self.player_idx} is winning: {result} with {result.yaku}")
             return True
         else:
             print(f"Player {self.player_idx} is not winning because {result.error}")
             return False
 
-    def is_tsumo_able(self) -> bool:
+    def is_tsumo_able(self, tile: Tile) -> bool:
+        if tile is not self.get_draw_tile():
+            return False
         calculator = HandCalculator()
 
-        if len(self.call_list) > 0 and any(
-            filter(lambda call: call.is_opened == True, self.call_list)
-        ):
-            config = HandConfig(is_tsumo=True, is_riichi=False)
-
-        else:
-            config = HandConfig(is_tsumo=True, is_riichi=True)
+        config = HandConfig(is_tsumo=True, is_riichi=self.__is_riichi)
 
         result = calculator.estimate_hand_value(
             convert_tiles_list_to_hand136(self.player_deck),
@@ -414,12 +422,24 @@ class Player:
         )
 
         if not result.error:
-            print(f"Player {self.player_idx} is winning: {result}")
+            print(f"Player {self.player_idx} is winning: {result} with {result.yaku}")
             return True
         else:
             print(
                 f"Player {self.player_idx} is not winning with tsumo because: {result.error}"
             )
+            return False
+
+    def is_riichi_able(self) -> bool:
+        if self.count_shanten_points(self.player_deck) == 0 and (
+            len(self.call_list) == 0
+            or (
+                len(self.call_list) > 0
+                and all(filter(lambda call: call.is_opened == False, self.call_list))
+            )
+        ):
+            return True
+        else:
             return False
 
     def count_shanten_points(
@@ -433,6 +453,9 @@ class Player:
             convert_tiles_list_to_hand34(tiles),
         )
         return points
+
+    def riichi(self):
+        self.__is_riichi = True
 
     def __eq__(self, value):
         if not isinstance(value, Player):

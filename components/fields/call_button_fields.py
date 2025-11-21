@@ -13,16 +13,22 @@ from components.buttons.pon import Pon
 from components.buttons.ron import Ron
 from components.buttons.skip import Skip
 from components.buttons.tsumo import Tsumo
+from components.buttons.richii import Riichi
 from components.call import Call
 
 import typing
 
 if typing.TYPE_CHECKING:
     from components.game_manager import GameManager
+    from components.events.mouse_button_down import MouseButtonDown
+    from components.events.mouse_motion import MouseMotion
 
 
 class CallButtonField(Field):
-    def __init__(self, screen: Surface):
+    def __init__(
+        self,
+        screen: Surface,
+    ):
         super().__init__()
         self.screen = screen
         self.chii_button = Chii()
@@ -30,6 +36,8 @@ class CallButtonField(Field):
         self.pon_button = Pon()
         self.ron_button = Ron()
         self.skip_button = Skip()
+        self.tsumo_button = Tsumo()
+        self.riichi_button = Riichi()
 
         self.space_between_each_button = 20
         self.render_button_list: list[Chii | Kan | Pon | Ron | Skip] = []
@@ -74,47 +82,69 @@ class CallButtonField(Field):
 
     def build_button_position(self, call_list: list[CallType]):
         for idx, call_type in enumerate(call_list):
+            button_x = idx * (CALL_BUTTON_SIZE[0] + self.space_between_each_button)
+            button_y = 0
+            button_width = CALL_BUTTON_SIZE[0]
+            button_height = CALL_BUTTON_SIZE[1]
             match call_type:
                 case CallType.SKIP:
                     self.skip_button.update_position(
-                        idx * (CALL_BUTTON_SIZE[0] + self.space_between_each_button),
-                        0,
-                        CALL_BUTTON_SIZE[0],
-                        CALL_BUTTON_SIZE[1],
+                        button_x,
+                        button_y,
+                        button_width,
+                        button_height,
                     )
                     self.render_button_list.append(self.skip_button)
                 case CallType.CHII:
                     self.chii_button.update_position(
-                        idx * (CALL_BUTTON_SIZE[0] + self.space_between_each_button),
-                        0,
-                        CALL_BUTTON_SIZE[0],
-                        CALL_BUTTON_SIZE[1],
+                        button_x,
+                        button_y,
+                        button_width,
+                        button_height,
                     )
                     self.render_button_list.append(self.chii_button)
                 case CallType.PON:
                     self.pon_button.update_position(
-                        idx * (CALL_BUTTON_SIZE[0] + self.space_between_each_button),
-                        0,
-                        CALL_BUTTON_SIZE[0],
-                        CALL_BUTTON_SIZE[1],
+                        button_x,
+                        button_y,
+                        button_width,
+                        button_height,
                     )
                     self.render_button_list.append(self.pon_button)
                 case CallType.KAN:
                     self.kan_button.update_position(
-                        idx * (CALL_BUTTON_SIZE[0] + self.space_between_each_button),
-                        0,
-                        CALL_BUTTON_SIZE[0],
-                        CALL_BUTTON_SIZE[1],
+                        button_x,
+                        button_y,
+                        button_width,
+                        button_height,
                     )
                     self.render_button_list.append(self.kan_button)
+
+                case CallType.RIICHI:
+                    self.riichi_button.update_position(
+                        button_x,
+                        button_y,
+                        button_width,
+                        button_height,
+                    )
+                    self.render_button_list.append(self.riichi_button)
+
                 case CallType.RON:
                     self.ron_button.update_position(
-                        idx * (CALL_BUTTON_SIZE[0] + self.space_between_each_button),
-                        0,
-                        CALL_BUTTON_SIZE[0],
-                        CALL_BUTTON_SIZE[1],
+                        button_x,
+                        button_y,
+                        button_width,
+                        button_height,
                     )
                     self.render_button_list.append(self.ron_button)
+                case CallType.TSUMO:
+                    self.tsumo_button.update_position(
+                        button_x,
+                        button_y,
+                        button_width,
+                        button_height,
+                    )
+                    self.render_button_list.append(self.tsumo_button)
 
     def hover(self, event: Event) -> bool:
         local_mouse = self.build_local_mouse(event.pos)
@@ -153,3 +183,5 @@ class CallButtonField(Field):
                     game_manager.action = player.make_move(ActionType.RON)
                 elif isinstance(button, Tsumo):
                     game_manager.action = player.make_move(ActionType.TSUMO)
+                elif isinstance(button, Riichi):
+                    game_manager.action = player.make_move(ActionType.RIICHI)

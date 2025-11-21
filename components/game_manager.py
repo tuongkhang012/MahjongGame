@@ -37,8 +37,13 @@ class GameManager:
     current_player: Player
     prev_player: Player
     main_player: Player
+    direction: list[Direction]
+
     # Deck
     deck: Deck
+
+    # Field
+    center_board_field: CenterBoardField
 
     # Turn
     current_turn: Direction
@@ -57,7 +62,7 @@ class GameManager:
     action: ActionType = None
     prev_action: ActionType = None
 
-    def __init__(self, start_data):
+    def __init__(self, start_data=None):
         pygame.init()
         # pygame.mixer.init()
         # pygame.freetype.init()
@@ -78,7 +83,7 @@ class GameManager:
         self.builder = GameBuilder(self.screen, self.clock, start_data)
 
         # Init game
-        self.new()
+        self.builder.new(self)
 
         # Create class event listener
         self.mouse_button_down = MouseButtonDown(self.screen, self, self.deck.full_deck)
@@ -179,7 +184,6 @@ class GameManager:
         if len(self.call_order) > 0 or self.calling_player is not None:
             if self.calling_player is None:
                 self.calling_player = self.call_order.pop()
-
             if self.calling_player == self.main_player:
                 if self.action:
                     self.do_action()
@@ -235,9 +239,13 @@ class GameManager:
                 if player == self.prev_player:
                     continue
                 if player.direction == next_turn:
-                    player.check_call(self.latest_discarded_tile, True)
+                    player.check_call(
+                        self.latest_discarded_tile,
+                        is_current_turn=False,
+                        check_chii=True,
+                    )
                 else:
-                    player.check_call(self.latest_discarded_tile)
+                    player.check_call(self.latest_discarded_tile, is_current_turn=False)
                 if len(player.can_call) > 0:
                     self.call_order.append(player)
 
@@ -264,10 +272,12 @@ class GameManager:
         )
 
     def find_player(self, turn: Direction) -> Player:
+        """
+        Find player based on player's turn in current game direction
+        """
         return self.player_list[self.direction.index(turn)]
 
     def listenEvent(self) -> dict[str, bool]:
-
         for event in pygame.event.get():
             match event.type:
                 case pygame.QUIT:
@@ -281,55 +291,45 @@ class GameManager:
 
         return {"exit": False}
 
-    def new(self):
-        self.direction, self.player_list, self.deck = self.builder.init_game()
-
-        # Assign Turn
-
-        self.current_turn = Direction(0)
-        self.current_player = self.find_player(self.current_turn)
-        self.main_player = self.player_list[0]
-
-        discards_fields: list[DiscardField] = []
-
-        for player in self.player_list:
-            discards_fields.append(player.discard_field)
-
-        self.center_board_field = CenterBoardField(
-            self.screen, self.direction, discards_fields
-        )
-
     def do_action(self):
-
-        # Next turn
         print(f"########## START {self.action.name.upper()} ACTION ##########")
+        print(
+            f"Current deck size: {len(self.deck.draw_deck)}, current death field size: {len(self.deck.death_wall)}"
+        )
         latest_discarded_tile: Tile = self.latest_discarded_tile
 
         if not self.current_player == self.main_player:
             if self.calling_player:
                 print(f"{self.action} from {self.calling_player}")
-                print(f"Current {self.calling_player} is discarding...")
             else:
-                print(f"Current {self.current_player} is discarding...")
+                print(f"{self.action} from {self.current_player}")
 
         match self.action:
             case ActionType.DRAW:
                 self.__reset_calling_state()
-                if self.prev_action == ActionType.KAN:
-                    self.current_player.draw(
-                        self.deck.death_wall, self.deck.death_wall[0]
-                    )
-                else:
-                    self.current_player.draw(self.deck.draw_deck)
+                try:
+                    if self.prev_action == ActionType.KAN:
+                        self.current_player.draw(
+                            self.deck.death_wall, self.deck.death_wall[0]
+                        )
+                        if len(self.current_player.can_call) > 0:
+                            self.call_order.append(self.current_player)
+                        else:
+                            self.deck.death_wall.append(self.deck.draw_deck[0])
+                            self.deck.draw_deck.remove(self.deck.draw_deck[0])
+                    else:
+                        self.current_player.draw(self.deck.draw_deck)
+                except IndexError as e:
+                    print("SOME THING WRONG WITH DRAW: ", e.args)
                 if len(self.current_player.can_call) > 0:
                     self.call_order.append(self.current_player)
-                else:
-                    self.deck.death_wall.append(self.deck.draw_deck[0])
-                    self.deck.draw_deck.remove(self.deck.draw_deck[0])
+                print(
+                    f"{self.current_player} draw {self.current_player.get_draw_tile()}"
+                )
 
             case ActionType.DISCARD:
                 tile: Tile = None
-                if self.current_turn == self.main_player.direction:
+                if self.current_player == self.main_player:
                     try:
                         tile = list(
                             filter(
@@ -339,6 +339,7 @@ class GameManager:
                         )[0]
                     except:
                         pass
+
                 self.__reset_calling_state()
                 self.current_player.discard(tile, self)
                 self.switch_turn()
@@ -396,10 +397,20 @@ class GameManager:
 
                 self.__handle_switch_turn(True)
 
+            case ActionType.RIICHI:
+                calling_player = self.calling_player
+                calling_player.riichi()
+                self.__handle_switch_turn()
+
             case ActionType.RON:
                 calling_player = self.calling_player
+                # self.action = ActionType.WIN
 
                 # End game
+
+            case ActionType.TSUMO:
+                calling_player = self.calling_player
+                # self.action = ActionType.WIN
 
             case ActionType.SKIP:
                 if len(self.call_order) == 0:
@@ -411,7 +422,7 @@ class GameManager:
         self.bot_move_timer = 0
         self.current_player.deck_field.build_tiles_position(self.current_player)
 
-        print("########## DONE ACTION ##########")
+        print(f"########## DONE {self.prev_action.name.upper()} ACTION ##########")
 
     def __handle_switch_turn(self, draw: bool = False):
         calling_player = self.calling_player
@@ -434,6 +445,9 @@ class GameManager:
             random.randint(0, len(calling_player.callable_tiles_list) - 1)
         ]
 
-    def end_match(self):
-        for player in self.player_list:
-            self.builder.calculate_player_score()
+    def end_match(self, win_player: Player = None):
+        if win_player:
+            for player in self.player_list:
+                self.builder.calculate_player_score(player, self.deck)
+        else:
+            print("RYUUKYOKU")

@@ -11,9 +11,13 @@ from utils.constants import (
     DIRECTION_TURN_SIZE,
     CENTER_BOARD_FIELD_SIZE,
     DISCARD_FIELD_SIZE,
+    MADOU_FUTO_FONT,
+    COLOR_WHITE,
 )
+from components.player import Player
 from components.image_cutter import ImageCutter
 import math
+from pygame.freetype import Font
 
 
 class CenterBoardField(Field):
@@ -23,6 +27,9 @@ class CenterBoardField(Field):
     __direction_width: float
     __direction_height: float
 
+    __discards_fields: list[DiscardField] = []
+
+    __player_list: list[Player]
     # Timer
     start_timer: float
 
@@ -30,11 +37,16 @@ class CenterBoardField(Field):
         self,
         screen: Surface,
         directions_list: list[Direction],
-        discards_fields: list[DiscardField],
+        player_list: list[Player],
     ):
         super().__init__()
         self.__directions_list = directions_list
-        self.__discards_fields = discards_fields
+
+        for player in player_list:
+            self.__discards_fields.append(player.discard_field)
+
+        self.__player_list = player_list
+
         self.screen = screen
         self.image_cutter = ImageCutter(DIRECTION_IMAGE_LINK)
         self.__direction_width = DIRECTION_WIDTH
@@ -69,7 +81,7 @@ class CenterBoardField(Field):
         draw_hitbox(surface)
 
         # --- THIS IS FOR INIT THE CENTER FIELD INCLUDE DIRECTION AND TURN BAR ---
-        direction_turn_surface = self.build_direction_turn_surface(turn)
+        direction_turn_surface = self.build_center_field_default_surface(turn)
 
         self.render_surface(
             surface,
@@ -100,25 +112,31 @@ class CenterBoardField(Field):
             case 3:
                 return Rect(0, 180, 180, 180)
 
-    def build_direction_turn_surface(self, turn: Direction) -> Surface:
+    def build_center_field_default_surface(self, turn: Direction) -> Surface:
         center_field_surface = Surface(DIRECTION_TURN_SIZE, pygame.SRCALPHA)
         center_field_surface.fill("gray")
 
         subsurfaces_list: list[Surface] = []
         for idx in range(4):
-            subsurfaces_list.append(
-                Surface(
-                    (DIRECTION_TURN_SIZE[0], self.__direction_height),
-                    pygame.SRCALPHA,
-                )
+            subsurface = Surface(
+                (DIRECTION_TURN_SIZE[0], self.__direction_height * 2),
+                pygame.SRCALPHA,
             )
+            draw_hitbox(subsurface)
+            subsurfaces_list.append(subsurface)
 
         # Render direction
         for idx, direction in enumerate(self.get_directions_list()):
             direction_surface = self.image_cutter.cut_image(
                 direction.value, 0, self.__direction_width, self.__direction_height
             )
-            subsurfaces_list[idx].blit(direction_surface, (0, 0))
+            subsurfaces_list[idx].blit(
+                direction_surface,
+                (
+                    0,
+                    subsurfaces_list[idx].get_height() - direction_surface.get_height(),
+                ),
+            )
 
         # Render turn bar
         for idx in range(4):
@@ -130,8 +148,34 @@ class CenterBoardField(Field):
                 turn_surface = self.draw_turn_full()
             else:
                 turn_surface = self.draw_turn_empty()
-            center_pos = build_center_rect(subsurfaces_list[idx], turn_surface)
-            subsurfaces_list[idx].blit(turn_surface, (center_pos.x, center_pos.y))
+            subsurface_size = subsurfaces_list[idx].get_size()
+            half_surface = Surface(
+                (subsurface_size[0], subsurface_size[1] / 2), pygame.SRCALPHA
+            )
+            center_pos = build_center_rect(half_surface, turn_surface)
+            subsurfaces_list[idx].blit(
+                turn_surface,
+                (
+                    center_pos.x,
+                    subsurfaces_list[idx].get_height()
+                    - turn_surface.get_height()
+                    - center_pos.y,
+                ),
+            )
+
+        # Render player points
+        for idx, player in enumerate(self.__player_list):
+            subsurface_size = subsurfaces_list[idx].get_size()
+            half_surface = Surface(
+                (subsurface_size[0], subsurface_size[1] / 2), pygame.SRCALPHA
+            )
+            font = Font(MADOU_FUTO_FONT, 20)
+            font_surface, font_rect = font.render(f"{player.points}", COLOR_WHITE)
+            center_pos = build_center_rect(half_surface, font_surface)
+            subsurfaces_list[idx].blit(
+                font_surface,
+                (center_pos.x, half_surface.get_height() - font_surface.get_height()),
+            )
 
         # Render subsurface
         for idx, subsurface in enumerate(subsurfaces_list):

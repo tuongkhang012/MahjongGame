@@ -251,11 +251,19 @@ class CallField(TilesField):
         for call in self.__call_list:
             # If not ANKAN, update sideway surface for tile
             if not (call.type == CallType.KAN and call.another_player_tiles is None):
+                for tile in call.tiles:
+                    reveal_surface = tile.tiles_cutter.cut_tiles(
+                        tile.type, tile.number, tile.aka, self.player_idx
+                    )
+                    tile.update_tile_surface(reveal_surface=reveal_surface)
+                    tile.hidden = False
                 call.another_player_tiles.update_tile_surface((self.player_idx - 1) % 4)
             else:
                 tiles_list = call.tiles
                 tiles_list[0].hidden = True
                 tiles_list[-1].hidden = True
+                tiles_list[1].hidden = False
+                tiles_list[2].hidden = False
             surface_size = self.__build_surface_size_based_on_player_idx(call)
             call_surface = Surface(surface_size, pygame.SRCALPHA)
 

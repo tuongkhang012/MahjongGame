@@ -24,10 +24,11 @@ class TileSource(Enum):
 class CallType(Enum):
     TSUMO = 0
     RON = 1
-    KAN = 2
-    PON = 3
-    CHII = 4
-    SKIP = 5
+    RIICHI = 2
+    KAN = 3
+    PON = 4
+    CHII = 5
+    SKIP = 6
 
 
 class CallName(Enum):
@@ -54,9 +55,10 @@ class CallName(Enum):
 class ActionType(Enum):
     TSUMO = 0
     RON = 1
-    KAN = 2
-    PON = 3
-    CHII = 4
-    SKIP = 5
-    DRAW = 6
-    DISCARD = 7
+    RIICHI = 2
+    KAN = 3
+    PON = 4
+    CHII = 5
+    SKIP = 6
+    DRAW = 7
+    DISCARD = 8

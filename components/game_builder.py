@@ -10,6 +10,11 @@ from components.deck import Deck
 import sys
 from utils.helper import find_suitable_tile_in_list
 from typing import Any
+import typing
+from components.fields.center_board_field import CenterBoardField
+
+if typing.TYPE_CHECKING:
+    from components.game_manager import GameManager
 
 
 class GameBuilder:
@@ -27,10 +32,32 @@ class GameBuilder:
         return standard[current_idx:] + standard[:current_idx]
         # return standard
 
+    def new(self, game_manager: "GameManager"):
+        direction, player_list, deck = self.init_game()
+
+        # Assign to game manager
+        game_manager.direction = direction
+        game_manager.player_list = player_list
+        game_manager.deck = deck
+
+        # Assign Turn and player to game manager
+        start_turn = Direction(0)
+        game_manager.current_turn = start_turn
+        game_manager.current_player = game_manager.find_player(
+            game_manager.current_turn
+        )
+        game_manager.main_player = player_list[0]
+        game_manager.switch_turn(game_manager.current_turn)
+
+        # Center board field related
+        game_manager.center_board_field = CenterBoardField(
+            self.screen, direction, player_list
+        )
+
     def init_game(self):
         # Choose direction for player
         if self.start_data and self.start_data["direction"]:
-            direction = []
+            direction: list[Direction] = []
             for direction_char in list(self.start_data["direction"]):
                 match direction_char:
                     case "S":
@@ -52,7 +79,7 @@ class GameBuilder:
         for i in range(4):
             player_list.append(Player(self.screen, i, direction[i], deck.full_deck))
 
-        if self.start_data["player_deck"]:
+        if self.start_data and self.start_data["player_deck"]:
             if (
                 len(self.start_data["player_deck"]) < 4
                 and len(self.start_data["player_deck"]) != 0
@@ -107,10 +134,10 @@ class GameBuilder:
                     player_idx = direction.index(Direction(k))
                     player = player_list[player_idx]
                     if i == 3:
-                        player.draw(deck.draw_deck)
+                        player.draw(deck.draw_deck, check_call=False)
                     else:
                         for j in range(4):
-                            player.draw(deck.draw_deck)
+                            player.draw(deck.draw_deck, check_call=False)
 
         # Rearrange deck for each player
         for player in player_list:
@@ -119,7 +146,6 @@ class GameBuilder:
             player.deck_field.build_tiles_position(player)
 
         main_player = player_list[direction.index(Direction(0))]
-        main_player.draw(deck.draw_deck)
         main_player.deck_field.build_tiles_position(main_player)
         player_list[0].reveal_hand()
 
@@ -182,12 +208,12 @@ class GameBuilder:
                 tile["number"], tile["type"], tile["aka"], draw_deck
             )
             if found_tile:
-                player.draw(draw_deck, found_tile)
+                player.draw(draw_deck, found_tile, False)
 
         if len(player.player_deck) < 13:
             raise ValueError(
                 f"Init deck invalid because the tiles from starter deck are lower than 13! Player {player.player_idx} have {len(player.player_deck)}"
             )
 
-    def calculate_player_score(self, player: Player) -> int:
+    def calculate_player_score(self, player: Player, deck: Deck) -> int:
         return

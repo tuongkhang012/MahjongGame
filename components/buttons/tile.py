@@ -37,6 +37,9 @@ class Tile(Button):
         # Image Cutter for tile surface
         self.tiles_cutter = ImageCutter(TILES_IMAGE_LINK)
 
+        # Riichi discard Tile
+        self.__is_riichi_discard: bool = False
+
     def update_hover(self):
         """Handles all frame-by-frame logic, like animation."""
         if self.hidden:
@@ -114,6 +117,12 @@ class Tile(Button):
 
     def hide(self):
         self.hidden = True
+
+    def discard_riichi(self):
+        self.__is_riichi_discard = True
+
+    def discard_from_richii(self):
+        return self.__is_riichi_discard
 
     def __eq__(self, other):
         if not isinstance(other, Tile):  # Optional: ensure comparison with same type
