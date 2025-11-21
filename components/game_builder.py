@@ -1,11 +1,12 @@
 from utils.enums import Direction
-from components.image_cutter import TilesCutter
+from components.image_cutter import ImageCutter
 from utils.constants import TILES_IMAGE_LINK
 from components.buttons.tile import Tile
 from pygame import Surface
 from utils.enums import TileType
 from components.player import Player
 from pygame import Rect
+from components.deck import Deck
 
 
 class GameBuilder:
@@ -19,151 +20,41 @@ class GameBuilder:
         current_direction = random.randint(0, 3)
         standard = [Direction.EAST, Direction.SOUTH, Direction.WEST, Direction.NORTH]
         current_idx = standard.index(Direction(current_direction))
-        return list(reversed(standard[current_idx:] + standard[:current_idx]))
+        return standard[current_idx:] + standard[:current_idx]
         # return standard
 
-    def create_new_deck(self) -> list[Tile]:
-        from random import shuffle
+    def init_game(self):
+        # Choose direction for player
+        direction = self.direction()
+        print(f"Current player direction is {direction[0]}")
 
-        full_deck = []
+        deck = Deck()
+
+        # Create player
+        player_list: list[Player] = []
         for i in range(4):
-            dragon_tiles_deck = [Tile(TileType.DRAGON, x) for x in range(1, 4)]
-            wind_tiles_deck = [Tile(TileType.WIND, x) for x in range(1, 5)]
-            full_deck += dragon_tiles_deck + wind_tiles_deck
-        for i in range(3):
-            pin_tiles_deck = [Tile(TileType.PIN, x) for x in range(1, 10)]
-            sou_tiles_deck = [Tile(TileType.SOU, x) for x in range(1, 10)]
-            man_tiles_deck = [Tile(TileType.MAN, x) for x in range(1, 10)]
+            player_list.append(Player(self.screen, i, direction[i], deck.full_deck))
 
-            full_deck += pin_tiles_deck + sou_tiles_deck + man_tiles_deck
+        # Draw tiles (13 tiles, main draws 14 tiles)
+        for i in range(4):
+            for k in range(4):
+                player_idx = direction.index(Direction(k))
+                player = player_list[player_idx]
+                if i == 3:
+                    player.draw(deck.draw_deck)
+                else:
+                    for j in range(4):
+                        player.draw(deck.draw_deck)
 
-        # Handle special case for AKA
-        pin_tiles_deck = [Tile(TileType.PIN, x) for x in range(1, 10) if x != 5]
-        sou_tiles_deck = [Tile(TileType.SOU, x) for x in range(1, 10) if x != 5]
-        man_tiles_deck = [Tile(TileType.MAN, x) for x in range(1, 10) if x != 5]
-        full_deck += (
-            pin_tiles_deck
-            + sou_tiles_deck
-            + man_tiles_deck
-            + [
-                Tile(TileType.MAN, 5, True),
-                Tile(TileType.PIN, 5, True),
-                Tile(TileType.SOU, 5, True),
-            ]
-        )
+        # Rearrange deck for each player
+        for player in player_list:
+            player.rearrange_deck()
+            player.deck_field.build_field_surface(player)
+            player.deck_field.build_tiles_position(player)
 
-        shuffle(full_deck)
-        return full_deck
+        main_player = player_list[direction.index(Direction(0))]
+        main_player.draw(deck.draw_deck)
+        main_player.deck_field.build_tiles_position(main_player)
+        player_list[0].reveal_hand()
 
-    def roll_dices(self) -> int:
-        from random import randint
-
-        return randint(2, 12)
-
-    def build_tiles_poistion(self, player: Player) -> None:
-        start_x_center, start_y_center = self.calculate_center_range(
-            player.player_idx, player.player_deck
-        )
-        for idx, tile in enumerate(player.player_deck):
-            tile.update_tile_surface(player.player_idx)
-            tile_surface = (
-                tile.get_hidden_surface() if tile.hidden else tile.get_surface()
-            )
-            tile_width, tile_height = tile_surface.get_size()
-            position = None
-            draw_tile_offset = 20
-
-            match player.player_idx:
-                case 0:
-                    position_x = (
-                        start_x_center
-                        + tile_width * idx
-                        + (
-                            draw_tile_offset
-                            if tile == player.player_deck[-1]
-                            and len(player.player_deck) >= 14
-                            else 0
-                        )
-                    )
-                    position_y = start_y_center
-
-                case 1:
-                    position_x = start_x_center
-                    position_y = (
-                        start_y_center
-                        + tile_height / 2 * idx
-                        + (
-                            draw_tile_offset
-                            if tile == player.player_deck[-1]
-                            and len(player.player_deck) >= 14
-                            else 0
-                        )
-                    )
-
-                case 2:
-                    position_x = (
-                        start_x_center
-                        - tile_width * idx
-                        - (
-                            draw_tile_offset
-                            if tile == player.player_deck[-1]
-                            and len(player.player_deck) >= 14
-                            else 0
-                        )
-                    )
-                    position_y = start_y_center
-
-                case 3:
-                    position_x = start_x_center
-                    position_y = (
-                        start_y_center
-                        - tile_height / 2 * idx
-                        - (
-                            draw_tile_offset
-                            if tile == player.player_deck[-1]
-                            and len(player.player_deck) >= 14
-                            else 0
-                        )
-                    )
-
-            tile.update_position(position_x, position_y, tile_width, tile_height)
-
-    def calculate_center_range(self, player_idx: int, deck_list: list[Tile]):
-        deck_size = len(deck_list)
-
-        middle_height = self.screen.get_height() * 1 / 2
-        middle_width = self.screen.get_width() * 1 / 2
-        offset_height = self.screen.get_height() * 1 / 3
-        offset_width = self.screen.get_width() * 1 / 3
-
-        total_width = list(
-            map(lambda tile: tile.get_surface().get_bounding_rect().width, deck_list)
-        )
-        total_heigth = list(
-            map(lambda tile: tile.get_surface().get_bounding_rect().height, deck_list)
-        )
-        match player_idx:
-            case 0:
-                return (
-                    middle_width
-                    - (deck_size * (sum(total_width) / len(total_width)) / 2),
-                    middle_height + offset_height,
-                )
-            case 1:
-                return (
-                    middle_width - offset_width,
-                    middle_height
-                    - (deck_size * (sum(total_heigth) / len(total_heigth)) / 4),
-                )
-            case 2:
-                return (
-                    middle_width
-                    + (deck_size * (sum(total_width) / len(total_width)) / 2),
-                    middle_height - offset_height,
-                )
-            case 3:
-                return (
-                    middle_width + offset_width,
-                    middle_height
-                    + (deck_size * (sum(total_heigth) / len(total_heigth)) / 4),
-                )
+        return (direction, player_list, deck)

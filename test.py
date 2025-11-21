@@ -1,10 +1,9 @@
-arr = [1, 2, 3, 4]
+def func1():
+    print("Hello")
 
 
-def func(arr: list[int]):
-    num = arr.pop()
-    return num
+def func2():
+    print("World")
 
 
-pop_num = func(arr)
-print(pop_num, arr)
+True and func1() and func2()

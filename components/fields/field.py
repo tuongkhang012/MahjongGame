@@ -1,0 +1,33 @@
+from pygame import Surface, Rect
+
+
+class Field:
+    is_hovered: bool
+    is_clicked: bool
+    surface: Surface
+    _relative_position: Rect = None
+    _absolute_position: Rect = None
+    player_idx: int
+
+    def __init__(self):
+        self.is_hovered = False
+        self.is_clicked = False
+
+    def check_collide(self, position: tuple[float, float]):
+        return (
+            self._absolute_position.collidepoint(position[0], position[1])
+            if self._absolute_position is not None
+            else False
+        )
+
+    def build_local_mouse(self, mouse_pos: tuple[float, float]):
+        return (
+            mouse_pos[0] - self._absolute_position.x,
+            mouse_pos[1] - self._absolute_position.y,
+        )
+
+    def get_relative_position(self):
+        return self._relative_position
+
+    def get_absolute_position(self):
+        return self._absolute_position
