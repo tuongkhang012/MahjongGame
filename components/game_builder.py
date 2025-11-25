@@ -244,34 +244,35 @@ class GameBuilder:
         self,
         player: Player,
         win_tile: Tile,
-        action: ActionType,
-        prev_action: ActionType,
         deck: Deck,
+        is_tsumo: bool = False,
+        is_riichi: bool = False,
+        is_daburu_riichi: bool = False,
+        is_ippatsu: bool = False,
         is_rinshan: bool = False,
         is_chankan: bool = False,
+        is_haitei: bool = False,
+        is_houtei: bool = False,
+        is_tenhou: bool = False,
+        is_chiihou: bool = False,
+        is_renhou: bool = False,
     ) -> HandResponse:
-        # is_tsumo
-        is_tsumo = True if action == ActionType.TSUMO else False
-
-        # is_riichi
-        riichi_turn = player.is_riichi()
-        is_riichi = True if riichi_turn >= 0 else False
-
-        # is_double_riichi
-        is_daburu_riichi = True if riichi_turn == 0 else False
-
-        # is_ippatsu
-        is_ippatsu = True if riichi_turn == player.turn else False
 
         # is_rinshan, include in parameters
         # is_chankan, include in parameters
 
+        # is_haitei
         config = HandConfig(
             is_tsumo=is_tsumo,
             is_riichi=is_riichi,
             is_ippatsu=is_ippatsu,
             is_rinshan=is_rinshan,
             is_chankan=is_chankan,
+            is_haitei=is_haitei,
+            is_houtei=is_houtei,
+            is_tenhou=is_tenhou,
+            is_chiihou=is_chiihou,
+            is_renhou=is_renhou,
             is_daburu_riichi=is_daburu_riichi,
             player_wind=player.direction.value + 27,
             round_wind=27,
@@ -292,5 +293,6 @@ class GameBuilder:
             list(map(lambda tile: tile.hand136_idx, deck.dora)),
             config=config,
         )
+        print(result)
         print(f"FINAL RESULT: {result} {result.yaku}")
         return result

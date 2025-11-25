@@ -570,20 +570,77 @@ class GameManager:
         import datetime
 
         if win_player:
+            # is_tsumo
+            is_tsumo = True if self.action == ActionType.TSUMO else False
+
+            # is_riichi
+            riichi_turn = win_player.is_riichi()
+            is_riichi = True if riichi_turn >= 0 else False
+
+            # is_double_riichi
+            is_daburu_riichi = True if riichi_turn == 0 else False
+
+            # is_ippatsu
+            is_ippatsu = True if riichi_turn == win_player.turn else False
+
             is_rinshan = True if win_player.get_draw_tile().from_death_wall else False
             is_chankan = (
                 True
                 if self.prev_action == ActionType.KAN and self.action == ActionType.RON
                 else False
             )
+            is_haitei = (
+                True
+                if self.action == ActionType.TSUMO
+                and win_player.get_draw_tile() == win_tile
+                and len(self.deck.draw_deck) == 0
+                else False
+            )
+            is_houtei = (
+                True
+                if self.action == ActionType.RON
+                and self.latest_discarded_tile == win_tile
+                and len(self.deck.draw_deck) == 0
+                else False
+            )
+            is_tenhou = (
+                True
+                if self.action == ActionType.TSUMO
+                and win_player.direction == Direction.EAST
+                and win_player.turn == 0
+                and len(win_player.melds) == 0
+                else False
+            )
+            is_chiihou = (
+                True
+                if self.action == ActionType.TSUMO
+                and win_player.direction != Direction.EAST
+                and win_player.turn == 0
+                and len(win_player.melds) == 0
+                else False
+            )
+
+            is_renhou = (
+                True
+                if self.action == ActionType.RON and win_player.turn == 0
+                else False
+            )
+
             result = self.builder.calculate_player_score(
-                win_player,
-                win_tile,
-                self.action,
-                self.prev_action,
-                self.deck,
-                is_rinshan,
-                is_chankan,
+                player=win_player,
+                win_tile=win_tile,
+                deck=self.deck,
+                is_tsumo=is_tsumo,
+                is_riichi=is_riichi,
+                is_daburu_riichi=is_daburu_riichi,
+                is_ippatsu=is_ippatsu,
+                is_rinshan=is_rinshan,
+                is_chankan=is_chankan,
+                is_haitei=is_haitei,
+                is_houtei=is_houtei,
+                is_tenhou=is_tenhou,
+                is_chiihou=is_chiihou,
+                is_renhou=is_renhou,
             )
             deltas = [0, 0, 0, 0]
             total_cost = int(result.cost["total"] / 100)
