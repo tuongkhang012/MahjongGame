@@ -1,13 +1,13 @@
 from pygame import Surface
 import pygame
-from components.buttons.tile import Tile
+from components.entities.buttons.tile import Tile
 from pygame.event import Event
 from components.events.event_controller import EventController
 import typing
 
 if typing.TYPE_CHECKING:
     # This line ONLY runs for type checkers
-    from components.game_manager import GameManager
+    from components.game_scenes.game_manager import GameManager
 
 
 class MouseButtonDown(EventController):

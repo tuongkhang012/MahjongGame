@@ -1,27 +1,29 @@
-from utils.enums import Direction
-from components.image_cutter import ImageCutter
-from utils.constants import TILES_IMAGE_LINK
-from components.buttons.tile import Tile
+from components.entities.buttons.tile import Tile
 from pygame import Surface
-from utils.enums import TileType
-from components.player import Player
-from pygame import Rect
-from components.deck import Deck
-import sys
+from utils.enums import TileType, ActionType, Direction
+from components.entities.player import Player
+from components.entities.deck import Deck
 from utils.helper import find_suitable_tile_in_list
 from typing import Any
 import typing
-from components.fields.center_board_field import CenterBoardField
+from components.entities.fields.center_board_field import CenterBoardField
+from utils.constants import HAND_CONFIG_OPTIONS
+from mahjong.hand_calculating.hand import HandCalculator
+from mahjong.hand_calculating.hand_config import HandConfig
+from mahjong.hand_calculating.hand_response import HandResponse
 
 if typing.TYPE_CHECKING:
-    from components.game_manager import GameManager
+    from components.game_scenes.game_manager import GameManager
 
 
 class GameBuilder:
-    def __init__(self, screen: Surface, clock, start_data: Any | None = None):
+    def __init__(
+        self, screen: Surface, clock, deck: Deck, start_data: Any | None = None
+    ):
         self.screen = screen
         self.clock = clock
         self.start_data = start_data
+        self.deck = deck
 
     def direction(self) -> list[Direction]:
         import random
@@ -54,6 +56,25 @@ class GameBuilder:
             self.screen, direction, player_list
         )
 
+        self.assign_round_direction(game_manager)
+
+    def assign_round_direction(
+        self, game_manager: "GameManager", keep_direction: bool = False
+    ):
+        if not game_manager.round_direction:
+            game_manager.round_direction = Direction(0)
+            game_manager.round_direction_number = 1
+            return
+        if keep_direction:
+            return
+        if game_manager.round_direction_number == 4:
+            game_manager.round_direction += Direction(
+                (game_manager.round_direction.value + 1) % 4
+            )
+            game_manager.round_direction_number = 1
+        else:
+            game_manager.round_direction_number += 1
+
     def init_game(self):
         # Choose direction for player
         if self.start_data and self.start_data["direction"]:
@@ -72,12 +93,14 @@ class GameBuilder:
             direction = self.direction()
         print(f"Current player direction is {direction[0]}")
 
-        deck = Deck(self.start_data)
+        self.deck.create_new_deck(self.start_data)
 
         # Create player
         player_list: list[Player] = []
         for i in range(4):
-            player_list.append(Player(self.screen, i, direction[i], deck.full_deck))
+            player_list.append(
+                Player(self.screen, i, direction[i], self.deck.full_deck)
+            )
 
         if self.start_data and self.start_data["player_deck"]:
             if (
@@ -122,7 +145,7 @@ class GameBuilder:
                         pin=pins,
                         honors=honors,
                         player=player_list[player_idx],
-                        draw_deck=deck.draw_deck,
+                        draw_deck=self.deck.draw_deck,
                     )
                 except IndexError as e:
                     print("Error when creating custom deck! Regenerating deck...")
@@ -134,10 +157,10 @@ class GameBuilder:
                     player_idx = direction.index(Direction(k))
                     player = player_list[player_idx]
                     if i == 3:
-                        player.draw(deck.draw_deck, check_call=False)
+                        player.draw(self.deck.draw_deck, check_call=False)
                     else:
                         for j in range(4):
-                            player.draw(deck.draw_deck, check_call=False)
+                            player.draw(self.deck.draw_deck, check_call=False)
 
         # Rearrange deck for each player
         for player in player_list:
@@ -149,7 +172,7 @@ class GameBuilder:
         main_player.deck_field.build_tiles_position(main_player)
         player_list[0].reveal_hand()
 
-        return (direction, player_list, deck)
+        return (direction, player_list, self.deck)
 
     def custom_deck(
         self,
@@ -208,12 +231,62 @@ class GameBuilder:
                 tile["number"], tile["type"], tile["aka"], draw_deck
             )
             if found_tile:
-                player.draw(draw_deck, found_tile, False)
+                player.draw(
+                    draw_deck, round_wind=None, tile=found_tile, check_call=False
+                )
 
         if len(player.player_deck) < 13:
             raise ValueError(
                 f"Init deck invalid because the tiles from starter deck are lower than 13! Player {player.player_idx} have {len(player.player_deck)}"
             )
 
-    def calculate_player_score(self, player: Player, deck: Deck) -> int:
-        return
+    def calculate_player_score(
+        self,
+        player: Player,
+        win_tile: Tile,
+        action: ActionType,
+        prev_action: ActionType,
+        deck: Deck,
+        is_rinshan: bool = False,
+        is_chankan: bool = False,
+    ) -> HandResponse:
+        # is_tsumo
+        is_tsumo = True if action == ActionType.TSUMO else False
+
+        # is_riichi
+        riichi_turn = player.is_riichi()
+        is_riichi = True if riichi_turn >= 0 else False
+
+        # is_double_riichi
+        is_daburu_riichi = True if riichi_turn == 0 else False
+
+        # is_ippatsu
+        is_ippatsu = True if riichi_turn == player.turn else False
+
+        # is_rinshan, include in parameters
+        # is_chankan, include in parameters
+
+        config = HandConfig(
+            is_tsumo=is_tsumo,
+            is_riichi=is_riichi,
+            is_ippatsu=is_ippatsu,
+            is_rinshan=is_rinshan,
+            is_chankan=is_chankan,
+            options=HAND_CONFIG_OPTIONS,
+        )
+
+        calculator = HandCalculator()
+        copy_player_deck = player.player_deck.copy()
+
+        if win_tile not in copy_player_deck:
+            copy_player_deck.append(win_tile)
+        print(deck.dora)
+        result = calculator.estimate_hand_value(
+            list(map(lambda tile: tile.hand136_idx, copy_player_deck)),
+            win_tile.hand136_idx,
+            player.melds,
+            list(map(lambda tile: tile.hand136_idx, deck.dora)),
+            config=config,
+        )
+        print(f"FINAL RESULT: {result} {result.yaku}")
+        return result

@@ -1,15 +1,15 @@
 from pygame import Rect, Surface
-from components.fields.field import Field
+from components.entities.fields.field import Field
 import pygame
 import typing
 from pygame.event import Event
-from components.mouse import Mouse
+from components.entities.mouse import Mouse
 from utils.enums import ActionType
 
 if typing.TYPE_CHECKING:
-    from components.player import Player
-    from components.buttons.tile import Tile
-    from components.game_manager import GameManager
+    from components.entities.player import Player
+    from components.entities.buttons.tile import Tile
+    from components.game_scenes.game_manager import GameManager
 
 
 class TilesField(Field):

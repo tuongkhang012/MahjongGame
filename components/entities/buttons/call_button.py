@@ -1,4 +1,4 @@
-from components.buttons.button import Button
+from components.entities.buttons.button import Button
 from pygame.freetype import Font
 from pygame import Surface, Rect, Color
 import pygame
@@ -29,6 +29,7 @@ class CallButton(Button):
         surface.blit(self.surface, (self.get_position().x, self.get_position().y))
 
     def init_button(self):
+        self.hidden = True
         self.surface = self.__create_new_surface()
         self.draw_rect()
 

@@ -1,11 +1,11 @@
 from utils.enums import CallType, TileSource, CallName
-from components.buttons.tile import Tile
+from components.entities.buttons.tile import Tile
 import typing
 from mahjong.meld import Meld
 from utils.helper import map_call_type_to_meld_type
 
 if typing.TYPE_CHECKING:
-    from components.player import Player
+    from components.entities.player import Player
 
 
 class Call:
@@ -35,7 +35,7 @@ class Call:
                     raise ValueError(
                         f"Wrong Kan format! The tiles are {list(map(lambda tile: tile.__str__(), tiles))} which are not the correct for Kan"
                     )
-                if current_player_idx == from_player_idx:
+                if current_player_idx == from_player_idx and not is_kakan:
                     self.is_opened = False
                 match (current_player_idx - from_player_idx) % 4:
                     case 1:
@@ -74,13 +74,16 @@ class Call:
 
         self.type = type
         self.tiles = tiles
+        self.from_who = from_player_idx
+        self.who = current_player_idx
         self.another_player_tiles = self.__get_another_player_tile(tiles)
         self.meld = Meld(
             meld_type=map_call_type_to_meld_type(type),
-            tiles=list(map(lambda tile: tile.hand34_idx, tiles)),
+            tiles=list(map(lambda tile: tile.hand136_idx, tiles)),
+            called_tile=self.another_player_tiles if self.is_opened else None,
             opened=self.is_opened,
             who=current_player_idx,
-            from_who=current_player_idx if not self.is_opened else from_player_idx,
+            from_who=(from_player_idx - current_player_idx + 4) % 4,
         )
         self.is_kakan = is_kakan
 

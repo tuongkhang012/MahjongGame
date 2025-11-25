@@ -1,15 +1,15 @@
-from components.fields.tiles_field import TilesField
+from components.entities.fields.tiles_field import TilesField
 from pygame import Rect, Surface
 import pygame
 import typing
-from components.image_cutter import ImageCutter
+from shared.image_cutter import ImageCutter
 from utils.constants import DISCARD_FIELD_SIZE
 import math
 from utils.helper import draw_hitbox
 
 if typing.TYPE_CHECKING:
-    from components.player import Player
-    from components.buttons.tile import Tile
+    from components.entities.player import Player
+    from components.entities.buttons.tile import Tile
 
 
 class DiscardField(TilesField):

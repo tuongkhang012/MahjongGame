@@ -1,12 +1,12 @@
 from pygame import Surface
-from components.buttons.tile import Tile
+from components.entities.buttons.tile import Tile
 from pygame.event import Event
 from components.events.event_controller import EventController
-from components.mouse import Mouse
+from components.entities.mouse import Mouse
 import typing
 
 if typing.TYPE_CHECKING:
-    from components.game_manager import GameManager
+    from components.game_scenes.game_manager import GameManager
 
 
 class MouseMotion(EventController):

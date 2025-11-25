@@ -1,14 +1,14 @@
-from components.fields.tiles_field import TilesField
+from components.entities.fields.tiles_field import TilesField
 from pygame import Rect, Surface
 import pygame
 import typing
-from components.call import Call
+from components.entities.call import Call
 from utils.enums import CallType, TileSource
 from utils.helper import draw_hitbox
 
 if typing.TYPE_CHECKING:
-    from components.player import Player
-    from components.buttons.tile import Tile
+    from components.entities.player import Player
+    from components.entities.buttons.tile import Tile
 
 
 class CallField(TilesField):
@@ -296,7 +296,7 @@ class CallField(TilesField):
                         if tmp_tile != call.another_player_tiles
                         and tmp_tile.get_surface().get_size()
                         != call.another_player_tiles.get_surface().get_size()
-                    ]:
+                    ][0:2]:
 
                         surface_width += tile.get_surface().get_width()
                 try:
@@ -323,7 +323,7 @@ class CallField(TilesField):
                         if tmp_tile != call.another_player_tiles
                         and tmp_tile.get_surface().get_size()
                         != call.another_player_tiles.get_surface().get_size()
-                    ]:
+                    ][0:2]:
                         surface_height += tile.get_surface().get_height()
                 try:
                     target_tile_height = list(
