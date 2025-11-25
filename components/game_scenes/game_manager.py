@@ -15,7 +15,7 @@ from components.events.mouse_motion import MouseMotion
 from pygame import Surface
 from components.entities.player import Player
 from components.entities.deck import Deck
-from utils.helper import build_center_rect, map_action_to_call
+from utils.helper import build_center_rect, map_action_to_call, count_shanten_points
 from components.entities.fields.center_board_field import CenterBoardField
 from components.entities.fields.discard_field import DiscardField
 import typing
@@ -33,7 +33,7 @@ if typing.TYPE_CHECKING:
 class GameManager:
     screen: Surface
     scenes_controller: "ScenesController"
-
+    pause: bool = False
     # Player
     player_list: list[Player] = []
     current_player: Player
@@ -118,7 +118,8 @@ class GameManager:
         self.last_time = current_time
 
         # --- Update logic game ---
-        self.update(delta_time)
+        if not self.pause:
+            self.update(delta_time)
 
         # --- Rendering ---
         self.screen.fill("aquamarine4")
@@ -569,6 +570,7 @@ class GameManager:
     ):
         import datetime
 
+        self.pause = True
         if win_player:
             # is_tsumo
             is_tsumo = True if self.action == ActionType.TSUMO else False
@@ -662,15 +664,37 @@ class GameManager:
             elif self.action == ActionType.RON:
                 deltas[win_player.player_idx] += total_cost
                 deltas[roned_player.player_idx] -= total_cost
-            print(deltas)
+
             self.game_log.append_event(self.action, win_tile, win_player, None)
 
-            self.game_log.end_round(self.player_list, deltas)
-            self.game_log.export(datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S"))
-            self.scenes_controller.change_scene(GameScene.AFTER_MATCH)
         else:
-            print("RYUUKYOKU")
-            self.scenes_controller.change_scene(GameScene.AFTER_MATCH)
+            max_deltas_points = 3000
+            tenpai_players: list[Player] = []
+            deltas = [0, 0, 0, 0]
+            for player in self.player_list:
+                if count_shanten_points(player.player_deck) == 0:
+                    tenpai_players.append(player)
+            if not (len(tenpai_players) == 0 or len(tenpai_players) == 4):
+                for player in self.player_list:
+                    if player in tenpai_players:
+                        deltas[player.player_idx] += int(
+                            max_deltas_points / len(tenpai_players)
+                        )
+                    if player not in tenpai_players:
+                        deltas[player.player_idx] -= int(
+                            max_deltas_points / (4 - len(tenpai_players))
+                        )
+
+            self.game_log.round["ryuukyoku"] = True
+            self.game_log.round["ryuukyoku_tenpai"] = (
+                None
+                if len(tenpai_players) == 0
+                else list(map(lambda player: player.player_idx, tenpai_players))
+            )
+
+        self.game_log.end_round(self.player_list, deltas)
+        self.game_log.export(datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S"))
+        self.scenes_controller.change_scene(GameScene.AFTER_MATCH)
 
     def __create_new_round_log(self):
         hands = []

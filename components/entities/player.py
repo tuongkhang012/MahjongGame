@@ -13,6 +13,7 @@ from utils.helper import (
     convert_tiles_list_to_hand34,
     convert_tiles_list_to_hand136,
     map_call_type_to_meld_type,
+    count_shanten_points,
 )
 from utils.constants import HAND_CONFIG_OPTIONS
 from mahjong.hand_calculating.hand import HandCalculator
@@ -295,9 +296,9 @@ class Player:
         for tile in self.player_deck:
             tmp_tiles_list = self.player_deck.copy()
             tmp_tiles_list.remove(tile)
-            if minimum_shanten > self.count_shanten_points(tmp_tiles_list):
+            if minimum_shanten > count_shanten_points(tmp_tiles_list):
                 discard_tile = tile
-                minimum_shanten = self.count_shanten_points(tmp_tiles_list)
+                minimum_shanten = count_shanten_points(tmp_tiles_list)
 
         if self.player_idx == 1 and self.find_tile(TileType.SOU, 9):
             tile = self.find_tile(TileType.SOU, 9)
@@ -493,8 +494,7 @@ class Player:
             return False
 
     def is_riichi_able(self) -> bool:
-        print()
-        if self.count_shanten_points(self.player_deck) == 0 and (
+        if count_shanten_points(self.player_deck) == 0 and (
             len(self.call_list) == 0
             or (
                 len(self.call_list) > 0
@@ -504,18 +504,6 @@ class Player:
             return True
         else:
             return False
-
-    def count_shanten_points(
-        self,
-        tiles: list[Tile],
-    ) -> int:
-        from mahjong.shanten import Shanten
-
-        shanten_calculator = Shanten()
-        points = shanten_calculator.calculate_shanten(
-            convert_tiles_list_to_hand34(tiles),
-        )
-        return points
 
     def riichi(self):
         self.__is_riichi = True

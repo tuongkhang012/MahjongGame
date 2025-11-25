@@ -12,6 +12,7 @@ if typing.TYPE_CHECKING:
 class ScenesController:
     __scene: GameScene
     __screen: Surface
+    __popup_screen: Surface
 
     def __init__(self):
         pygame.init()
@@ -48,7 +49,7 @@ class ScenesController:
 
     def render(self):
         match self.__scene:
-            case GameScene.START | GameScene.GAME:
+            case GameScene.START | GameScene.GAME | GameScene.AFTER_MATCH:
                 self.__screen = self.game_manager.render()
         self.__default_screen.blit(self.__screen, (0, 0))
 
