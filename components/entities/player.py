@@ -228,9 +228,10 @@ class Player:
                 is_kakan,
             )
         )
+
         for called_tile in call_list:
             if called_tile not in self.call_tiles_list:
-                self.call_tiles_list.append(tile)
+                self.call_tiles_list.append(called_tile)
 
         self.melds.append(self.call_list[-1].meld)
 
@@ -334,12 +335,6 @@ class Player:
         self.can_call = []
 
         self.__build_winning_tiles()
-        if self.player_idx == 3:
-            print(
-                list(map(lambda tile: tile.__str__(), self.__winning_tiles)),
-                self.__already_discard_tiles,
-            )
-            print(self.player_deck, tile)
         if is_current_turn and self.is_tsumo_able(tile, round_wind):
             self.can_call.append(CallType.TSUMO)
 
@@ -451,9 +446,10 @@ class Player:
 
         copy_player_deck = self.player_deck.copy()
         copy_player_deck.append(tile)
+        hands = copy_player_deck + self.call_tiles_list
 
         result = calculator.estimate_hand_value(
-            list(map(lambda tile: tile.hand136_idx, copy_player_deck)),
+            list(map(lambda tile: tile.hand136_idx, hands)),
             win_tile=tile.hand136_idx,
             melds=self.melds,
             config=config,
@@ -478,10 +474,11 @@ class Player:
             player_wind=self.direction.value + 27,
             options=HAND_CONFIG_OPTIONS,
         )
-
+        hands = self.player_deck + self.call_tiles_list
+        print("Hands: ", hands)
         result = calculator.estimate_hand_value(
-            convert_tiles_list_to_hand136(self.player_deck),
-            win_tile=convert_tiles_list_to_hand136([self.get_draw_tile()])[0],
+            list(map(lambda tile: tile.hand136_idx, hands)),
+            win_tile=self.get_draw_tile().hand136_idx,
             melds=self.melds,
             config=config,
         )

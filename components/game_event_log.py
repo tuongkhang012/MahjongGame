@@ -31,8 +31,9 @@ class Agari(TypedDict):
 
 
 class GameRoundLog(TypedDict):
+    tenhou_seed: str
     dealer: int
-    agari: Agari
+    agari: list[Agari]
     hands: list[list[str]]
     round: list[str, int, int]
     events: list[GameEvent]
@@ -60,6 +61,7 @@ class GameEventLog:
 
     def new_rounds(
         self,
+        tenhou_seed: str,
         dealer: int,
         hands: list[list[str]],
         round_wind: str,
@@ -67,6 +69,7 @@ class GameEventLog:
         kyoutaku_number: int,
     ):
         self.round: GameRoundLog = {
+            "tenhou_seed": tenhou_seed,
             "dealer": dealer,
             "agari": None,
             "events": [],

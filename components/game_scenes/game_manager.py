@@ -312,23 +312,20 @@ class GameManager:
 
         match self.action:
             case ActionType.DRAW:
-
-                self.__reset_calling_state()
                 try:
                     if self.prev_action == ActionType.KAN:
+                        self.__reset_calling_state()
                         tile = self.current_player.draw(
                             self.deck.death_wall,
                             round_wind=self.round_direction,
                             tile=self.deck.death_wall[0],
                         )
+
                         if len(self.current_player.can_call) > 0:
                             self.call_order.append(self.current_player)
-                        else:
-                            self.deck.death_wall.append(self.deck.draw_deck[0])
-                            self.deck.draw_deck.remove(self.deck.draw_deck[0])
-                            self.deck.current_dora_idx -= 1
 
                     else:
+                        self.__reset_calling_state()
                         tile = self.current_player.draw(
                             self.deck.draw_deck,
                             round_wind=self.round_direction,
@@ -509,14 +506,11 @@ class GameManager:
                 )
                 return self.end_match(
                     calling_player,
+                    None,
                     calling_player.get_draw_tile(),
                 )
 
             case ActionType.SKIP:
-                if len(self.deck.death_wall) < 14:
-                    self.deck.death_wall.append(self.deck.draw_deck[0])
-                    self.deck.draw_deck.remove(self.deck.draw_deck[0])
-                    self.deck.current_dora_idx -= 1
                 if self.prev_action == ActionType.KAN and self.prev_called_player:
                     self.__reset_calling_state()
                     self.prev_action = ActionType.KAN
@@ -530,6 +524,12 @@ class GameManager:
                         self.switch_turn()
                 else:
                     self.calling_player = self.call_order.pop()
+
+        if len(self.deck.death_wall) < 14:
+            for _ in range(0, 14 - len(self.deck.death_wall)):
+                self.deck.death_wall.append(self.deck.draw_deck[0])
+                self.deck.draw_deck.remove(self.deck.draw_deck[0])
+                self.deck.current_dora_idx -= 1
 
         self.bot_move_timer = 0
         self.current_player.deck_field.build_tiles_position(self.current_player)
@@ -570,7 +570,7 @@ class GameManager:
         import datetime
 
         if win_player:
-            is_rinshan = True if len(self.deck.death_wall) < 13 else False
+            is_rinshan = True if win_player.get_draw_tile().from_death_wall else False
             is_chankan = (
                 True
                 if self.prev_action == ActionType.KAN and self.action == ActionType.RON
@@ -589,12 +589,20 @@ class GameManager:
             total_cost = int(result.cost["total"] / 100)
             if self.action == ActionType.TSUMO:
                 deltas[win_player.player_idx] += total_cost
-                for i in range(0, len(deltas)):
-                    if i == win_player.player_idx:
-                        continue
-                    deltas[i] -= int(total_cost / 3)
+                if win_player.direction == self.round_direction:
+                    for i in range(0, len(deltas)):
+                        if i == win_player.player_idx:
+                            continue
+                        deltas[i] -= int(total_cost / 3)
+                else:
+                    for i in range(0, len(deltas)):
+                        if i == win_player.player_idx:
+                            continue
+                        if self.player_list[i].direction == self.round_direction:
+                            deltas[i] -= int(total_cost / 4) * 2
+                        else:
+                            deltas[i] -= int(total_cost / 4)
             elif self.action == ActionType.RON:
-                print(win_player, self.prev_player)
                 deltas[win_player.player_idx] += total_cost
                 deltas[roned_player.player_idx] -= total_cost
             print(deltas)
@@ -622,6 +630,7 @@ class GameManager:
                 round_wind = f"North {self.round_direction_number}"
 
         self.game_log.new_rounds(
+            self.deck.random_seed,
             self.find_player(self.current_turn).player_idx,
             hands,
             round_wind,
