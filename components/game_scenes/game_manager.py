@@ -668,7 +668,7 @@ class GameManager:
             self.game_log.append_event(self.action, win_tile, win_player, None)
 
         else:
-            max_deltas_points = 3000
+            max_deltas_points = 30
             tenpai_players: list[Player] = []
             deltas = [0, 0, 0, 0]
             for player in self.player_list:
