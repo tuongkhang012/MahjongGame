@@ -157,10 +157,10 @@ class GameBuilder:
                     player_idx = direction.index(Direction(k))
                     player = player_list[player_idx]
                     if i == 3:
-                        player.draw(self.deck.draw_deck, check_call=False)
+                        player.draw(self.deck.draw_deck, None, check_call=False)
                     else:
                         for j in range(4):
-                            player.draw(self.deck.draw_deck, check_call=False)
+                            player.draw(self.deck.draw_deck, None, check_call=False)
 
         # Rearrange deck for each player
         for player in player_list:
@@ -272,6 +272,9 @@ class GameBuilder:
             is_ippatsu=is_ippatsu,
             is_rinshan=is_rinshan,
             is_chankan=is_chankan,
+            is_daburu_riichi=is_daburu_riichi,
+            player_wind=player.direction.value + 27,
+            round_wind=27,
             options=HAND_CONFIG_OPTIONS,
         )
 
@@ -280,9 +283,10 @@ class GameBuilder:
 
         if win_tile not in copy_player_deck:
             copy_player_deck.append(win_tile)
-        print(deck.dora)
+
+        hands = copy_player_deck + player.call_tiles_list
         result = calculator.estimate_hand_value(
-            list(map(lambda tile: tile.hand136_idx, copy_player_deck)),
+            list(map(lambda tile: tile.hand136_idx, hands)),
             win_tile.hand136_idx,
             player.melds,
             list(map(lambda tile: tile.hand136_idx, deck.dora)),

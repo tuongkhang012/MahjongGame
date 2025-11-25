@@ -14,6 +14,7 @@ if typing.TYPE_CHECKING:
 
 class Tile(Button):
     source: TileSource
+    from_death_wall: bool = False
 
     def __init__(
         self, idx: int, type: TileType, number: int, name: str, aka: bool = False
