@@ -613,6 +613,7 @@ class GameManager:
             self.scenes_controller.change_scene(GameScene.AFTER_MATCH)
         else:
             print("RYUUKYOKU")
+            self.scenes_controller.change_scene(GameScene.AFTER_MATCH)
 
     def __create_new_round_log(self):
         hands = []
