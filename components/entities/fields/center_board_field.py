@@ -1,5 +1,5 @@
-from components.fields.field import Field
-from components.fields.discard_field import DiscardField
+from components.entities.fields.field import Field
+from components.entities.fields.discard_field import DiscardField
 from utils.enums import Direction
 from pygame import Surface, Rect
 import pygame
@@ -14,8 +14,8 @@ from utils.constants import (
     MADOU_FUTO_FONT,
     COLOR_WHITE,
 )
-from components.player import Player
-from components.image_cutter import ImageCutter
+from components.entities.player import Player
+from shared.image_cutter import ImageCutter
 import math
 from pygame.freetype import Font
 

@@ -6,7 +6,7 @@ import typing
 from mahjong.meld import Meld
 
 if typing.TYPE_CHECKING:
-    from components.buttons.tile import Tile
+    from components.entities.buttons.tile import Tile
 
 
 def roll_dices() -> int:

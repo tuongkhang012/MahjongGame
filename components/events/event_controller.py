@@ -1,4 +1,4 @@
-from components.buttons.tile import Tile
+from components.entities.buttons.tile import Tile
 from pygame.event import Event
 
 

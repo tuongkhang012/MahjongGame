@@ -8,29 +8,31 @@ from utils.constants import (
     TILE_SCALE_BY,
 )
 from components.game_builder import GameBuilder
-from utils.enums import Direction, ActionType
+from utils.enums import Direction, ActionType, CallType, GameScene
 from components.events.mouse_button_down import MouseButtonDown
 from components.events.mouse_motion import MouseMotion
 
 from pygame import Surface
-from components.player import Player
-from components.deck import Deck
+from components.entities.player import Player
+from components.entities.deck import Deck
 from utils.helper import build_center_rect, map_action_to_call
-from components.fields.center_board_field import CenterBoardField
-from components.fields.discard_field import DiscardField
+from components.entities.fields.center_board_field import CenterBoardField
+from components.entities.fields.discard_field import DiscardField
 import typing
 import random
+from components.game_event_log import GameEventLog, GameEvent, GameRoundLog
 
 # Tile
-from components.buttons.tile import Tile
+from components.entities.buttons.tile import Tile
+from components.entities.fields.call_button_fields import CallButtonField
 
-# Call Relative import
-from components.fields.call_button_fields import CallButtonField
+if typing.TYPE_CHECKING:
+    from components.game_scenes.scenes_controller import ScenesController
 
 
 class GameManager:
-    __default_screen: Surface
     screen: Surface
+    scenes_controller: "ScenesController"
 
     # Player
     player_list: list[Player] = []
@@ -48,6 +50,10 @@ class GameManager:
     # Turn
     current_turn: Direction
 
+    # Round direction
+    round_direction: Direction = None
+    round_direction_number: int = None
+
     # AI relevant
     bot_move_timer: float = 0
     BOT_MOVE_DELAY: float = 1  # AI "thinks" for 1 seconds
@@ -57,12 +63,20 @@ class GameManager:
 
     # Game logic relavent
     latest_discarded_tile: Tile | None = None
+    latest_called_tile: Tile | None = None
     call_order: list[Player] = []
     calling_player: Player = None
+    prev_called_player: Player = None
     action: ActionType = None
     prev_action: ActionType = None
 
-    def __init__(self, start_data=None):
+    # Score relavent
+    tsumi_number: int = 0
+    kyoutaku_number: int = 0
+
+    def __init__(
+        self, screen: Surface, scenes_controller: "ScenesController", start_data=None
+    ):
         pygame.init()
         # pygame.mixer.init()
         # pygame.freetype.init()
@@ -70,27 +84,34 @@ class GameManager:
         pygame.display.set_caption(GAME_TITLE)
 
         # Display setting
-        self.__default_screen = pygame.display.set_mode(WINDOW_SIZE)
-        self.screen = pygame.Surface(
-            (self.__default_screen.get_width(), self.__default_screen.get_height()),
-            pygame.SRCALPHA,
-        )
-        self.screen.fill("aquamarine4")
+        self.main_screen = screen
+        self.screen = screen.copy()
         self.clock = pygame.time.Clock()
         self.clock.tick(FPS_LIMIT)  # limits FPS to 60
         self.last_time = pygame.time.get_ticks()  # For calculating delta time
 
-        self.builder = GameBuilder(self.screen, self.clock, start_data)
+        # Game log
+        self.game_log = GameEventLog()
+
+        # Init deck
+        init_deck = Deck(self.game_log)
+        self.builder = GameBuilder(self.screen, self.clock, init_deck, start_data)
 
         # Init game
         self.builder.new(self)
+        self.__create_new_round_log()
+        self.deck.add_new_dora()
 
         # Create class event listener
-        self.mouse_button_down = MouseButtonDown(self.screen, self, self.deck.full_deck)
-        self.mouse_motion = MouseMotion(self.screen, self, self.deck.full_deck)
+        self.mouse_button_down = MouseButtonDown(
+            self.screen, self, init_deck.get_init_deck()
+        )
+        self.mouse_motion = MouseMotion(self.screen, self, init_deck.get_init_deck())
         self.call_button_field = CallButtonField(self.screen)
 
-    def run(self) -> bool:
+        self.scenes_controller = scenes_controller
+
+    def render(self) -> Surface:
         # --- Calculate Delta Time ---
         current_time = pygame.time.get_ticks()
         delta_time = (current_time - self.last_time) / 1000.0  # Time in seconds
@@ -116,14 +137,8 @@ class GameManager:
         if self.animation_tile:
             self.render_discarded_animation(self.animation_tile)
 
-        self.__default_screen.blit(self.screen, (0, 0))
-
-        # Listen user event
-        event = self.listenEvent()
-        if event["exit"] == True:
-            return False
-        else:
-            return True
+        self.main_screen.blit(self.screen, (0, 0))
+        return self.main_screen
 
     def render_discarded_animation(self, tile: Tile):
         if not self.animation_tile:
@@ -242,10 +257,15 @@ class GameManager:
                     player.check_call(
                         self.latest_discarded_tile,
                         is_current_turn=False,
+                        round_wind=self.round_direction,
                         check_chii=True,
                     )
                 else:
-                    player.check_call(self.latest_discarded_tile, is_current_turn=False)
+                    player.check_call(
+                        self.latest_discarded_tile,
+                        is_current_turn=False,
+                        round_wind=self.round_direction,
+                    )
                 if len(player.can_call) > 0:
                     self.call_order.append(player)
 
@@ -277,20 +297,6 @@ class GameManager:
         """
         return self.player_list[self.direction.index(turn)]
 
-    def listenEvent(self) -> dict[str, bool]:
-        for event in pygame.event.get():
-            match event.type:
-                case pygame.QUIT:
-                    return {"exit": True}
-                case pygame.MOUSEBUTTONDOWN:
-                    if self.animation_tile is None:
-                        self.mouse_button_down.run(event)
-
-                case pygame.MOUSEMOTION:
-                    self.mouse_motion.run(event)
-
-        return {"exit": False}
-
     def do_action(self):
         print(f"########## START {self.action.name.upper()} ACTION ##########")
         print(
@@ -298,7 +304,7 @@ class GameManager:
         )
         latest_discarded_tile: Tile = self.latest_discarded_tile
 
-        if not self.current_player == self.main_player:
+        if self.action:
             if self.calling_player:
                 print(f"{self.action} from {self.calling_player}")
             else:
@@ -306,43 +312,60 @@ class GameManager:
 
         match self.action:
             case ActionType.DRAW:
+
                 self.__reset_calling_state()
                 try:
                     if self.prev_action == ActionType.KAN:
-                        self.current_player.draw(
-                            self.deck.death_wall, self.deck.death_wall[0]
+                        tile = self.current_player.draw(
+                            self.deck.death_wall,
+                            round_wind=self.round_direction,
+                            tile=self.deck.death_wall[0],
                         )
                         if len(self.current_player.can_call) > 0:
                             self.call_order.append(self.current_player)
                         else:
                             self.deck.death_wall.append(self.deck.draw_deck[0])
                             self.deck.draw_deck.remove(self.deck.draw_deck[0])
+                            self.deck.current_dora_idx -= 1
+
                     else:
-                        self.current_player.draw(self.deck.draw_deck)
+                        tile = self.current_player.draw(
+                            self.deck.draw_deck,
+                            round_wind=self.round_direction,
+                        )
                 except IndexError as e:
                     print("SOME THING WRONG WITH DRAW: ", e.args)
                 if len(self.current_player.can_call) > 0:
                     self.call_order.append(self.current_player)
+                self.game_log.append_event(ActionType.DRAW, tile, self.current_player)
                 print(
                     f"{self.current_player} draw {self.current_player.get_draw_tile()}"
                 )
 
             case ActionType.DISCARD:
                 tile: Tile = None
-                if self.current_player == self.main_player:
+                if (
+                    self.current_player.is_riichi() >= 0
+                    and self.prev_action is not ActionType.RIICHI
+                ):
+                    tile = self.current_player.get_draw_tile()
+                else:
                     try:
                         tile = list(
                             filter(
                                 lambda tile: tile.is_clicked,
-                                self.main_player.player_deck,
+                                self.current_player.player_deck,
                             )
                         )[0]
                     except:
                         pass
-
-                self.__reset_calling_state()
-                self.current_player.discard(tile, self)
-                self.switch_turn()
+                if tile:
+                    self.__reset_calling_state()
+                    self.current_player.discard(tile, self)
+                    self.game_log.append_event(
+                        ActionType.DISCARD, tile, self.current_player
+                    )
+                    self.switch_turn()
 
             case ActionType.CHII:
                 calling_player = self.calling_player
@@ -355,6 +378,12 @@ class GameManager:
                     random_list,
                     map_action_to_call(self.action),
                     self.current_player,
+                )
+                self.game_log.append_event(
+                    ActionType.CHII,
+                    latest_discarded_tile,
+                    calling_player,
+                    calling_player.call_list[-1],
                 )
                 self.__handle_switch_turn()
 
@@ -370,12 +399,22 @@ class GameManager:
                     map_action_to_call(self.action),
                     self.current_player,
                 )
+                self.game_log.append_event(
+                    ActionType.PON,
+                    latest_discarded_tile,
+                    calling_player,
+                    calling_player.call_list[-1],
+                )
                 self.__handle_switch_turn()
 
             case ActionType.KAN:
+                self.deck.add_new_dora()
+                is_kakan = False
                 calling_player = self.calling_player
                 if self.prev_action == ActionType.DRAW:
-                    calling_player.build_kan(calling_player.get_draw_tile())
+                    is_kakan, from_who = calling_player.build_kan(
+                        calling_player.get_draw_tile()
+                    )
                 else:
                     calling_player.build_kan(latest_discarded_tile)
 
@@ -385,7 +424,14 @@ class GameManager:
                         calling_player.get_draw_tile(),
                         random_list,
                         map_action_to_call(self.action),
-                        None,
+                        None if not is_kakan else self.player_list[from_who],
+                        is_kakan,
+                    )
+                    self.game_log.append_event(
+                        ActionType.KAN,
+                        calling_player.get_draw_tile(),
+                        calling_player,
+                        calling_player.call_list[-1],
                     )
                 else:
                     calling_player.call(
@@ -394,28 +440,90 @@ class GameManager:
                         map_action_to_call(self.action),
                         self.current_player,
                     )
+                    self.game_log.append_event(
+                        ActionType.KAN,
+                        latest_discarded_tile,
+                        calling_player,
+                        calling_player.call_list[-1],
+                    )
+                if calling_player.call_list[-1].is_kakan:
+                    self.__reset_calling_state()
 
-                self.__handle_switch_turn(True)
+                    for player in self.player_list:
+                        if player == calling_player:
+                            continue
+                        player.check_call(
+                            calling_player.get_draw_tile(),
+                            False,
+                            round_wind=self.round_direction,
+                            check_chii=False,
+                        )
+
+                        if CallType.RON in player.can_call:
+                            self.call_order.append(player)
+                            self.calling_player = self.call_order.pop()
+                else:
+                    self.__handle_switch_turn(True)
 
             case ActionType.RIICHI:
                 calling_player = self.calling_player
+                self.kyoutaku_number += 1
                 calling_player.riichi()
+                self.game_log.append_event(
+                    ActionType.RIICHI,
+                    None,
+                    calling_player,
+                )
                 self.__handle_switch_turn()
 
             case ActionType.RON:
                 calling_player = self.calling_player
-                # self.action = ActionType.WIN
-
+                if self.prev_action == ActionType.KAN:
+                    self.game_log.append_event(
+                        ActionType.RON,
+                        self.prev_called_player.get_draw_tile(),
+                        calling_player,
+                    )
+                    return self.end_match(
+                        calling_player, self.prev_called_player.get_draw_tile()
+                    )
+                else:
+                    self.game_log.append_event(
+                        ActionType.RON,
+                        self.latest_discarded_tile,
+                        calling_player,
+                    )
+                    return self.end_match(calling_player, self.latest_discarded_tile)
                 # End game
 
             case ActionType.TSUMO:
                 calling_player = self.calling_player
-                # self.action = ActionType.WIN
+                self.game_log.append_event(
+                    ActionType.TSUMO,
+                    calling_player.get_draw_tile(),
+                    calling_player,
+                )
+                return self.end_match(
+                    calling_player,
+                    calling_player.get_draw_tile(),
+                )
 
             case ActionType.SKIP:
-                if len(self.call_order) == 0:
+                if len(self.deck.death_wall) < 14:
+                    self.deck.death_wall.append(self.deck.draw_deck[0])
+                    self.deck.draw_deck.remove(self.deck.draw_deck[0])
+                    self.deck.current_dora_idx -= 1
+                if self.prev_action == ActionType.KAN and self.prev_called_player:
                     self.__reset_calling_state()
-                    self.switch_turn()
+                    self.prev_action = ActionType.KAN
+                    self.switch_turn(self.prev_called_player, True)
+                elif len(self.call_order) == 0:
+                    if self.prev_action == ActionType.DRAW:
+                        self.__reset_calling_state()
+                        self.switch_turn(self.current_player.direction, False)
+                    else:
+                        self.__reset_calling_state()
+                        self.switch_turn()
                 else:
                     self.calling_player = self.call_order.pop()
 
@@ -426,12 +534,16 @@ class GameManager:
 
     def __handle_switch_turn(self, draw: bool = False):
         calling_player = self.calling_player
+
         self.__reset_calling_state()
+        if self.prev_action == ActionType.RIICHI:
+            calling_player.make_move()
         self.switch_turn(calling_player.direction, draw)
 
     def __reset_calling_state(self):
         # --- RESET CALLING STATE ---
         self.prev_action = self.action
+        self.prev_called_player = self.calling_player
         self.latest_discarded_tile = None
         self.calling_player = None
         self.call_order = []
@@ -445,9 +557,64 @@ class GameManager:
             random.randint(0, len(calling_player.callable_tiles_list) - 1)
         ]
 
-    def end_match(self, win_player: Player = None):
+    def end_match(self, win_player: Player = None, win_tile: Tile = None):
+        import datetime
+
         if win_player:
-            for player in self.player_list:
-                self.builder.calculate_player_score(player, self.deck)
+            is_rinshan = True if len(self.deck.death_wall) < 13 else False
+            is_chankan = (
+                True
+                if self.prev_action == ActionType.KAN and self.action == ActionType.RON
+                else False
+            )
+            result = self.builder.calculate_player_score(
+                win_player,
+                win_tile,
+                self.action,
+                self.prev_action,
+                self.deck,
+                is_rinshan,
+                is_chankan,
+            )
+            deltas = [0, 0, 0, 0]
+
+            if self.action == ActionType.TSUMO:
+                deltas[win_player.player_idx] += result.cost["total"]
+                for i in range(0, len(deltas)):
+                    if i == win_player.player_idx:
+                        continue
+                    deltas[i] -= result.cost["total"] / 3
+            elif self.action == ActionType.RON:
+                deltas[win_player.player_idx] += result.cost["total"]
+                deltas[self.prev_player.player_idx] -= result.cost["total"]
+
+            self.game_log.append_event(self.action, win_tile, win_player, None)
+
+            self.game_log.end_round(self.player_list, deltas)
+            self.game_log.export(datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S"))
+            self.scenes_controller.change_scene(GameScene.AFTER_MATCH)
         else:
             print("RYUUKYOKU")
+
+    def __create_new_round_log(self):
+        hands = []
+        for player in self.player_list:
+            hands.append(list(map(lambda tile: tile.__str__(), player.player_deck)))
+
+        match self.round_direction:
+            case Direction.EAST:
+                round_wind = f"East {self.round_direction_number}"
+            case Direction.SOUTH:
+                round_wind = f"South {self.round_direction_number}"
+            case Direction.WEST:
+                round_wind = f"West {self.round_direction_number}"
+            case Direction.NORTH:
+                round_wind = f"North {self.round_direction_number}"
+
+        self.game_log.new_rounds(
+            self.find_player(self.current_turn).player_idx,
+            hands,
+            round_wind,
+            self.tsumi_number,
+            self.kyoutaku_number,
+        )

@@ -1,12 +1,12 @@
-from components.fields.tiles_field import TilesField
+from components.entities.fields.tiles_field import TilesField
 from pygame import Rect, Surface
 import typing
 from utils.helper import build_center_rect, draw_hitbox
 import pygame
 
 if typing.TYPE_CHECKING:
-    from components.player import Player
-    from components.buttons.tile import Tile
+    from components.entities.player import Player
+    from components.entities.buttons.tile import Tile
 
 
 class DeckField(TilesField):

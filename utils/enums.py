@@ -62,3 +62,20 @@ class ActionType(Enum):
     SKIP = 6
     DRAW = 7
     DISCARD = 8
+    DORA = 9
+
+
+class BasePoints(Enum):
+    MANGAN = 2000
+    HANEMAN = 3000
+    BAIMAN = 4000
+    SANBAIMAN = 6000
+    YAKUMAN = 8000
+    DOUBLE_YAKUMAN = 16000
+
+
+class GameScene(Enum):
+    START = 0
+    INSTRUCTION = 1
+    GAME = 2
+    AFTER_MATCH = 3

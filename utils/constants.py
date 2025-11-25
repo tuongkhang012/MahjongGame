@@ -1,3 +1,5 @@
+from mahjong.hand_calculating.hand_config import OptionalRules
+
 FPS_LIMIT = 60
 WINDOW_SIZE = (1280, 720)
 GAME_TITLE = "Mahjong Riichi"
@@ -41,3 +43,7 @@ COLOR_WHITE = (255, 255, 255)
 
 CALL_BUTTON_SIZE = (80, 40)
 CALL_TEXT_COLOR = COLOR_WHITE
+
+HAND_CONFIG_OPTIONS = OptionalRules(
+    has_aka_dora=True, has_open_tanyao=True, has_double_yakuman=True
+)

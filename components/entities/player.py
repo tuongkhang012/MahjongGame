@@ -1,12 +1,12 @@
-from components.buttons.tile import Tile
-from components.call import Call
+from components.entities.buttons.tile import Tile
+from components.entities.call import Call
 from utils.enums import CallType, TileSource, TileType, ActionType
 from pygame import Surface
 import typing
 from utils.enums import Direction
-from components.fields.discard_field import DiscardField
-from components.fields.deck_field import DeckField
-from components.fields.call_field import CallField
+from components.entities.fields.discard_field import DiscardField
+from components.entities.fields.deck_field import DeckField
+from components.entities.fields.call_field import CallField
 from utils.helper import (
     map_call_to_action,
     convert_tile_to_hand34_index,
@@ -14,14 +14,14 @@ from utils.helper import (
     convert_tiles_list_to_hand136,
     map_call_type_to_meld_type,
 )
-
+from utils.constants import HAND_CONFIG_OPTIONS
 from mahjong.hand_calculating.hand import HandCalculator
 from mahjong.hand_calculating.hand_config import HandConfig
 from mahjong.meld import Meld
 from mahjong.shanten import Shanten
 
 if typing.TYPE_CHECKING:
-    from components.game_manager import GameManager
+    from components.game_scenes.game_manager import GameManager
 
 
 class Player:
@@ -30,6 +30,7 @@ class Player:
     discard_tiles: list[Tile]
     call_list: list[Call]
     direction: Direction
+    turn: int
 
     # All fields
     discard_field: DiscardField
@@ -40,6 +41,13 @@ class Player:
     can_call: list[CallType]
     callable_tiles_list: list[list[Tile]]
     melds: list[Meld]
+
+    # Honba
+    honba: int
+
+    # Riichi
+    __is_riichi: bool = False
+    __riichi_turn: int = None
 
     def __init__(
         self,
@@ -53,7 +61,6 @@ class Player:
     ):
         self.player_idx = player_idx
         self.direction = direction
-
         # Tile deck field init
         self.player_deck = player_deck if player_deck is not None else []
         self.discard_tiles = discard_tiles if discard_tiles is not None else []
@@ -76,12 +83,20 @@ class Player:
         self.melds = []
 
         # Game properties
-        self.__is_riichi = False
         self.__winning_tiles = []
-        # Player points
-        self.points = 25000
 
-    def draw(self, draw_deck: list[Tile], tile: Tile = None, check_call: bool = True):
+        # Player information
+        self.points = 25000
+        self.turn = 0
+        self.honba = 0
+
+    def draw(
+        self,
+        draw_deck: list[Tile],
+        round_wind: Direction,
+        tile: Tile = None,
+        check_call: bool = True,
+    ):
         if tile:
             self.__draw_tile = tile
             draw_deck.remove(tile)
@@ -92,7 +107,11 @@ class Player:
         self.player_deck.append(self.__draw_tile)
         self.__draw_tile.update_tile_surface(self.player_idx)
         if check_call:
-            self.check_call(self.__draw_tile, is_current_turn=True)
+            self.check_call(
+                self.__draw_tile,
+                is_current_turn=True,
+                round_wind=round_wind,
+            )
         return self.__draw_tile
 
     def build_chii(self, tile: Tile):
@@ -123,9 +142,10 @@ class Player:
             + [tile]
         )
 
-    def build_kan(self, tile: Tile):
+    def build_kan(self, tile: Tile) -> bool:
         self.callable_tiles_list = []
-
+        is_kakan = False
+        from_player: Player = None
         if tile.source == TileSource.PLAYER:
             callable_tiles_list = list(
                 filter(
@@ -155,8 +175,11 @@ class Player:
                     ):
                         callable_tiles_list = call.tiles + [tile]
                         self.callable_tiles_list.append(callable_tiles_list)
+                        is_kakan = True
+                        from_player = call.from_who
                         self.call_list.remove(call)
                         del call
+
                         break
 
             else:
@@ -169,6 +192,7 @@ class Player:
                         )
                     )
                 )
+        return (is_kakan, from_player)
 
     def call(
         self,
@@ -176,24 +200,23 @@ class Player:
         call_list: list[Tile],
         call_type: CallType,
         player: "Player",
+        is_kakan: bool = False,
     ):
-        if player:
+        """
+        Create call, return value will be True if the called is Kakan, else False
+        """
+        if player and not is_kakan:
             tile.source = TileSource.PLAYER
 
         print(
-            f"Player {self.player_idx} call: {call_type} for {list(map(lambda tile: tile.__str__(),call_list))}"
+            f"Player {self.player_idx} call: {call_type} for {list(map(lambda tile: tile.__str__(True),call_list))}"
         )
-        if player:
+        if player and not is_kakan:
             player.discard_tiles.remove(tile)
             self.player_deck.append(tile)
 
-        # Handle Kakan case
-        is_kakan = False
-
         for tmp_tile in call_list:
-            if tmp_tile not in self.player_deck:
-                is_kakan = True
-            else:
+            if tmp_tile in self.player_deck:
                 self.player_deck.remove(tmp_tile)
 
         self.call_list.append(
@@ -215,27 +238,13 @@ class Player:
         self.deck_field.build_field_surface(self)
         self.deck_field.build_tiles_position(self)
 
-    def discard(self, tile: Tile = None, game_manager: "GameManager" = None):
+    def discard(self, tile: Tile, game_manager: "GameManager" = None):
         import random
-
-        if tile is None:
-            minimum_shanten = 14
-            discard_tile = None
-            for tile in self.player_deck:
-                tmp_tiles_list = self.player_deck.copy()
-                tmp_tiles_list.remove(tile)
-                if minimum_shanten > self.count_shanten_points(tmp_tiles_list):
-                    discard_tile = tile
-                    minimum_shanten = self.count_shanten_points(tmp_tiles_list)
-
-            print(
-                f"Player {self.player_idx} have {self.count_shanten_points(self.player_deck)} SHANTEN"
-            )
-            tile = discard_tile
 
         if game_manager.prev_action == ActionType.RIICHI:
             tile.update_tile_surface((game_manager.current_player.player_idx - 1) % 4)
             tile.discard_riichi()
+
         tile.reveal()
         tile.unclicked()
         self.player_deck.remove(tile)
@@ -243,6 +252,7 @@ class Player:
         self.__already_discard_tiles.append(tile)
         game_manager.latest_discarded_tile = tile
         game_manager.start_discarded_animation(tile)
+        self.turn += 1
         return tile
 
     def rearrange_deck(self):
@@ -256,15 +266,43 @@ class Player:
         from random import randint
 
         if self.__is_riichi:
+            print(f"{self} is RIICHI, {self.can_call}")
+            if CallType.RON in self.can_call:
+                return ActionType.RON
+            if CallType.TSUMO in self.can_call:
+                return ActionType.TSUMO
+            tile = self.pick_tile()
+            tile.clicked()
             return ActionType.DISCARD
 
         if action:
             return action
 
         if len(self.can_call) > 0:
+            if self.player_idx == 3:
+                return map_call_to_action(self.can_call[0])
+
             return map_call_to_action(self.can_call[randint(0, len(self.can_call) - 1)])
-            # return map_call_to_action(self.can_call[-1])
+
+        tile = self.pick_tile()
+        tile.clicked()
         return ActionType.DISCARD
+
+    def pick_tile(self) -> Tile:
+        minimum_shanten = 14
+        discard_tile = None
+        for tile in self.player_deck:
+            tmp_tiles_list = self.player_deck.copy()
+            tmp_tiles_list.remove(tile)
+            if minimum_shanten > self.count_shanten_points(tmp_tiles_list):
+                discard_tile = tile
+                minimum_shanten = self.count_shanten_points(tmp_tiles_list)
+
+        if self.player_idx == 1 and self.find_tile(TileType.SOU, 9):
+            tile = self.find_tile(TileType.SOU, 9)
+        else:
+            tile = discard_tile
+        return tile
 
     def get_draw_tile(self) -> Tile:
         return self.__draw_tile
@@ -285,15 +323,27 @@ class Player:
         except:
             return None
 
-    def check_call(self, tile: Tile, is_current_turn: bool, check_chii: bool = False):
+    def check_call(
+        self,
+        tile: Tile,
+        is_current_turn: bool,
+        round_wind: Direction,
+        check_chii: bool = False,
+    ):
         print("----- Start cheking call -----")
         self.can_call = []
 
         self.__build_winning_tiles()
-        if self.is_tsumo_able(tile):
+        if self.player_idx == 3:
+            print(
+                list(map(lambda tile: tile.__str__(), self.__winning_tiles)),
+                self.__already_discard_tiles,
+            )
+            print(self.player_deck, tile)
+        if is_current_turn and self.is_tsumo_able(tile, round_wind):
             self.can_call.append(CallType.TSUMO)
 
-        if self.is_ron_able(tile):
+        if not is_current_turn and self.is_ron_able(tile, round_wind):
             self.can_call.append(CallType.RON)
 
         if not self.__is_riichi:
@@ -381,21 +431,30 @@ class Player:
         else:
             return convert_tiles_list_to_hand34(self.player_deck)[tile.hand34_idx] == 3
 
-    def is_ron_able(self, tile: Tile) -> bool:
-        if tile == self.get_draw_tile():
-            return False
-
+    def is_ron_able(self, tile: Tile, round_wind: Direction) -> bool:
         for discard_tile in self.__already_discard_tiles:
             if convert_tile_to_hand34_index(discard_tile) in self.__winning_tiles:
+                print(
+                    f"Player {self.player_idx} is not winning with ron because furiten: {self.__winning_tiles} is in {self.__already_discard_tiles}"
+                )
                 return False
 
         calculator = HandCalculator()
 
-        config = HandConfig(is_tsumo=False, is_riichi=self.__is_riichi)
+        config = HandConfig(
+            is_tsumo=False,
+            is_riichi=self.__is_riichi,
+            round_wind=round_wind.value + 27,
+            player_wind=self.direction.value + 27,
+            options=HAND_CONFIG_OPTIONS,
+        )
+
+        copy_player_deck = self.player_deck.copy()
+        copy_player_deck.append(tile)
 
         result = calculator.estimate_hand_value(
-            convert_tiles_list_to_hand136(self.player_deck),
-            win_tile=convert_tiles_list_to_hand136([tile])[0],
+            list(map(lambda tile: tile.hand136_idx, copy_player_deck)),
+            win_tile=tile.hand136_idx,
             melds=self.melds,
             config=config,
         )
@@ -404,15 +463,21 @@ class Player:
             print(f"Player {self.player_idx} is winning: {result} with {result.yaku}")
             return True
         else:
-            print(f"Player {self.player_idx} is not winning because {result.error}")
+            print(
+                f"Player {self.player_idx} is not winning with ron because {result.error}"
+            )
             return False
 
-    def is_tsumo_able(self, tile: Tile) -> bool:
-        if tile is not self.get_draw_tile():
-            return False
+    def is_tsumo_able(self, tile: Tile, round_wind: Direction) -> bool:
         calculator = HandCalculator()
 
-        config = HandConfig(is_tsumo=True, is_riichi=self.__is_riichi)
+        config = HandConfig(
+            is_tsumo=True,
+            is_riichi=self.__is_riichi,
+            round_wind=round_wind.value + 27,
+            player_wind=self.direction.value + 27,
+            options=HAND_CONFIG_OPTIONS,
+        )
 
         result = calculator.estimate_hand_value(
             convert_tiles_list_to_hand136(self.player_deck),
@@ -456,6 +521,16 @@ class Player:
 
     def riichi(self):
         self.__is_riichi = True
+        self.__riichi_turn = self.turn
+
+    def is_riichi(self) -> int:
+        """
+        Return the turn called riichi
+        """
+        if self.__is_riichi:
+            return self.__riichi_turn
+        else:
+            return -1
 
     def __eq__(self, value):
         if not isinstance(value, Player):

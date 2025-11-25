@@ -1,4 +1,4 @@
-from components.fields.field import Field
+from components.entities.fields.field import Field
 from pygame import Surface, Rect
 from pygame.event import Event
 import pygame
@@ -7,19 +7,19 @@ from utils.enums import CallType, ActionType
 from utils.helper import build_center_rect, draw_hitbox
 
 # All call buttons
-from components.buttons.chii import Chii
-from components.buttons.kan import Kan
-from components.buttons.pon import Pon
-from components.buttons.ron import Ron
-from components.buttons.skip import Skip
-from components.buttons.tsumo import Tsumo
-from components.buttons.richii import Riichi
-from components.call import Call
+from components.entities.buttons.chii import Chii
+from components.entities.buttons.kan import Kan
+from components.entities.buttons.pon import Pon
+from components.entities.buttons.ron import Ron
+from components.entities.buttons.skip import Skip
+from components.entities.buttons.tsumo import Tsumo
+from components.entities.buttons.richii import Riichi
+from components.entities.call import Call
 
 import typing
 
 if typing.TYPE_CHECKING:
-    from components.game_manager import GameManager
+    from components.game_scenes.game_manager import GameManager
     from components.events.mouse_button_down import MouseButtonDown
     from components.events.mouse_motion import MouseMotion
 
@@ -31,16 +31,27 @@ class CallButtonField(Field):
     ):
         super().__init__()
         self.screen = screen
-        self.chii_button = Chii()
-        self.kan_button = Kan()
-        self.pon_button = Pon()
-        self.ron_button = Ron()
-        self.skip_button = Skip()
-        self.tsumo_button = Tsumo()
-        self.riichi_button = Riichi()
+        self.__chii_button = Chii()
+        self.__kan_button = Kan()
+        self.__pon_button = Pon()
+        self.__ron_button = Ron()
+        self.__skip_button = Skip()
+        self.__tsumo_button = Tsumo()
+        self.__riichi_button = Riichi()
 
+        self.__all_button: list[Chii | Kan | Pon | Ron | Skip | Tsumo | Riichi] = [
+            self.__chii_button,
+            self.__kan_button,
+            self.__pon_button,
+            self.__ron_button,
+            self.__skip_button,
+            self.__tsumo_button,
+            self.__riichi_button,
+        ]
         self.space_between_each_button = 20
-        self.render_button_list: list[Chii | Kan | Pon | Ron | Skip] = []
+        self.render_button_list: list[
+            Chii | Kan | Pon | Ron | Skip | Tsumo | Riichi
+        ] = []
 
     def render(self, call_list: list[CallType]):
         self.build_surface(call_list)
@@ -75,10 +86,7 @@ class CallButtonField(Field):
 
         for button in self.render_button_list:
             button.render(self.surface)
-
-        self.surface.blit(
-            button.get_surface(), (button.get_position().x, button.get_position().y)
-        )
+            button.hidden = False
 
     def build_button_position(self, call_list: list[CallType]):
         for idx, call_type in enumerate(call_list):
@@ -88,75 +96,76 @@ class CallButtonField(Field):
             button_height = CALL_BUTTON_SIZE[1]
             match call_type:
                 case CallType.SKIP:
-                    self.skip_button.update_position(
+                    self.__skip_button.update_position(
                         button_x,
                         button_y,
                         button_width,
                         button_height,
                     )
-                    self.render_button_list.append(self.skip_button)
+                    self.render_button_list.append(self.__skip_button)
                 case CallType.CHII:
-                    self.chii_button.update_position(
+                    self.__chii_button.update_position(
                         button_x,
                         button_y,
                         button_width,
                         button_height,
                     )
-                    self.render_button_list.append(self.chii_button)
+                    self.render_button_list.append(self.__chii_button)
                 case CallType.PON:
-                    self.pon_button.update_position(
+                    self.__pon_button.update_position(
                         button_x,
                         button_y,
                         button_width,
                         button_height,
                     )
-                    self.render_button_list.append(self.pon_button)
+                    self.render_button_list.append(self.__pon_button)
                 case CallType.KAN:
-                    self.kan_button.update_position(
+                    self.__kan_button.update_position(
                         button_x,
                         button_y,
                         button_width,
                         button_height,
                     )
-                    self.render_button_list.append(self.kan_button)
+                    self.render_button_list.append(self.__kan_button)
 
                 case CallType.RIICHI:
-                    self.riichi_button.update_position(
+                    self.__riichi_button.update_position(
                         button_x,
                         button_y,
                         button_width,
                         button_height,
                     )
-                    self.render_button_list.append(self.riichi_button)
+                    self.render_button_list.append(self.__riichi_button)
 
                 case CallType.RON:
-                    self.ron_button.update_position(
+                    self.__ron_button.update_position(
                         button_x,
                         button_y,
                         button_width,
                         button_height,
                     )
-                    self.render_button_list.append(self.ron_button)
+                    self.render_button_list.append(self.__ron_button)
                 case CallType.TSUMO:
-                    self.tsumo_button.update_position(
+                    self.__tsumo_button.update_position(
                         button_x,
                         button_y,
                         button_width,
                         button_height,
                     )
-                    self.render_button_list.append(self.tsumo_button)
+                    self.render_button_list.append(self.__tsumo_button)
 
     def hover(self, event: Event) -> bool:
         local_mouse = self.build_local_mouse(event.pos)
         is_hovering_button = False
         for button in self.render_button_list:
-            if button.check_collidepoint(local_mouse):
+            if button.check_collidepoint(local_mouse) and not button.hidden:
                 is_hovering_button = True
                 button.hovered()
                 break
 
-        for button in self.render_button_list:
+        for button in self.__all_button:
             if not button.check_collidepoint(local_mouse):
+                button.hidden = True
                 button.unhovered()
 
         return is_hovering_button

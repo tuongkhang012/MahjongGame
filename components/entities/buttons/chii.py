@@ -1,4 +1,4 @@
-from components.buttons.call_button import CallButton
+from components.entities.buttons.call_button import CallButton
 from pygame.freetype import Font
 from utils.constants import (
     CHI_PON_KAN_FONT_SIZE,

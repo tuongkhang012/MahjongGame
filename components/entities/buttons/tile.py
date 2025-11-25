@@ -1,21 +1,23 @@
 from utils.enums import TileType, TileSource
 import pygame
 from pygame import Surface
-from components.image_cutter import ImageCutter
+from shared.image_cutter import ImageCutter
 from utils.constants import TILES_IMAGE_LINK, TILE_ANIMATION_DURATION
 from utils.helper import draw_hitbox, convert_tile_to_hand34_index
-from components.buttons.button import Button
+from components.entities.buttons.button import Button
 import typing
 import sys
 
 if typing.TYPE_CHECKING:
-    from components.game_manager import GameManager
+    from components.game_scenes.game_manager import GameManager
 
 
 class Tile(Button):
     source: TileSource
 
-    def __init__(self, type: TileType, number: int, aka: bool = False):
+    def __init__(
+        self, idx: int, type: TileType, number: int, name: str, aka: bool = False
+    ):
         super().__init__()
         # Tile standard attributes
         self.type = type
@@ -31,9 +33,10 @@ class Tile(Button):
         self.animation_speed = 0.5
         self.animation_duration = TILE_ANIMATION_DURATION
 
-        # Hand 34 index
+        # Hand index
         self.hand34_idx = convert_tile_to_hand34_index(self)
-
+        self.hand136_idx = idx
+        self.name = name
         # Image Cutter for tile surface
         self.tiles_cutter = ImageCutter(TILES_IMAGE_LINK)
 
