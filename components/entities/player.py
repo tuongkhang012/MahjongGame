@@ -496,11 +496,12 @@ class Player:
             return False
 
     def is_riichi_able(self) -> bool:
+        print()
         if self.count_shanten_points(self.player_deck) == 0 and (
             len(self.call_list) == 0
             or (
                 len(self.call_list) > 0
-                and all(filter(lambda call: call.is_opened == False, self.call_list))
+                and len(list(filter(lambda call: call.is_opened, self.call_list))) == 0
             )
         ):
             return True

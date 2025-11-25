@@ -485,7 +485,9 @@ class GameManager:
                         calling_player,
                     )
                     return self.end_match(
-                        calling_player, self.prev_called_player.get_draw_tile()
+                        calling_player,
+                        self.prev_called_player,
+                        self.prev_called_player.get_draw_tile(),
                     )
                 else:
                     self.game_log.append_event(
@@ -493,7 +495,9 @@ class GameManager:
                         self.latest_discarded_tile,
                         calling_player,
                     )
-                    return self.end_match(calling_player, self.latest_discarded_tile)
+                    return self.end_match(
+                        calling_player, self.prev_player, self.latest_discarded_tile
+                    )
                 # End game
 
             case ActionType.TSUMO:
@@ -557,7 +561,12 @@ class GameManager:
             random.randint(0, len(calling_player.callable_tiles_list) - 1)
         ]
 
-    def end_match(self, win_player: Player = None, win_tile: Tile = None):
+    def end_match(
+        self,
+        win_player: Player = None,
+        roned_player: Player = None,
+        win_tile: Tile = None,
+    ):
         import datetime
 
         if win_player:
@@ -577,17 +586,18 @@ class GameManager:
                 is_chankan,
             )
             deltas = [0, 0, 0, 0]
-
+            total_cost = int(result.cost["total"] / 100)
             if self.action == ActionType.TSUMO:
-                deltas[win_player.player_idx] += result.cost["total"]
+                deltas[win_player.player_idx] += total_cost
                 for i in range(0, len(deltas)):
                     if i == win_player.player_idx:
                         continue
-                    deltas[i] -= result.cost["total"] / 3
+                    deltas[i] -= int(total_cost / 3)
             elif self.action == ActionType.RON:
-                deltas[win_player.player_idx] += result.cost["total"]
-                deltas[self.prev_player.player_idx] -= result.cost["total"]
-
+                print(win_player, self.prev_player)
+                deltas[win_player.player_idx] += total_cost
+                deltas[roned_player.player_idx] -= total_cost
+            print(deltas)
             self.game_log.append_event(self.action, win_tile, win_player, None)
 
             self.game_log.end_round(self.player_list, deltas)
