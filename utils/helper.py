@@ -196,3 +196,15 @@ def find_suitable_tile_in_list(
         raise IndexError(
             f"Can not get tile from list {tile_number}, {tile_type}, {tile_aka}! Error: {e}"
         )
+
+
+def count_shanten_points(
+    tiles: list["Tile"],
+) -> int:
+    from mahjong.shanten import Shanten
+
+    shanten_calculator = Shanten()
+    points = shanten_calculator.calculate_shanten(
+        convert_tiles_list_to_hand34(tiles),
+    )
+    return points

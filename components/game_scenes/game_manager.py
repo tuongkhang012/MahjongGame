@@ -15,7 +15,7 @@ from components.events.mouse_motion import MouseMotion
 from pygame import Surface
 from components.entities.player import Player
 from components.entities.deck import Deck
-from utils.helper import build_center_rect, map_action_to_call
+from utils.helper import build_center_rect, map_action_to_call, count_shanten_points
 from components.entities.fields.center_board_field import CenterBoardField
 from components.entities.fields.discard_field import DiscardField
 import typing
@@ -33,7 +33,7 @@ if typing.TYPE_CHECKING:
 class GameManager:
     screen: Surface
     scenes_controller: "ScenesController"
-
+    pause: bool = False
     # Player
     player_list: list[Player] = []
     current_player: Player
@@ -69,6 +69,10 @@ class GameManager:
     prev_called_player: Player = None
     action: ActionType = None
     prev_action: ActionType = None
+    kan_count: int = 0
+    is_disable_round: bool = False
+    first_ron_player: Player = None
+    ron_count: int = 0
 
     # Score relavent
     tsumi_number: int = 0
@@ -118,7 +122,8 @@ class GameManager:
         self.last_time = current_time
 
         # --- Update logic game ---
-        self.update(delta_time)
+        if not self.pause:
+            self.update(delta_time)
 
         # --- Rendering ---
         self.screen.fill("aquamarine4")
@@ -250,6 +255,28 @@ class GameManager:
 
         if self.latest_discarded_tile:
             print(f"Latest discard tile: {self.latest_discarded_tile}")
+
+            # Checking for kaze4
+            if all([player.turn == 1 for player in self.player_list]) and all(
+                [len(player.discard_tiles) == 1 for player in self.player_list]
+            ):
+                discard_tile = self.player_list[0].discard_tiles[0]
+                if all(
+                    [
+                        player.discard_tiles[0].type == discard_tile.type
+                        and player.discard_tiles[0].number == discard_tile.number
+                        for player in self.player_list
+                    ]
+                ) and all(
+                    [
+                        player.discard_tiles[0].hand34_idx in [27, 28, 29, 30]
+                        for player in self.player_list
+                    ]
+                ):
+                    self.action = ActionType.RYUUKYOKU
+                    self.is_disable_round = True
+                    return
+
             for player in self.player_list:
                 if player == self.prev_player:
                     continue
@@ -270,10 +297,31 @@ class GameManager:
                     self.call_order.append(player)
 
             self.call_order.sort(
-                key=lambda player: player.can_call[0].value, reverse=True
+                key=lambda player: (
+                    player.can_call[0].value,
+                    (player.player_idx - self.prev_player.player_idx) % 4,
+                ),
+                reverse=True,
             )
             if len(self.call_order) > 0:
                 self.calling_player = self.call_order.pop()
+                return
+
+            # Checking for Kan4
+            elif len(self.call_order) == 0 and self.kan_count == 4:
+                self.action = ActionType.RYUUKYOKU
+                self.is_disable_round = True
+                return
+
+            # Checking for Reach4
+            if (
+                all(
+                    [CallType.RON not in player.can_call for player in self.player_list]
+                )
+                and len(self.game_log.round["reaches"]) == 4
+            ):
+                self.action = ActionType.RYUUKYOKU
+                self.is_disable_round = True
                 return
 
         if turn:
@@ -282,6 +330,9 @@ class GameManager:
             self.current_turn = next_turn
 
         if draw:
+            if len(self.deck.draw_deck) == 0:
+                self.action = ActionType.RYUUKYOKU
+                return
             self.action = ActionType.DRAW
 
         self.current_player = self.find_player(self.current_turn)
@@ -312,6 +363,17 @@ class GameManager:
 
         match self.action:
             case ActionType.DRAW:
+                if sum([player.turn for player in self.player_list]) == 0:
+                    for player in self.player_list:
+                        if player.check_yao9():
+                            player.can_call = [CallType.RYUUKYOKU, CallType.SKIP]
+                            self.call_order.append(player)
+
+                            print(f"{player} have yao9. Can declare Ryuukyoku...")
+                    if len(self.call_order) > 0:
+                        self.calling_player = self.call_order.pop()
+                        return
+
                 try:
                     if self.prev_action == ActionType.KAN:
                         self.__reset_calling_state()
@@ -321,7 +383,7 @@ class GameManager:
                             tile=self.deck.death_wall[0],
                         )
 
-                        if len(self.current_player.can_call) > 0:
+                        if len(self.current_player.can_call) > 0 and self.kan_count < 4:
                             self.call_order.append(self.current_player)
 
                     else:
@@ -405,6 +467,7 @@ class GameManager:
                 self.__handle_switch_turn()
 
             case ActionType.KAN:
+                self.kan_count += 1
                 self.deck.add_new_dora()
                 is_kakan = False
                 calling_player = self.calling_player
@@ -481,20 +544,53 @@ class GameManager:
                         self.prev_called_player.get_draw_tile(),
                         calling_player,
                     )
-                    return self.end_match(
-                        calling_player,
-                        self.prev_called_player,
-                        self.prev_called_player.get_draw_tile(),
-                    )
+                    if len(self.call_order) > 0:
+                        for player in self.call_order:
+                            if CallType.RON in player.can_call:
+                                self.calling_player = player
+                                self.ron_count += 1
+                                if self.first_ron_player is None:
+                                    self.first_ron_player = player
+                                break
+                            else:
+                                self.call_order.pop()
+
+                        # Checking for Ron3
+                        if self.ron_count >= 3:
+                            self.action = ActionType.RYUUKYOKU
+                            self.is_disable_round = True
+                            return
+                    else:
+                        return self.end_match(
+                            calling_player,
+                            self.prev_called_player,
+                            self.prev_called_player.get_draw_tile(),
+                        )
                 else:
                     self.game_log.append_event(
                         ActionType.RON,
                         self.latest_discarded_tile,
                         calling_player,
                     )
-                    return self.end_match(
-                        calling_player, self.prev_player, self.latest_discarded_tile
-                    )
+                    if len(self.call_order) > 0:
+                        for player in self.call_order:
+                            if CallType.RON in player.can_call:
+                                self.calling_player = player
+                                self.ron_count += 1
+                                if self.first_ron_player is None:
+                                    self.first_ron_player = player
+                                break
+                            else:
+                                self.call_order.pop()
+                        # Checking for Ron3
+                        if self.ron_count >= 3:
+                            self.action = ActionType.RYUUKYOKU
+                            self.is_disable_round = True
+                            return
+                    else:
+                        return self.end_match(
+                            calling_player, self.prev_player, self.latest_discarded_tile
+                        )
                 # End game
 
             case ActionType.TSUMO:
@@ -511,6 +607,8 @@ class GameManager:
                 )
 
             case ActionType.SKIP:
+                if CallType.RYUUKYOKU in self.calling_player.can_call:
+                    self.calling_player.skip_yao9()
                 if self.prev_action == ActionType.KAN and self.prev_called_player:
                     self.__reset_calling_state()
                     self.prev_action = ActionType.KAN
@@ -524,6 +622,11 @@ class GameManager:
                         self.switch_turn()
                 else:
                     self.calling_player = self.call_order.pop()
+
+            case ActionType.RYUUKYOKU:
+                if self.calling_player.check_yao9():
+                    self.is_disable_round = True
+                return self.end_match()
 
         if len(self.deck.death_wall) < 14:
             for _ in range(0, 14 - len(self.deck.death_wall)):
@@ -569,21 +672,85 @@ class GameManager:
     ):
         import datetime
 
+        self.pause = True
+        if self.is_disable_round:
+            self.game_log.round = None
+            return
         if win_player:
+            # is_tsumo
+            is_tsumo = True if self.action == ActionType.TSUMO else False
+
+            # is_riichi
+            riichi_turn = win_player.is_riichi()
+            is_riichi = True if riichi_turn >= 0 else False
+
+            # is_double_riichi
+            is_daburu_riichi = True if riichi_turn == 0 else False
+
+            # is_ippatsu
+            is_ippatsu = True if riichi_turn == win_player.turn else False
+
             is_rinshan = True if win_player.get_draw_tile().from_death_wall else False
             is_chankan = (
                 True
                 if self.prev_action == ActionType.KAN and self.action == ActionType.RON
                 else False
             )
+            is_haitei = (
+                True
+                if self.action == ActionType.TSUMO
+                and win_player.get_draw_tile() == win_tile
+                and len(self.deck.draw_deck) == 0
+                else False
+            )
+            is_houtei = (
+                True
+                if self.action == ActionType.RON
+                and self.latest_discarded_tile == win_tile
+                and len(self.deck.draw_deck) == 0
+                else False
+            )
+            is_tenhou = (
+                True
+                if self.action == ActionType.TSUMO
+                and win_player.direction == Direction.EAST
+                and win_player.turn == 0
+                and len(win_player.melds) == 0
+                else False
+            )
+            is_chiihou = (
+                True
+                if self.action == ActionType.TSUMO
+                and win_player.direction != Direction.EAST
+                and win_player.turn == 0
+                and len(win_player.melds) == 0
+                else False
+            )
+
+            is_renhou = (
+                True
+                if self.action == ActionType.RON and win_player.turn == 0
+                else False
+            )
+
             result = self.builder.calculate_player_score(
-                win_player,
-                win_tile,
-                self.action,
-                self.prev_action,
-                self.deck,
-                is_rinshan,
-                is_chankan,
+                player=win_player,
+                round_wind=self.round_direction,
+                win_tile=win_tile,
+                deck=self.deck,
+                is_tsumo=is_tsumo,
+                is_riichi=is_riichi,
+                is_daburu_riichi=is_daburu_riichi,
+                is_ippatsu=is_ippatsu,
+                is_rinshan=is_rinshan,
+                is_chankan=is_chankan,
+                is_haitei=is_haitei,
+                is_houtei=is_houtei,
+                is_tenhou=is_tenhou,
+                is_chiihou=is_chiihou,
+                is_renhou=is_renhou,
+                tsumi_number=self.tsumi_number,
+                kyoutaku_number=self.kyoutaku_number,
             )
             deltas = [0, 0, 0, 0]
             total_cost = int(result.cost["total"] / 100)
@@ -605,15 +772,44 @@ class GameManager:
             elif self.action == ActionType.RON:
                 deltas[win_player.player_idx] += total_cost
                 deltas[roned_player.player_idx] -= total_cost
-            print(deltas)
+
+            self.kyoutaku_number = 0
+            if win_player.direction == Direction.EAST:
+                self.tsumi_number += 1
+            else:
+                self.tsumi_number = 0
+
             self.game_log.append_event(self.action, win_tile, win_player, None)
 
-            self.game_log.end_round(self.player_list, deltas)
-            self.game_log.export(datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S"))
-            self.scenes_controller.change_scene(GameScene.AFTER_MATCH)
         else:
-            print("RYUUKYOKU")
-            self.scenes_controller.change_scene(GameScene.AFTER_MATCH)
+            max_deltas_points = 30
+            tenpai_players: list[Player] = []
+            deltas = [0, 0, 0, 0]
+            for player in self.player_list:
+                if count_shanten_points(player.player_deck) == 0:
+                    tenpai_players.append(player)
+            if not (len(tenpai_players) == 0 or len(tenpai_players) == 4):
+                for player in self.player_list:
+                    if player in tenpai_players:
+                        deltas[player.player_idx] += int(
+                            max_deltas_points / len(tenpai_players)
+                        )
+                    if player not in tenpai_players:
+                        deltas[player.player_idx] -= int(
+                            max_deltas_points / (4 - len(tenpai_players))
+                        )
+
+            self.game_log.round["ryuukyoku"] = True
+            self.game_log.round["ryuukyoku_tenpai"] = (
+                None
+                if len(tenpai_players) == 0
+                else list(map(lambda player: player.player_idx, tenpai_players))
+            )
+            self.game_log.round["deltas"] = deltas
+
+        self.game_log.end_round(self.player_list, deltas)
+        self.game_log.export(datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S"))
+        self.scenes_controller.change_scene(GameScene.AFTER_MATCH)
 
     def __create_new_round_log(self):
         hands = []

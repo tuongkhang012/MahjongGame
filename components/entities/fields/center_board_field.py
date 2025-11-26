@@ -13,6 +13,7 @@ from utils.constants import (
     DISCARD_FIELD_SIZE,
     MADOU_FUTO_FONT,
     COLOR_WHITE,
+    COLOR_BLUE,
 )
 from components.entities.player import Player
 from shared.image_cutter import ImageCutter
@@ -36,6 +37,7 @@ class CenterBoardField(Field):
     def __init__(
         self,
         screen: Surface,
+        round_wind: tuple[Direction, int],
         directions_list: list[Direction],
         player_list: list[Player],
     ):
@@ -46,7 +48,7 @@ class CenterBoardField(Field):
             self.__discards_fields.append(player.discard_field)
 
         self.__player_list = player_list
-
+        self.__round_wind = round_wind
         self.screen = screen
         self.image_cutter = ImageCutter(DIRECTION_IMAGE_LINK)
         self.__direction_width = DIRECTION_WIDTH
@@ -202,6 +204,20 @@ class CenterBoardField(Field):
 
             center_field_surface.blit(subsurface, subsurface_position)
 
+        # Render round wind
+        match self.__round_wind[0]:
+            case Direction.EAST:
+                round_wind_str = f"EAST {self.__round_wind[1]}"
+            case Direction.WEST:
+                round_wind_str = f"WEST {self.__round_wind[1]}"
+            case Direction.SOUTH:
+                round_wind_str = f"SOUTH {self.__round_wind[1]}"
+            case Direction.NORTH:
+                round_wind_str = f"NORTH {self.__round_wind[1]}"
+        round_wind_font = Font(MADOU_FUTO_FONT, 14)
+        round_wind_surface, _ = round_wind_font.render(round_wind_str, COLOR_BLUE)
+        center_pos = build_center_rect(center_field_surface, round_wind_surface)
+        center_field_surface.blit(round_wind_surface, (center_pos.x, center_pos.y))
         return center_field_surface
 
     def draw_turn_empty(self) -> Surface:
