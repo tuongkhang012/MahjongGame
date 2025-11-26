@@ -383,7 +383,7 @@ class Player:
 
                 if not already_have_yao9_tile:
                     tile_yao9_list.append(tile)
-        print(tile_yao9_list)
+
         if len(tile_yao9_list) >= 8 and not self.__skip_yao9:
             return True
         else:

@@ -624,6 +624,8 @@ class GameManager:
                     self.calling_player = self.call_order.pop()
 
             case ActionType.RYUUKYOKU:
+                if self.calling_player.check_yao9():
+                    self.is_disable_round = True
                 return self.end_match()
 
         if len(self.deck.death_wall) < 14:
