@@ -37,11 +37,13 @@ CALL_BUTTON_COLORS = {
     # --- Special/Neutral Actions ---
     "Riichi": (255, 215, 0),  # (Using my previous suggestion, as it's not in the image)
     "Skip": (112, 112, 112),  # The Medium Gray color from "Skip"
+    # --- Ryuukyoku ---
+    "Ryuukyoku": (217, 119, 6),
 }
 
 COLOR_WHITE = (255, 255, 255)
-
-CALL_BUTTON_SIZE = (80, 40)
+COLOR_BLUE = (0, 166, 181)
+CALL_BUTTON_SIZE = (100, 40)
 CALL_TEXT_COLOR = COLOR_WHITE
 
 HAND_CONFIG_OPTIONS = OptionalRules(

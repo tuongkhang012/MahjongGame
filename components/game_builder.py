@@ -51,12 +51,15 @@ class GameBuilder:
         game_manager.main_player = player_list[0]
         game_manager.switch_turn(game_manager.current_turn)
 
+        self.assign_round_direction(game_manager)
+
         # Center board field related
         game_manager.center_board_field = CenterBoardField(
-            self.screen, direction, player_list
+            self.screen,
+            (game_manager.round_direction, game_manager.round_direction_number),
+            direction,
+            player_list,
         )
-
-        self.assign_round_direction(game_manager)
 
     def assign_round_direction(
         self, game_manager: "GameManager", keep_direction: bool = False
@@ -243,6 +246,7 @@ class GameBuilder:
     def calculate_player_score(
         self,
         player: Player,
+        round_wind: Direction,
         win_tile: Tile,
         deck: Deck,
         is_tsumo: bool = False,
@@ -256,6 +260,8 @@ class GameBuilder:
         is_tenhou: bool = False,
         is_chiihou: bool = False,
         is_renhou: bool = False,
+        tsumi_number: int = 0,
+        kyoutaku_number: int = 0,
     ) -> HandResponse:
 
         # is_rinshan, include in parameters
@@ -275,7 +281,9 @@ class GameBuilder:
             is_renhou=is_renhou,
             is_daburu_riichi=is_daburu_riichi,
             player_wind=player.direction.value + 27,
-            round_wind=27,
+            tsumi_number=tsumi_number,
+            kyoutaku_number=kyoutaku_number,
+            round_wind=round_wind.value + 27,
             options=HAND_CONFIG_OPTIONS,
         )
 
@@ -293,6 +301,7 @@ class GameBuilder:
             list(map(lambda tile: tile.hand136_idx, deck.dora)),
             config=config,
         )
-        print(result)
-        print(f"FINAL RESULT: {result} {result.yaku}")
+        print(
+            f"FINAL RESULT: {result} {result.yaku} and player scores: {result.cost["total"]}"
+        )
         return result

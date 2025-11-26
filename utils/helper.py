@@ -199,7 +199,7 @@ def find_suitable_tile_in_list(
 
 
 def count_shanten_points(
-    tiles: list[Tile],
+    tiles: list["Tile"],
 ) -> int:
     from mahjong.shanten import Shanten
 

@@ -14,6 +14,7 @@ from components.entities.buttons.ron import Ron
 from components.entities.buttons.skip import Skip
 from components.entities.buttons.tsumo import Tsumo
 from components.entities.buttons.richii import Riichi
+from components.entities.buttons.ryuukyoku import Ryuukyoku
 from components.entities.call import Call
 
 import typing
@@ -38,8 +39,11 @@ class CallButtonField(Field):
         self.__skip_button = Skip()
         self.__tsumo_button = Tsumo()
         self.__riichi_button = Riichi()
+        self.__ryuukyoku_button = Ryuukyoku()
 
-        self.__all_button: list[Chii | Kan | Pon | Ron | Skip | Tsumo | Riichi] = [
+        self.__all_button: list[
+            Chii | Kan | Pon | Ron | Skip | Tsumo | Riichi | Ryuukyoku
+        ] = [
             self.__chii_button,
             self.__kan_button,
             self.__pon_button,
@@ -47,10 +51,11 @@ class CallButtonField(Field):
             self.__skip_button,
             self.__tsumo_button,
             self.__riichi_button,
+            self.__ryuukyoku_button,
         ]
         self.space_between_each_button = 20
         self.render_button_list: list[
-            Chii | Kan | Pon | Ron | Skip | Tsumo | Riichi
+            Chii | Kan | Pon | Ron | Skip | Tsumo | Riichi | Ryuukyoku
         ] = []
 
     def render(self, call_list: list[CallType]):
@@ -145,6 +150,7 @@ class CallButtonField(Field):
                         button_height,
                     )
                     self.render_button_list.append(self.__ron_button)
+
                 case CallType.TSUMO:
                     self.__tsumo_button.update_position(
                         button_x,
@@ -153,6 +159,15 @@ class CallButtonField(Field):
                         button_height,
                     )
                     self.render_button_list.append(self.__tsumo_button)
+
+                case CallType.RYUUKYOKU:
+                    self.__ryuukyoku_button.update_position(
+                        button_x,
+                        button_y,
+                        button_width,
+                        button_height,
+                    )
+                    self.render_button_list.append(self.__ryuukyoku_button)
 
     def hover(self, event: Event) -> bool:
         local_mouse = self.build_local_mouse(event.pos)
@@ -194,3 +209,5 @@ class CallButtonField(Field):
                     game_manager.action = player.make_move(ActionType.TSUMO)
                 elif isinstance(button, Riichi):
                     game_manager.action = player.make_move(ActionType.RIICHI)
+                elif isinstance(button, Ryuukyoku):
+                    game_manager.action = player.make_move(ActionType.RYUUKYOKU)

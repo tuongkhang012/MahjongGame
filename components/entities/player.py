@@ -11,8 +11,6 @@ from utils.helper import (
     map_call_to_action,
     convert_tile_to_hand34_index,
     convert_tiles_list_to_hand34,
-    convert_tiles_list_to_hand136,
-    map_call_type_to_meld_type,
     count_shanten_points,
 )
 from utils.constants import HAND_CONFIG_OPTIONS
@@ -49,6 +47,9 @@ class Player:
     # Riichi
     __is_riichi: bool = False
     __riichi_turn: int = None
+
+    # Skip yao9
+    __skip_yao9: bool = False
 
     def __init__(
         self,
@@ -241,8 +242,6 @@ class Player:
         self.deck_field.build_tiles_position(self)
 
     def discard(self, tile: Tile, game_manager: "GameManager" = None):
-        import random
-
         if game_manager.prev_action == ActionType.RIICHI:
             tile.update_tile_surface((game_manager.current_player.player_idx - 1) % 4)
             tile.discard_riichi()
@@ -291,6 +290,8 @@ class Player:
         return ActionType.DISCARD
 
     def pick_tile(self) -> Tile:
+        import sys
+
         minimum_shanten = 14
         discard_tile = None
         for tile in self.player_deck:
@@ -300,7 +301,13 @@ class Player:
                 discard_tile = tile
                 minimum_shanten = count_shanten_points(tmp_tiles_list)
 
-        if self.player_idx == 1 and self.find_tile(TileType.SOU, 9):
+        if (
+            len(sys.argv) > 1
+            and len(list(filter(lambda argv: "data=kaze4.json" in argv, sys.argv))) > 0
+        ):
+            tile = self.find_tile(TileType.WIND, 1)
+
+        elif self.player_idx == 1 and self.find_tile(TileType.SOU, 9):
             tile = self.find_tile(TileType.SOU, 9)
         else:
             tile = discard_tile
@@ -360,6 +367,30 @@ class Player:
 
         print(f"Player {self.player_idx} calling: {self.can_call}")
         print("----- Done checking call -----")
+
+    def check_yao9(self) -> bool:
+        tile_yao9_list: list[Tile] = []
+
+        for tile in self.player_deck:
+            if (
+                tile.type in [TileType.MAN, TileType.SOU, TileType.PIN]
+                and (tile.number == 1 or tile.number == 9)
+            ) or tile.type in [TileType.DRAGON, TileType.WIND]:
+                already_have_yao9_tile = False
+                for yao9_tile in tile_yao9_list:
+                    if yao9_tile.number == tile.number and yao9_tile.type == tile.type:
+                        already_have_yao9_tile = True
+
+                if not already_have_yao9_tile:
+                    tile_yao9_list.append(tile)
+        print(tile_yao9_list)
+        if len(tile_yao9_list) >= 8 and not self.__skip_yao9:
+            return True
+        else:
+            return False
+
+    def skip_yao9(self):
+        self.__skip_yao9 = True
 
     def __build_winning_tiles(self):
         self.__winning_tiles = []

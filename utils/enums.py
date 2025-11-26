@@ -28,7 +28,8 @@ class CallType(Enum):
     KAN = 3
     PON = 4
     CHII = 5
-    SKIP = 6
+    RYUUKYOKU = 6
+    SKIP = 7
 
 
 class CallName(Enum):
@@ -59,10 +60,11 @@ class ActionType(Enum):
     KAN = 3
     PON = 4
     CHII = 5
-    SKIP = 6
-    DRAW = 7
-    DISCARD = 8
-    DORA = 9
+    RYUUKYOKU = 6
+    SKIP = 7
+    DRAW = 8
+    DISCARD = 9
+    DORA = 10
 
 
 class BasePoints(Enum):
