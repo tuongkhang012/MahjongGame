@@ -108,7 +108,7 @@ class GameBuilder:
                 and len(self.start_data["player_deck"]) != 0
             ):
                 raise ValueError(
-                    f"Not enough custom deck player to init game! Please try again... Current numbers of players are {len(self.start_data["player_deck"])}"
+                    f"Not enough custom deck player to init game! Please try again... Current numbers of players are {len(self.start_data['player_deck'])}"
                 )
             for player_idx, player_deck in enumerate(self.start_data["player_deck"]):
                 # Draw tiles (13 tiles, main draws 14 tiles)

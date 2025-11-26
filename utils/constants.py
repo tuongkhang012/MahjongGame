@@ -2,7 +2,7 @@ from mahjong.hand_calculating.hand_config import OptionalRules
 
 FPS_LIMIT = 60
 WINDOW_SIZE = (1280, 720)
-GAME_TITLE = "Mahjong Riichi"
+GAME_TITLE = "Riichi for the Win"
 
 TILES_IMAGE_LINK = "public/images/tiles/sheet.png"
 TILE_SCALE_BY = 2.0
@@ -25,6 +25,9 @@ DISCARD_FIELD_SIZE = (180, 180)
 CHI_PON_KAN_FONT_SIZE = 20
 
 MADOU_FUTO_FONT = "public/fonts/MadouFutoMaruGothic-d9Xo7.ttf"
+ANMOTALES_FONT = "public/fonts/AncientModernTales-a7Po.ttf"
+MINTSODA_FONT = "public/fonts/MintsodaLimeGreen13X16Regular-KVvzA.ttf"
+PIXELARI_FONT = "public/fonts/Pixellari.ttf"
 
 CALL_BUTTON_COLORS = {
     # --- Winning Actions ---
@@ -43,6 +46,11 @@ COLOR_WHITE = (255, 255, 255)
 
 CALL_BUTTON_SIZE = (80, 40)
 CALL_TEXT_COLOR = COLOR_WHITE
+
+UI_BUTTON_SIZE = (240, 100)
+UI_TEXT_COLOR = COLOR_WHITE
+UI_BUTTON_COLOR = (230, 230, 230)
+UI_FONT_SIZE = 30
 
 HAND_CONFIG_OPTIONS = OptionalRules(
     has_aka_dora=True, has_open_tanyao=True, has_double_yakuman=True

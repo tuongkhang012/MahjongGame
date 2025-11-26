@@ -77,7 +77,7 @@ class GameManager:
     def __init__(
         self, screen: Surface, scenes_controller: "ScenesController", start_data=None
     ):
-        pygame.init()
+        pygame.init() # TODO: Don't need it since it's already initialized in ScenesController
         # pygame.mixer.init()
         # pygame.freetype.init()
 
@@ -86,7 +86,7 @@ class GameManager:
         # Display setting
         self.main_screen = screen
         self.screen = screen.copy()
-        self.clock = pygame.time.Clock()
+        self.clock = pygame.time.Clock() # TODO: Maybe don't need it since scene_controller has one
         self.clock.tick(FPS_LIMIT)  # limits FPS to 60
         self.last_time = pygame.time.get_ticks()  # For calculating delta time
 
@@ -313,9 +313,10 @@ class GameManager:
         match self.action:
             case ActionType.DRAW:
 
-                self.__reset_calling_state()
                 try:
                     if self.prev_action == ActionType.KAN:
+                        self.__reset_calling_state()
+
                         tile = self.current_player.draw(
                             self.deck.death_wall,
                             round_wind=self.round_direction,
@@ -329,6 +330,8 @@ class GameManager:
                             self.deck.current_dora_idx -= 1
 
                     else:
+                        self.__reset_calling_state()
+
                         tile = self.current_player.draw(
                             self.deck.draw_deck,
                             round_wind=self.round_direction,

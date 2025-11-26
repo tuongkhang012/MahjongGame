@@ -5,6 +5,7 @@ from utils.enums import GameScene
 import sys
 import json
 from components.game_scenes.scenes_controller import ScenesController
+from components.game_scenes.main_menu import MainMenu
 
 # Init Scene controller
 scenes_controller = ScenesController()
@@ -22,10 +23,13 @@ else:
         scenes_controller.get_render_surface(),
         scenes_controller,
     )
+
+start_menu = MainMenu(scenes_controller.get_render_surface(), scenes_controller)
 running = True
 
 # Add handler for each scene
 scenes_controller.handle_scene(GameScene.GAME, game_manager)
+scenes_controller.handle_scene(GameScene.START, start_menu)
 while running:
     running = scenes_controller.render()
 

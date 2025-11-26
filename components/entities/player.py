@@ -93,7 +93,7 @@ class Player:
     def draw(
         self,
         draw_deck: list[Tile],
-        round_wind: Direction,
+        round_wind: Direction = None,
         tile: Tile = None,
         check_call: bool = True,
     ):
