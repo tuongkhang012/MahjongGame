@@ -1,28 +1,46 @@
-from mahjong.hand_calculating.hand import HandCalculator
-from mahjong.hand_calculating.hand_config import HandConfig
-from mahjong.meld import Meld
+class People:
+    name: str
 
-calculator = HandCalculator()
+    def __init__(self):
+        self.age = 2
+        self.name = "goon"
 
-# 1. FIXED HAND
-# I replaced the last '52' with '55' (The 4th unique 5-pin tile)
-hands = [2, 0, 43, 40, 42, 54, 53, 126, 125, 124, 52, 104, 105, 106, 107]
-win_tile = 52
+    def greeting(self):
+        print(f"My name is {self.name}")
 
-# 2. Define the Kan
-meld_kan = Meld(meld_type=Meld.KAN, tiles=[104, 105, 106, 107], opened=True)
 
-# 3. Configure
-config = HandConfig(is_tsumo=True)
+class Male(People):
+    def __init__(self):
+        self.gender = "male"
+        super().__init__()
 
-# 4. Calculate
-result = calculator.estimate_hand_value(
-    hands, win_tile, melds=[meld_kan], config=config
-)
+    def greeting(self):
+        print(f"My name is {self.name} {self.gender}")
 
-if result.error:
-    print(f"Error: {result.error}")
-else:
-    print(f"Result: {result.han} Han, {result.fu} Fu")
-    print(f"Yaku: {[y.name for y in result.yaku]}")
-    # Output: Yakuhai (White Dragon), Toitoi (All Triplets)
+    def __str__(self):
+        return f"{self.name}"
+
+    def __repr__(self):
+        return f"{self.name}"
+
+    def __eq__(self, other):
+        if not isinstance(other, int):
+            return NotImplemented
+
+        return self.name == other.name
+
+
+class Female(People):
+    def __init__(self):
+        self.gender = "female"
+        super().__init__()
+
+    def greeting(self):
+        print(f"My name is {self.name} {self.gender}")
+
+
+male = Male()
+male2 = Male()
+
+if male == male2:
+    print("asdasd")

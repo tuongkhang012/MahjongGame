@@ -193,6 +193,7 @@ class Player:
                             self.player_deck,
                         )
                     )
+                    + [tile]
                 )
         return (is_kakan, from_player)
 
@@ -205,7 +206,7 @@ class Player:
         is_kakan: bool = False,
     ):
         """
-        Create call, return value will be True if the called is Kakan, else False
+        Create init call
         """
         if player and not is_kakan:
             tile.source = TileSource.PLAYER
@@ -267,7 +268,8 @@ class Player:
         from random import randint
 
         if self.__is_riichi:
-            print(f"{self} is RIICHI, {self.can_call}")
+            if self.player_idx == 0:
+                return action
             if CallType.RON in self.can_call:
                 return ActionType.RON
             if CallType.TSUMO in self.can_call:
@@ -380,6 +382,7 @@ class Player:
                 for yao9_tile in tile_yao9_list:
                     if yao9_tile.number == tile.number and yao9_tile.type == tile.type:
                         already_have_yao9_tile = True
+                        break
 
                 if not already_have_yao9_tile:
                     tile_yao9_list.append(tile)
@@ -446,11 +449,15 @@ class Player:
 
     def is_kan_able(self, tile: Tile) -> bool:
         for call in self.call_list:
-            if call.type == CallType.PON and all(
-                [
-                    tile.type == call_tile.type and tile.number == call_tile.number
-                    for call_tile in call.tiles
-                ]
+            if (
+                call.type == CallType.PON
+                and tile == self.get_draw_tile()
+                and all(
+                    [
+                        tile.type == call_tile.type and tile.number == call_tile.number
+                        for call_tile in call.tiles
+                    ]
+                )
             ):
                 return True
         if tile in self.player_deck:
@@ -507,7 +514,6 @@ class Player:
             options=HAND_CONFIG_OPTIONS,
         )
         hands = self.player_deck + self.call_tiles_list
-        print("Hands: ", hands)
         result = calculator.estimate_hand_value(
             list(map(lambda tile: tile.hand136_idx, hands)),
             win_tile=self.get_draw_tile().hand136_idx,
