@@ -14,6 +14,7 @@ if typing.TYPE_CHECKING:
 
 class Tile(Button):
     source: TileSource
+    from_death_wall: bool = False
 
     def __init__(
         self, idx: int, type: TileType, number: int, name: str, aka: bool = False
@@ -23,7 +24,7 @@ class Tile(Button):
         self.type = type
         self.number = number
         self.aka = aka
-        if len(sys.argv) > 1 and sys.argv[1] == "debug":
+        if len(sys.argv) > 1 and "debug" in sys.argv:
             self.hidden = False
         else:
             self.hidden = True

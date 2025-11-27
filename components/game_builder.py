@@ -51,12 +51,15 @@ class GameBuilder:
         game_manager.main_player = player_list[0]
         game_manager.switch_turn(game_manager.current_turn)
 
+        self.assign_round_direction(game_manager)
+
         # Center board field related
         game_manager.center_board_field = CenterBoardField(
-            self.screen, direction, player_list
+            self.screen,
+            (game_manager.round_direction, game_manager.round_direction_number),
+            direction,
+            player_list,
         )
-
-        self.assign_round_direction(game_manager)
 
     def assign_round_direction(
         self, game_manager: "GameManager", keep_direction: bool = False
@@ -157,10 +160,10 @@ class GameBuilder:
                     player_idx = direction.index(Direction(k))
                     player = player_list[player_idx]
                     if i == 3:
-                        player.draw(self.deck.draw_deck, check_call=False)
+                        player.draw(self.deck.draw_deck, None, check_call=False)
                     else:
                         for j in range(4):
-                            player.draw(self.deck.draw_deck, check_call=False)
+                            player.draw(self.deck.draw_deck, None, check_call=False)
 
         # Rearrange deck for each player
         for player in player_list:
@@ -243,35 +246,44 @@ class GameBuilder:
     def calculate_player_score(
         self,
         player: Player,
+        round_wind: Direction,
         win_tile: Tile,
-        action: ActionType,
-        prev_action: ActionType,
         deck: Deck,
+        is_tsumo: bool = False,
+        is_riichi: bool = False,
+        is_daburu_riichi: bool = False,
+        is_ippatsu: bool = False,
         is_rinshan: bool = False,
         is_chankan: bool = False,
+        is_haitei: bool = False,
+        is_houtei: bool = False,
+        is_tenhou: bool = False,
+        is_chiihou: bool = False,
+        is_renhou: bool = False,
+        tsumi_number: int = 0,
+        kyoutaku_number: int = 0,
     ) -> HandResponse:
-        # is_tsumo
-        is_tsumo = True if action == ActionType.TSUMO else False
-
-        # is_riichi
-        riichi_turn = player.is_riichi()
-        is_riichi = True if riichi_turn >= 0 else False
-
-        # is_double_riichi
-        is_daburu_riichi = True if riichi_turn == 0 else False
-
-        # is_ippatsu
-        is_ippatsu = True if riichi_turn == player.turn else False
 
         # is_rinshan, include in parameters
         # is_chankan, include in parameters
 
+        # is_haitei
         config = HandConfig(
             is_tsumo=is_tsumo,
             is_riichi=is_riichi,
             is_ippatsu=is_ippatsu,
             is_rinshan=is_rinshan,
             is_chankan=is_chankan,
+            is_haitei=is_haitei,
+            is_houtei=is_houtei,
+            is_tenhou=is_tenhou,
+            is_chiihou=is_chiihou,
+            is_renhou=is_renhou,
+            is_daburu_riichi=is_daburu_riichi,
+            player_wind=player.direction.value + 27,
+            tsumi_number=tsumi_number,
+            kyoutaku_number=kyoutaku_number,
+            round_wind=round_wind.value + 27,
             options=HAND_CONFIG_OPTIONS,
         )
 
@@ -280,13 +292,16 @@ class GameBuilder:
 
         if win_tile not in copy_player_deck:
             copy_player_deck.append(win_tile)
-        print(deck.dora)
+
+        hands = copy_player_deck + player.call_tiles_list
         result = calculator.estimate_hand_value(
-            list(map(lambda tile: tile.hand136_idx, copy_player_deck)),
+            list(map(lambda tile: tile.hand136_idx, hands)),
             win_tile.hand136_idx,
             player.melds,
             list(map(lambda tile: tile.hand136_idx, deck.dora)),
             config=config,
         )
-        print(f"FINAL RESULT: {result} {result.yaku}")
+        print(
+            f"FINAL RESULT: {result} {result.yaku} and player scores: {result.cost["total"]}"
+        )
         return result

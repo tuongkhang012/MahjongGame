@@ -7,6 +7,17 @@ class Direction(Enum):
     WEST = 2
     NORTH = 3
 
+    def __str__(self):
+        match self.value:
+            case 0:
+                return f"East"
+            case 1:
+                return f"South"
+            case 2:
+                return f"West"
+            case 3:
+                return f"North"
+
 
 class TileType(Enum):
     MAN = 0
@@ -28,7 +39,8 @@ class CallType(Enum):
     KAN = 3
     PON = 4
     CHII = 5
-    SKIP = 6
+    RYUUKYOKU = 6
+    SKIP = 7
 
 
 class CallName(Enum):
@@ -59,10 +71,11 @@ class ActionType(Enum):
     KAN = 3
     PON = 4
     CHII = 5
-    SKIP = 6
-    DRAW = 7
-    DISCARD = 8
-    DORA = 9
+    RYUUKYOKU = 6
+    SKIP = 7
+    DRAW = 8
+    DISCARD = 9
+    DORA = 10
 
 
 class BasePoints(Enum):
@@ -78,4 +91,7 @@ class GameScene(Enum):
     START = 0
     INSTRUCTION = 1
     GAME = 2
-    AFTER_MATCH = 3
+
+
+class GamePopup(Enum):
+    AFTER_MATCH = 0

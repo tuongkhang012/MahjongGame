@@ -1,0 +1,11 @@
+{
+  "player_deck": [
+    "124m124p124s1222z",
+    "124m124p124s1333z",
+    "124m124p124s1444z",
+    "124m124p124s1555z"
+  ],
+  "draw_deck": "6z6z6z6z",
+  "death_wall": "5m5m5mrm6m6m6m6m7m7m7m7m8m8m",
+  "direction": "NESW"
+}

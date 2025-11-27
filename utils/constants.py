@@ -28,6 +28,7 @@ MADOU_FUTO_FONT = "public/fonts/MadouFutoMaruGothic-d9Xo7.ttf"
 ANMOTALES_FONT = "public/fonts/AncientModernTales-a7Po.ttf"
 MINTSODA_FONT = "public/fonts/MintsodaLimeGreen13X16Regular-KVvzA.ttf"
 PIXELARI_FONT = "public/fonts/Pixellari.ttf"
+ANCIENT_MODERN_FONT = "public/fonts/AncientModernTales-a7Po.ttf"
 
 CALL_BUTTON_COLORS = {
     # --- Winning Actions ---
@@ -40,11 +41,15 @@ CALL_BUTTON_COLORS = {
     # --- Special/Neutral Actions ---
     "Riichi": (255, 215, 0),  # (Using my previous suggestion, as it's not in the image)
     "Skip": (112, 112, 112),  # The Medium Gray color from "Skip"
+    # --- Ryuukyoku ---
+    "Ryuukyoku": (217, 119, 6),
 }
 
 COLOR_WHITE = (255, 255, 255)
-
-CALL_BUTTON_SIZE = (80, 40)
+COLOR_BLUE = (0, 166, 181)
+COLOR_RED = (255, 0, 0)
+COLOR_GREEN = (59, 122, 87)
+CALL_BUTTON_SIZE = (100, 40)
 CALL_TEXT_COLOR = COLOR_WHITE
 
 UI_BUTTON_SIZE = (240, 100)

@@ -72,6 +72,7 @@ class Deck:
                 suitable_tile = find_suitable_tile_in_list(
                     tile_number, tile_type, tile_aka, new_deck
                 )
+                suitable_tile.from_death_wall = True
                 self.death_wall.append(suitable_tile)
                 new_deck.remove(suitable_tile)
 
@@ -86,6 +87,8 @@ class Deck:
             self.full_deck = new_deck[cutting_points:] + new_deck[0:cutting_points]
             self.draw_deck = self.full_deck[2 * 7 :]
             self.death_wall = self.full_deck[0 : 2 * 7]
+            for tile in self.death_wall:
+                tile.from_death_wall = True
 
         if not all(
             [
@@ -158,7 +161,6 @@ class Deck:
         full_deck = []
 
         result = reproduce_tenhou(self.random_seed, 1)
-        print(result)
         tenhou = result[0][0]
         self.dices = result[0][1]
 
