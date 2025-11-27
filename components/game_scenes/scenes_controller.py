@@ -10,6 +10,7 @@ from components.game_scenes.popup.after_match import AfterMatchPopup
 
 if typing.TYPE_CHECKING:
     from components.game_scenes.game_manager import GameManager
+    from components.game_scenes.main_menu import MainMenu
     from components.entities.buttons.tile import Tile
 
 
@@ -35,7 +36,7 @@ class ScenesController:
         self.clock = pygame.time.Clock()
         self.clock.tick(FPS_LIMIT)  # limits FPS to 60
 
-        self.__scene = GameScene.GAME
+        self.__scene = GameScene.START
 
     def change_scene(self, scene: GameScene):
         self.__scene = scene
@@ -44,6 +45,8 @@ class ScenesController:
         match scene:
             case GameScene.GAME:
                 self.game_manager: "GameManager" = handler
+            case GameScene.START:
+                self.start_menu: "MainMenu" = handler
 
     def get_render_surface(self):
         return self.__screen
@@ -77,8 +80,10 @@ class ScenesController:
 
     def render(self):
         match self.__scene:
-            case GameScene.START | GameScene.GAME:
+            case GameScene.GAME:
                 self.__screen = self.game_manager.render()
+            case GameScene.START:
+                self.__screen = self.start_menu.render()
 
         self.render_popup()
         self.__default_screen.blit(self.__screen, (0, 0))
@@ -100,11 +105,15 @@ class ScenesController:
                         case GameScene.GAME:
                             if self.game_manager.animation_tile is None:
                                 self.game_manager.mouse_button_down.run(event)
+                        case GameScene.START:
+                            self.start_menu.mouse_button_down.run(event)
 
                 case pygame.MOUSEMOTION:
                     match self.__scene:
                         case GameScene.GAME:
                             self.game_manager.mouse_motion.run(event)
+                        case GameScene.START:
+                            pass
 
         return {"exit": False}
 
