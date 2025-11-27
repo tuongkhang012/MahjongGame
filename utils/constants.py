@@ -25,6 +25,7 @@ DISCARD_FIELD_SIZE = (180, 180)
 CHI_PON_KAN_FONT_SIZE = 20
 
 MADOU_FUTO_FONT = "public/fonts/MadouFutoMaruGothic-d9Xo7.ttf"
+ANCIENT_MODERN_FONT = "public/fonts/AncientModernTales-a7Po.ttf"
 
 CALL_BUTTON_COLORS = {
     # --- Winning Actions ---
@@ -43,6 +44,8 @@ CALL_BUTTON_COLORS = {
 
 COLOR_WHITE = (255, 255, 255)
 COLOR_BLUE = (0, 166, 181)
+COLOR_RED = (255, 0, 0)
+COLOR_GREEN = (59, 122, 87)
 CALL_BUTTON_SIZE = (100, 40)
 CALL_TEXT_COLOR = COLOR_WHITE
 

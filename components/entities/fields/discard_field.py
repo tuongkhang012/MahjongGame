@@ -13,6 +13,7 @@ if typing.TYPE_CHECKING:
 
 
 class DiscardField(TilesField):
+
     def __init__(
         self,
         screen: Surface,
@@ -25,6 +26,8 @@ class DiscardField(TilesField):
         self.__ratio_riichi = 1
 
         self.__ratio_normal = 1 / 6
+
+        self.__is_riichi: bool = False
 
     def render(self) -> Surface:
         self.build_field_surface()
@@ -79,93 +82,94 @@ class DiscardField(TilesField):
         riichi_tile_idx = None
         riichi_tile_line = None
         riichi_tile = None
+
+        start_width = 0
+        start_height = 0
         for idx, tile in enumerate(self.get_tiles_list()):
             line = math.floor(idx / 6)
 
-            same_line_with_riichi = line == riichi_tile_line
+            if idx % 6 == 0:
+                start_width = 0
+                start_height = 0
 
             tile_height = DISCARD_FIELD_SIZE[1] / 6
             tile_width = DISCARD_FIELD_SIZE[0] / 6
 
             if tile.discard_from_richii():
-                riichi_tile = tile
-                riichi_tile_idx = idx
+                tile.update_tile_surface(player_idx=(self.player_idx - 1) % 4)
                 match self.player_idx:
                     case 0 | 2:
                         self.__ratio_riichi = tile_height / tile.surface.get_height()
                     case 1 | 3:
                         self.__ratio_riichi = tile_width / tile.surface.get_width()
 
-                tile.scale_surface(self.__ratio_riichi)
-                tile.update_position(
-                    tile.surface.get_width() * (idx % 6),
-                    line * tile.surface.get_height(),
-                    tile.surface.get_width(),
-                    tile.surface.get_height(),
-                )
-                continue
-
             match self.player_idx:
                 case 0:
-                    if same_line_with_riichi:
-                        tile_x = (
-                            tile.surface.get_width() * (idx % 6)
-                            if idx < riichi_tile_idx
-                            else riichi_tile.get_position().x
-                            + riichi_tile.get_surface().get_width()
-                            + tile.surface.get_width()
-                            * ((idx - riichi_tile_idx - 1) % 6)
-                        )
+                    if tile.discard_from_richii():
+                        tile.scale_surface(self.__ratio_riichi)
                     else:
-                        tile_x = tile.surface.get_width() * (idx % 6)
-                    self.__ratio_normal = tile_width / tile.get_surface().get_width()
-                    tile.scale_surface(self.__ratio_normal)
+                        self.__ratio_normal = (
+                            tile_width / tile.get_surface().get_width()
+                        )
+                        tile.scale_surface(self.__ratio_normal)
+
                     tile.update_position(
-                        tile_x,
+                        start_width,
                         line * tile.surface.get_height(),
                         tile.surface.get_width(),
                         tile.surface.get_height(),
                     )
+                    start_width += tile.get_surface().get_width()
                 case 1:
-                    if same_line_with_riichi:
-                        tile_y = (
-                            self.surface.get_height()
-                            - tile.surface.get_height() * ((idx % 6) + 1)
-                            if idx < riichi_tile_idx
-                            else riichi_tile.get_position().y
-                            - tile.surface.get_height() * ((idx - riichi_tile_idx) % 6)
-                        )
+                    if tile.discard_from_richii():
+                        tile.scale_surface(self.__ratio_riichi)
                     else:
-                        tile_y = (
-                            self.surface.get_height()
-                            - tile.surface.get_height() * ((idx % 6) + 1)
+                        self.__ratio_normal = (
+                            tile_height / tile.get_surface().get_height()
                         )
-                    self.__ratio_normal = tile_height / tile.get_surface().get_height()
-                    tile.scale_surface(self.__ratio_normal)
+                        tile.scale_surface(self.__ratio_normal)
+
+                    start_height += tile.get_surface().get_height()
                     tile.update_position(
                         line * tile.surface.get_width(),
-                        tile_y,
+                        self.surface.get_height() - start_height,
                         tile.surface.get_width(),
                         tile.surface.get_height(),
                     )
                 case 2:
-                    self.__ratio_normal = tile_width / tile.get_surface().get_width()
-                    tile.scale_surface(self.__ratio_normal)
+                    if tile.discard_from_richii():
+                        tile.scale_surface(self.__ratio_riichi)
+                    else:
+                        self.__ratio_normal = (
+                            tile_width / tile.get_surface().get_width()
+                        )
+                        tile.scale_surface(self.__ratio_normal)
+
+                    start_width += tile.get_surface().get_width()
                     tile.update_position(
-                        180 - tile.surface.get_width() * ((idx % 6) + 1),
-                        180 - tile.surface.get_height() * (line + 1),
+                        self.surface.get_width() - start_width,
+                        self.surface.get_height()
+                        - (line + 1) * tile.surface.get_height(),
                         tile.surface.get_width(),
                         tile.surface.get_height(),
                     )
                 case 3:
-                    self.__ratio_normal = tile_height / tile.get_surface().get_height()
-                    tile.scale_surface(self.__ratio_normal)
+                    if tile.discard_from_richii():
+                        tile.scale_surface(self.__ratio_riichi)
+                    else:
+                        self.__ratio_normal = (
+                            tile_height / tile.get_surface().get_height()
+                        )
+                        tile.scale_surface(self.__ratio_normal)
+
                     tile.update_position(
-                        180 - tile.surface.get_width() * (line + 1),
-                        tile.surface.get_height() * (idx % 6),
+                        self.surface.get_width()
+                        - tile.surface.get_width() * (line + 1),
+                        start_height,
                         tile.surface.get_width(),
                         tile.surface.get_height(),
                     )
+                    start_height += tile.get_surface().get_height()
 
     def update_absolute_position(self, absolute_position: Rect):
         self._absolute_position = absolute_position

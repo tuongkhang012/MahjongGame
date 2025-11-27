@@ -8,10 +8,10 @@ from utils.constants import (
     TILE_SCALE_BY,
 )
 from components.game_builder import GameBuilder
-from utils.enums import Direction, ActionType, CallType, GameScene
+from utils.enums import Direction, ActionType, CallType, GamePopup
 from components.events.mouse_button_down import MouseButtonDown
 from components.events.mouse_motion import MouseMotion
-
+from utils.game_data_dict import AfterMatchData
 from pygame import Surface
 from components.entities.player import Player
 from components.entities.deck import Deck
@@ -81,11 +81,6 @@ class GameManager:
     def __init__(
         self, screen: Surface, scenes_controller: "ScenesController", start_data=None
     ):
-        pygame.init()
-        # pygame.mixer.init()
-        # pygame.freetype.init()
-
-        pygame.display.set_caption(GAME_TITLE)
 
         # Display setting
         self.main_screen = screen
@@ -115,7 +110,7 @@ class GameManager:
 
         self.scenes_controller = scenes_controller
 
-    def render(self) -> Surface:
+    def render(self) -> tuple[Surface, Surface | None]:
         # --- Calculate Delta Time ---
         current_time = pygame.time.get_ticks()
         delta_time = (current_time - self.last_time) / 1000.0  # Time in seconds
@@ -419,6 +414,19 @@ class GameManager:
                     except:
                         pass
                 if tile:
+                    if (
+                        self.current_player.is_riichi() >= 0
+                        and len(
+                            list(
+                                filter(
+                                    lambda tile: tile.discard_from_richii(),
+                                    self.current_player.discard_tiles,
+                                )
+                            )
+                        )
+                        == 0
+                    ):
+                        tile.discard_riichi()
                     self.__reset_calling_state()
                     self.current_player.discard(tile, self)
                     self.game_log.append_event(
@@ -508,7 +516,7 @@ class GameManager:
                     )
                 if calling_player.call_list[-1].is_kakan:
                     self.__reset_calling_state()
-
+                    ron_able = False
                     for player in self.player_list:
                         if player == calling_player:
                             continue
@@ -522,6 +530,11 @@ class GameManager:
                         if CallType.RON in player.can_call:
                             self.call_order.append(player)
                             self.calling_player = self.call_order.pop()
+                            ron_able = True
+
+                    if not ron_able:
+                        self.__handle_switch_turn(True)
+
                 else:
                     self.__handle_switch_turn(True)
 
@@ -673,6 +686,8 @@ class GameManager:
         import datetime
 
         self.pause = True
+        deltas = [0, 0, 0, 0]
+
         if self.is_disable_round:
             self.game_log.round = None
             return
@@ -752,7 +767,6 @@ class GameManager:
                 tsumi_number=self.tsumi_number,
                 kyoutaku_number=self.kyoutaku_number,
             )
-            deltas = [0, 0, 0, 0]
             total_cost = int(result.cost["total"] / 100)
             if self.action == ActionType.TSUMO:
                 deltas[win_player.player_idx] += total_cost
@@ -780,11 +794,22 @@ class GameManager:
                 self.tsumi_number = 0
 
             self.game_log.append_event(self.action, win_tile, win_player, None)
-
+            copy_player_deck = win_player.player_deck.copy()
+            if win_tile not in copy_player_deck:
+                copy_player_deck.append(win_tile)
+            popup_data: AfterMatchData = {
+                "deltas": deltas,
+                "win_tile": win_tile,
+                "kyoutaku_number": self.kyoutaku_number,
+                "player_list": self.player_list,
+                "result": result,
+                "player_deck": win_player.player_deck,
+                "call_tiles_list": win_player.call_tiles_list,
+                "tsumi_number": self.tsumi_number,
+            }
         else:
             max_deltas_points = 30
             tenpai_players: list[Player] = []
-            deltas = [0, 0, 0, 0]
             for player in self.player_list:
                 if count_shanten_points(player.player_deck) == 0:
                     tenpai_players.append(player)
@@ -806,10 +831,24 @@ class GameManager:
                 else list(map(lambda player: player.player_idx, tenpai_players))
             )
             self.game_log.round["deltas"] = deltas
+            popup_data: AfterMatchData = {
+                "deltas": deltas,
+                "player_deck": None,
+                "win_tile": None,
+                "call_tiles_list": None,
+                "kyoutaku_number": self.kyoutaku_number,
+                "player_list": self.player_list,
+                "result": None,
+                "tsumi_number": self.tsumi_number,
+            }
+
+        for idx, delta in enumerate(deltas):
+            self.player_list[idx].points += delta * 100
 
         self.game_log.end_round(self.player_list, deltas)
         self.game_log.export(datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S"))
-        self.scenes_controller.change_scene(GameScene.AFTER_MATCH)
+
+        self.scenes_controller.popup(GamePopup.AFTER_MATCH, popup_data)
 
     def __create_new_round_log(self):
         hands = []

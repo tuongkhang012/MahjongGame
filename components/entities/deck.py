@@ -161,7 +161,6 @@ class Deck:
         full_deck = []
 
         result = reproduce_tenhou(self.random_seed, 1)
-        print(result)
         tenhou = result[0][0]
         self.dices = result[0][1]
 

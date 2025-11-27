@@ -137,8 +137,6 @@ class GameEventLog:
                     else:
                         meld_type = "kan"
 
-            tile_converter = TilesConverter()
-
             new_meld: MeldLog = {
                 "fromPlayer": call.meld.from_who,
                 "called": call.tiles.index(tile),
