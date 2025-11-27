@@ -159,7 +159,7 @@ class Tile(Button):
                         return "W"
                     elif self.number == 4:
                         return "N"
-            return f"{self.number}{tile_type}{"r" if self.aka else ""}"
+            return f"{self.number}{tile_type}{'r' if self.aka else ''}"
 
         return f"{self.type} {self.number} FROM {self.source}"
 
@@ -189,6 +189,6 @@ class Tile(Button):
                         return "W"
                     elif self.number == 4:
                         return "N"
-            return f"{self.number}{tile_type}{"r" if self.aka else ""}"
+            return f"{self.number}{tile_type}{'r' if self.aka else ''}"
 
         return f"{self.type} {self.number} FROM {self.source}"

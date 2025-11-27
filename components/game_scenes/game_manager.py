@@ -86,11 +86,10 @@ class GameManager:
         init_deck: Deck,
         start_data=None,
     ):
-
         # Display setting
         self.main_screen = screen
         self.screen = screen.copy()
-        self.clock = pygame.time.Clock()
+        self.clock = pygame.time.Clock() # TODO: Maybe don't need it since scene_controller has one
         self.clock.tick(FPS_LIMIT)  # limits FPS to 60
         self.last_time = pygame.time.get_ticks()  # For calculating delta time
 

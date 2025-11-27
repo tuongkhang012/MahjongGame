@@ -15,6 +15,9 @@
 ### Màn hình
 
 1*. Start menu
+
 2*. Introduction (Hướng dẫn + luật chơi)
+
 3*. Sau khi kết thúc, phải hiển thị kết quả trận đấu (Thắng, thua, hòa, chuyển điểm thế nào)
+
 4*. Nút chuyển màn (Chuyển đổi giữa các màn hình (chuyển scene))
