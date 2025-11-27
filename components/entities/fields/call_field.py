@@ -1,5 +1,6 @@
 from components.entities.fields.tiles_field import TilesField
 from pygame import Rect, Surface
+from pygame.event import Event
 import pygame
 import typing
 from components.entities.call import Call
@@ -23,6 +24,7 @@ class CallField(TilesField):
         super().__init__(screen, player_idx, tiles_list, full_tiles_list)
         self.__call_list = call_list
         self.__call_surface: list[Surface] = []
+        self.__call_surface_position: list[tuple[int, int]] = []
         self.max_height = 0
         self.max_width = 0
         self.field_offset = (30, 30)
@@ -44,7 +46,30 @@ class CallField(TilesField):
                         - self.surface.get_height(),
                     ),
                 ),
-
+                self.update_relative_position(
+                    Rect(
+                        screen.get_width()
+                        - self.field_offset[0]
+                        - self.surface.get_width(),
+                        screen.get_height()
+                        - self.field_offset[1]
+                        - self.surface.get_height(),
+                        self.surface.get_width(),
+                        self.surface.get_height(),
+                    )
+                )
+                self.update_absolute_position(
+                    Rect(
+                        screen.get_width()
+                        - self.field_offset[0]
+                        - self.surface.get_width(),
+                        screen.get_height()
+                        - self.field_offset[1]
+                        - self.surface.get_height(),
+                        self.surface.get_width(),
+                        self.surface.get_height(),
+                    )
+                )
             case 1:
                 screen.blit(
                     self.surface,
@@ -55,6 +80,26 @@ class CallField(TilesField):
                         self.field_offset[1],
                     ),
                 )
+                self.update_relative_position(
+                    Rect(
+                        screen.get_width()
+                        - self.field_offset[0]
+                        - self.surface.get_width(),
+                        self.field_offset[1],
+                        self.surface.get_width(),
+                        self.surface.get_height(),
+                    )
+                )
+                self.update_absolute_position(
+                    Rect(
+                        screen.get_width()
+                        - self.field_offset[0]
+                        - self.surface.get_width(),
+                        self.field_offset[1],
+                        self.surface.get_width(),
+                        self.surface.get_height(),
+                    )
+                )
             case 2:
                 screen.blit(
                     self.surface,
@@ -62,6 +107,22 @@ class CallField(TilesField):
                         self.field_offset[0],
                         self.field_offset[1],
                     ),
+                )
+                self.update_relative_position(
+                    Rect(
+                        self.field_offset[0],
+                        self.field_offset[1],
+                        self.surface.get_width(),
+                        self.surface.get_height(),
+                    )
+                )
+                self.update_absolute_position(
+                    Rect(
+                        self.field_offset[0],
+                        self.field_offset[1],
+                        self.surface.get_width(),
+                        self.surface.get_height(),
+                    )
                 )
             case 3:
                 screen.blit(
@@ -73,6 +134,54 @@ class CallField(TilesField):
                         - self.surface.get_height(),
                     ),
                 )
+                self.update_relative_position(
+                    Rect(
+                        self.field_offset[0],
+                        screen.get_height()
+                        - self.field_offset[1]
+                        - self.surface.get_height(),
+                        self.surface.get_width(),
+                        self.surface.get_height(),
+                    )
+                )
+                self.update_absolute_position(
+                    Rect(
+                        self.field_offset[0],
+                        screen.get_height()
+                        - self.field_offset[1]
+                        - self.surface.get_height(),
+                        self.surface.get_width(),
+                        self.surface.get_height(),
+                    )
+                )
+
+    def hover(self, event: Event) -> "Tile":
+        hovered_call_surface_idx: int = None
+        for idx, call_surface in enumerate(self.__call_surface):
+            surface_position = self.__call_surface_position[idx]
+            local_mouse_pos = self.build_local_mouse(event.pos)
+            surface_rect = call_surface.get_rect()
+            if Rect(
+                surface_position[0],
+                surface_position[1],
+                surface_rect.width,
+                surface_rect.height,
+            ).collidepoint(
+                local_mouse_pos[0],
+                local_mouse_pos[1],
+            ):
+                hovered_call_surface_idx = idx
+                break
+
+        if hovered_call_surface_idx is not None:
+            call = self.__call_list[hovered_call_surface_idx]
+            for tile in call.tiles:
+                local_mouse = self.build_local_mouse(event.pos)
+                if tile.get_position().collidepoint(
+                    local_mouse[0] - surface_position[0],
+                    local_mouse[1] - surface_position[1],
+                ):
+                    return [tile]
 
     def build_call_field(self):
         # Build wrap surface
@@ -96,27 +205,29 @@ class CallField(TilesField):
         # Render each call_surface on surface
         start_width = 0
         start_height = 0
+        self.__call_surface_position = []
         for call_surface in self.__call_surface:
             match self.player_idx:
                 case 0:
                     start_width += call_surface.get_width()
-                    self.surface.blit(
-                        call_surface, (self.surface.get_width() - start_width, 0)
-                    )
+                    surface_position = (self.surface.get_width() - start_width, 0)
+                    self.surface.blit(call_surface, surface_position)
 
                 case 1:
-                    self.surface.blit(call_surface, (0, start_height))
+                    surface_position = (0, start_height)
+                    self.surface.blit(call_surface, surface_position)
                     start_height += call_surface.get_height()
 
                 case 2:
-                    self.surface.blit(call_surface, (start_width, 0))
+                    surface_position = (start_width, 0)
+                    self.surface.blit(call_surface, surface_position)
                     start_width += call_surface.get_width()
 
                 case 3:
                     start_height += call_surface.get_height()
-                    self.surface.blit(
-                        call_surface, (0, self.surface.get_height() - start_height)
-                    )
+                    surface_position = (0, self.surface.get_height() - start_height)
+                    self.surface.blit(call_surface, surface_position)
+            self.__call_surface_position.append(surface_position)
 
     def __build_tiles_position(self, call: Call, surface: Surface):
         start_width = 0

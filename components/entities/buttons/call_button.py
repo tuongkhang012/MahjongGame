@@ -23,7 +23,7 @@ class CallButton(Button):
         self.init_button()
 
     def render(self, surface: Surface):
-        text_surface, text_rect = self.build_text_surface()
+        text_surface = self._build_text_surface()
         text_pos = build_center_rect(self.surface, text_surface)
         self.surface.blit(text_surface, (text_pos.x, text_pos.y))
         surface.blit(self.surface, (self.get_position().x, self.get_position().y))
@@ -35,15 +35,3 @@ class CallButton(Button):
 
     def __create_new_surface(self) -> Surface:
         return Surface(self.button_size, pygame.SRCALPHA)
-
-    def draw_rect(self):
-        pygame.draw.rect(
-            self.surface,
-            self.bg_color,
-            self.surface.get_rect(),
-            border_radius=10,
-        )
-
-        pygame.draw.rect(
-            self.surface, (255, 255, 255), self.surface.get_rect(), 2, border_radius=10
-        )

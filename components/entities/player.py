@@ -193,7 +193,7 @@ class Player:
                             self.player_deck,
                         )
                     )
-                    + [tile]
+                    + ([tile] if tile not in self.player_deck else [])
                 )
         return (is_kakan, from_player)
 

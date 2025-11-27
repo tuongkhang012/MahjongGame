@@ -5,6 +5,7 @@ from utils.enums import GameScene
 import sys
 import json
 from components.game_scenes.scenes_controller import ScenesController
+from components.entities.deck import Deck
 
 # Init Scene controller
 scenes_controller = ScenesController()
@@ -15,12 +16,16 @@ if len(sys.argv) > 1 and any([argv.startswith("data=") for argv in sys.argv]):
         list(filter(lambda argv: argv.startswith("data="), sys.argv))[0].split("=")[-1]
     )
     game_manager = GameManager(
-        scenes_controller.get_render_surface(), scenes_controller, start_data=data
+        scenes_controller.get_render_surface(),
+        scenes_controller,
+        init_deck=Deck(),
+        start_data=data,
     )
 else:
     game_manager = GameManager(
         scenes_controller.get_render_surface(),
         scenes_controller,
+        init_deck=Deck(),
     )
 running = True
 

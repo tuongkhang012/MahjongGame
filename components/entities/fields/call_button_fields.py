@@ -15,7 +15,7 @@ from components.entities.buttons.skip import Skip
 from components.entities.buttons.tsumo import Tsumo
 from components.entities.buttons.richii import Riichi
 from components.entities.buttons.ryuukyoku import Ryuukyoku
-from components.entities.call import Call
+from components.entities.buttons.call_button import CallButton
 
 import typing
 
@@ -41,9 +41,7 @@ class CallButtonField(Field):
         self.__riichi_button = Riichi()
         self.__ryuukyoku_button = Ryuukyoku()
 
-        self.__all_button: list[
-            Chii | Kan | Pon | Ron | Skip | Tsumo | Riichi | Ryuukyoku
-        ] = [
+        self.__all_button: list[CallButton] = [
             self.__chii_button,
             self.__kan_button,
             self.__pon_button,
@@ -54,9 +52,7 @@ class CallButtonField(Field):
             self.__ryuukyoku_button,
         ]
         self.space_between_each_button = 20
-        self.render_button_list: list[
-            Chii | Kan | Pon | Ron | Skip | Tsumo | Riichi | Ryuukyoku
-        ] = []
+        self.render_button_list: list[CallButton] = []
 
     def render(self, call_list: list[CallType]):
         self.build_surface(call_list)
@@ -64,7 +60,7 @@ class CallButtonField(Field):
             (self.screen.get_width(), CALL_BUTTON_SIZE[1]), pygame.SRCALPHA
         )
         center_pos = build_center_rect(render_surface, self.surface)
-        self._relative_position = center_pos
+        self.update_relative_position(center_pos)
         render_surface.blit(self.surface, (center_pos.x, center_pos.y))
         draw_hitbox(render_surface)
 
@@ -169,21 +165,14 @@ class CallButtonField(Field):
                     )
                     self.render_button_list.append(self.__ryuukyoku_button)
 
-    def hover(self, event: Event) -> bool:
+    def hover(self, event: Event) -> CallButton | None:
         local_mouse = self.build_local_mouse(event.pos)
-        is_hovering_button = False
         for button in self.render_button_list:
             if button.check_collidepoint(local_mouse) and not button.hidden:
-                is_hovering_button = True
                 button.hovered()
-                break
+                return button
 
-        for button in self.__all_button:
-            if not button.check_collidepoint(local_mouse):
-                button.hidden = True
-                button.unhovered()
-
-        return is_hovering_button
+        return None
 
     def unhover(self):
         for button in self.render_button_list:

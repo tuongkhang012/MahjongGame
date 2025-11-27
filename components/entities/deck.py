@@ -34,9 +34,8 @@ class Deck:
 
     random_seed: str
 
-    def __init__(self, game_log: GameEventLog):
+    def __init__(self):
         self.__init_deck = self.__init_full_deck()
-        self.game_log = game_log
 
     def create_new_deck(self, start_data: Any | None = None) -> dict[str, list[Tile]]:
         # Create a random seed
@@ -100,9 +99,7 @@ class Deck:
 
     def add_new_dora(self):
         self.dora.append(self.death_wall[self.current_dora_idx])
-        self.game_log.append_event(
-            ActionType.DORA, self.death_wall[self.current_dora_idx]
-        )
+
         self.current_dora_idx += 2
 
     def __init_full_deck(self) -> list[Tile]:

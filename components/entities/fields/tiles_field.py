@@ -3,7 +3,6 @@ from components.entities.fields.field import Field
 import pygame
 import typing
 from pygame.event import Event
-from components.entities.mouse import Mouse
 from utils.enums import ActionType
 
 if typing.TYPE_CHECKING:
@@ -70,11 +69,7 @@ class TilesField(Field):
     def unclicked(self, event: Event):
         pass
 
-    def hover(
-        self, event: Event, hover_animation: bool = True, hover_highlight: bool = True
-    ) -> bool:
-        is_hovering_tile = False
-        update_tile_list: list[Tile] = []
+    def hover(self, event: Event) -> list["Tile"]:
         # Check for collide tiles
         collide_tile = list(
             filter(
@@ -83,45 +78,10 @@ class TilesField(Field):
                 self.get_tiles_list(),
             )
         )
-        for tile in collide_tile:
-            is_hovering_tile = True
-            if hover_animation:
-                tile.hovered()
-                update_tile_list.append(tile)
+        if len(collide_tile) > 0:
+            return collide_tile
 
-            # Highlight all same tiles
-            for tmp_tile in self.__full_tiles_list:
-                if (
-                    tmp_tile.number == tile.number
-                    and tmp_tile.type == tile.type
-                    and hover_highlight
-                ):
-                    tmp_tile.highlighted()
-                    update_tile_list.append(tmp_tile)
-
-        # Check for remaining hovered tiles
-        remaining_hovered_tiles = list(
-            filter(
-                lambda tile: not tile.check_collidepoint(
-                    self.build_local_mouse(event.pos)
-                )
-                and not tile.hidden
-                and tile.is_hovered,
-                self.get_tiles_list(),
-            )
-        )
-        for tile in remaining_hovered_tiles:
-            tile.unhovered()
-            update_tile_list.append(tile)
-            for tmp_tile in self.__full_tiles_list:
-                tmp_tile.number == tile.number and tmp_tile.type == tile.type and tmp_tile.unhighlighted() and update_tile_list.append(
-                    tmp_tile
-                )
-
-        for tile in update_tile_list:
-            tile.update_hover()
-
-        return is_hovering_tile
+        return None
 
     def unhover(self):
         for tile in self.get_tiles_list():

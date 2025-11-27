@@ -7,6 +7,7 @@ import typing
 from typing import Any
 from utils.helper import build_center_rect
 from components.game_scenes.popup.after_match import AfterMatchPopup
+from components.entities.mouse import Mouse
 
 if typing.TYPE_CHECKING:
     from components.game_scenes.game_manager import GameManager
@@ -36,14 +37,18 @@ class ScenesController:
         self.clock.tick(FPS_LIMIT)  # limits FPS to 60
 
         self.__scene = GameScene.GAME
+        self.mouse: Mouse = Mouse
 
     def change_scene(self, scene: GameScene):
         self.__scene = scene
 
-    def handle_scene(self, scene: GameScene, handler: Any):
+    def get_current_scene(self):
+        return self.__scene
+
+    def handle_scene(self, scene: GameScene, manager: Any):
         match scene:
             case GameScene.GAME:
-                self.game_manager: "GameManager" = handler
+                self.game_manager: "GameManager" = manager
 
     def get_render_surface(self):
         return self.__screen
@@ -70,6 +75,7 @@ class ScenesController:
             )
             center_pos = build_center_rect(overlay, self.__popup_screen)
             overlay.blit(self.__popup_screen, (center_pos.x, center_pos.y))
+
             self.__screen.blit(overlay, (0, 0))
 
     def update_render_surface(self, surface: Surface):
@@ -99,12 +105,12 @@ class ScenesController:
                     match self.__scene:
                         case GameScene.GAME:
                             if self.game_manager.animation_tile is None:
-                                self.game_manager.mouse_button_down.run(event)
+                                self.game_manager.handle_event(event)
 
                 case pygame.MOUSEMOTION:
                     match self.__scene:
                         case GameScene.GAME:
-                            self.game_manager.mouse_motion.run(event)
+                            self.game_manager.handle_event(event)
 
         return {"exit": False}
 
@@ -152,6 +158,6 @@ class ScenesController:
         # Build change scene button (New Game, Main Menu, Quit)
         option_buttons_surface_position = (0, 7 * surface.get_height() / 8)
         option_buttons_surface = popup.create_option_buttons_surface(height_ratio=1 / 8)
-        surface.blit(players_surface, option_buttons_surface_position)
+        surface.blit(option_buttons_surface, option_buttons_surface_position)
 
         return surface
