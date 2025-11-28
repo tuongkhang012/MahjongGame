@@ -42,6 +42,18 @@ class GameBuilder:
         game_manager.player_list = player_list
         game_manager.deck = deck
 
+        for player in player_list:
+            player.game_manager = game_manager
+
+            if hasattr(game_manager, "ai_seat_idx") and player.player_idx in game_manager.ai_seat_idx:
+                print(f"Assigning AI agent to player {player.player_idx}")
+                if player.player_idx == 1:
+                    player.agent = game_manager.ai_agent_MID
+                else:
+                    player.agent = game_manager.ai_agent_SMART
+            else:
+                player.agent = None
+
         # Assign Turn and player to game manager
         start_turn = Direction(0)
         game_manager.current_turn = start_turn

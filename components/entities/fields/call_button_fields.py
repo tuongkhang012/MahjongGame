@@ -232,6 +232,7 @@ class CallButtonField(Field):
         local_mouse = self.build_local_mouse(event.pos)
 
         new_hovered: CallButton | None = None
+
         for button in self.render_button_list:
             if button.check_collidepoint(local_mouse) and not button.hidden:
                 new_hovered = button
@@ -247,6 +248,7 @@ class CallButtonField(Field):
             new_hovered.hovered()
 
         self._hovered_button = new_hovered
+        print(new_hovered)
         return new_hovered
 
     def unhover(self):

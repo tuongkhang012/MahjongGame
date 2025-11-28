@@ -24,6 +24,7 @@ if typing.TYPE_CHECKING:
 
 
 class Player:
+    game_manager: "GameManager | None"
     player_idx: int
     player_deck: list[Tile]
     discard_tiles: list[Tile]
@@ -60,6 +61,7 @@ class Player:
         player_deck: list[Tile] = None,
         discard_tiles: list[Tile] = None,
         call_tiles_list: list[Tile] = None,
+        agent: any = None,
     ):
         self.player_idx = player_idx
         self.direction = direction
@@ -98,6 +100,9 @@ class Player:
         self.points = 25000
         self.turn = 0
         self.honba = 0
+
+        self.agent = agent
+        self.game_manager = None
 
     def draw(
         self,
@@ -273,6 +278,9 @@ class Player:
 
     def make_move(self, action: ActionType = None) -> ActionType:
         from random import randint
+
+        if self.agent is not None and not self.__is_riichi:
+            return self.agent.make_move(self)
 
         if self.__is_riichi:
             if self.player_idx == 0:
