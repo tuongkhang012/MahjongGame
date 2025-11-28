@@ -1,9 +1,18 @@
-import pygame
 import typing
+import pygame
 from pygame import Surface
 from components.entities.buttons.ui_button import UIButton
-from utils.constants import MADOU_FUTO_FONT, ANMOTALES_FONT, MINTSODA_FONT, PIXELARI_FONT, UI_FONT_SIZE, UI_TEXT_COLOR, \
-    UI_BUTTON_COLOR, UI_BUTTON_SIZE, COLOR_BLACK
+from utils.constants import (
+    MADOU_FUTO_FONT,
+    ANMOTALES_FONT,
+    MINTSODA_FONT,
+    PIXELARI_FONT,
+    UI_FONT_SIZE,
+    UI_TEXT_COLOR,
+    UI_BUTTON_COLOR,
+    UI_BUTTON_SIZE,
+    COLOR_BLACK,
+)
 from pygame.freetype import Font
 from pygame.event import Event
 from utils.helper import build_center_rect
@@ -52,3 +61,5 @@ class MainMenu:
                     self.scenes_controller.change_scene(
                         scene=GameScene.GAME
                     )
+            case pygame.MOUSEMOTION:
+                pass

@@ -67,6 +67,7 @@ class Button:
             text_surface = self._build_text_surface()
             text_pos = build_center_rect(self.surface, text_surface)
             self.surface.blit(text_surface, (text_pos.x, text_pos.y))
+
             screen.blit(self.surface, (self.get_position().x, self.get_position().y))
 
     def _build_text_surface(self) -> Surface:

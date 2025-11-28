@@ -13,12 +13,14 @@ if typing.TYPE_CHECKING:
     from components.game_scenes.game_manager import GameManager
     from components.game_scenes.main_menu import MainMenu
     from components.entities.buttons.tile import Tile
+    from components.entities.buttons.button import Button
+    from components.game_scenes.popup.popup import Popup
 
 
 class ScenesController:
     __scene: GameScene
     __screen: Surface
-    __popup_screen: Surface = None
+    __popup_screen: "Popup" = None
 
     def __init__(self):
         pygame.init()
@@ -39,6 +41,9 @@ class ScenesController:
 
         self.mouse: Mouse = Mouse
         self.__scene = GameScene.START
+
+        self.hoverable_buttons: list["Button"] = []
+        self.clickable_buttons: list["Button"] = []
 
     def change_scene(self, scene: GameScene):
         self.__scene = scene
@@ -76,10 +81,9 @@ class ScenesController:
             overlay.fill(
                 pygame.Color(0, 0, 0, int(255 / 2)), None, pygame.BLEND_RGBA_MULT
             )
-            center_pos = build_center_rect(overlay, self.__popup_screen)
-            overlay.blit(self.__popup_screen, (center_pos.x, center_pos.y))
 
             self.__screen.blit(overlay, (0, 0))
+            self.__popup_screen.render(self.__screen)
 
     def update_render_surface(self, surface: Surface):
         self.__screen = surface
@@ -107,6 +111,25 @@ class ScenesController:
                 case pygame.QUIT:
                     return {"exit": True}
                 case pygame.MOUSEBUTTONDOWN:
+                    if self.__popup_screen:
+                        button = self.__popup_screen.handle_event(event)
+                        if button:
+                            match button.text:
+                                case "Main Menu":
+                                    self.__popup_screen = None
+                                    self.change_scene(GameScene.START)
+                                    self.mouse.default()
+                                    self.game_manager.new_game()
+
+                                case "New Game":
+                                    self.__popup_screen = None
+                                    self.change_scene(GameScene.GAME)
+                                    self.mouse.default()
+                                    self.game_manager.new_game()
+                                case "Quit":
+                                    return {"exit": True}
+
+                        return {"exit": False}
                     match self.__scene:
                         case GameScene.GAME:
                             if self.game_manager.animation_tile is None:
@@ -115,6 +138,13 @@ class ScenesController:
                             self.start_menu.handle_event(event)
 
                 case pygame.MOUSEMOTION:
+                    if self.__popup_screen:
+                        button = self.__popup_screen.handle_event(event)
+                        if button:
+                            self.mouse.hover()
+                        else:
+                            self.mouse.default()
+                        return {"exit": False}
                     match self.__scene:
                         case GameScene.GAME:
                             self.game_manager.handle_event(event)
@@ -126,47 +156,4 @@ class ScenesController:
     def __create_after_match_popup(self, data: AfterMatchData) -> Surface:
         surface = self.create_popup_surface(0.8)
         surface.fill(pygame.Color(0, 0, 0, int(255 * 0.8)))
-        popup = AfterMatchPopup(self.create_popup_surface(0.8))
-        player_deck = data["player_deck"]
-        win_tile = data["win_tile"]
-        call_tiles_list = data["call_tiles_list"]
-        deltas = data["deltas"]
-        player_list = data["player_list"]
-        match_result = data["result"]
-
-        tsumi_number = data["tsumi_number"]
-        kyoutaku_number = data["kyoutaku_number"]
-
-        # Build render hands surface
-        hands_surface_position = (0, 0)
-        hands_surface = popup.create_hands_surface(
-            player_deck, win_tile, call_tiles_list, height_ratio=2 / 8
-        )
-        surface.blit(hands_surface, hands_surface_position)
-
-        # Build Yaku, Fu, Han and total points
-        result_surface_position = (0, surface.get_height() / 4)
-        result_surface = popup.create_result_surface(
-            match_result, width_ratio=1 / 2, height_ratio=5 / 8
-        )
-        surface.blit(result_surface, result_surface_position)
-
-        # Build player current position
-        players_surface_position = (surface.get_width() / 2, surface.get_height() / 4)
-        players_surface = popup.create_players_surface(
-            players=player_list,
-            deltas=deltas,
-            tsumi_number=tsumi_number,
-            kyoutaku_number=kyoutaku_number,
-            width_ratio=1 / 2,
-            height_ratio=5 / 8,
-        )
-
-        surface.blit(players_surface, players_surface_position)
-
-        # Build change scene button (New Game, Main Menu, Quit)
-        option_buttons_surface_position = (0, 7 * surface.get_height() / 8)
-        option_buttons_surface = popup.create_option_buttons_surface(height_ratio=1 / 8)
-        surface.blit(option_buttons_surface, option_buttons_surface_position)
-
-        return surface
+        return AfterMatchPopup(surface, data)

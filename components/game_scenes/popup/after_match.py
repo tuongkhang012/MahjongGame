@@ -1,4 +1,5 @@
-from pygame import Surface, Color
+from pygame import Surface, Color, Rect
+from pygame.event import Event
 from pygame.freetype import Font
 from utils.constants import (
     ANCIENT_MODERN_FONT,
@@ -11,24 +12,93 @@ import pygame
 from utils.enums import TileSource
 import typing
 from utils.helper import build_center_rect, draw_hitbox
-
+from utils.game_data_dict import AfterMatchData
 from mahjong.hand_calculating.hand_response import HandResponse
 from mahjong.hand_calculating.yaku import Yaku
 from components.entities.buttons.button import Button
+from components.game_scenes.popup.popup import Popup
 
 if typing.TYPE_CHECKING:
     from components.entities.buttons.tile import Tile
     from components.entities.player import Player
 
 
-class AfterMatchPopup:
-    def __init__(self, surface: Surface):
-        self.surface = surface
+class AfterMatchPopup(Popup):
+    __absolute_position: Rect
+
+    def __init__(self, surface: Surface, data: AfterMatchData):
+        self._surface = surface
         self.agari_width_offset = 5
         self.call_width_offset = 10
         self.yaku_height_offset = 20
-        self.clickable_buttons = []
-        self.hoverable_buttons = []
+        self.table_data_offset = 20
+        self.clickable_buttons: list[tuple[tuple[int, int], Button]] = []
+        self.hoverable_buttons: list[tuple[tuple[int, int], Button]] = []
+        # Create after_match pop up
+
+        self.update_data(data)
+
+    def render(self, screen: Surface):
+        # Build render hands surface
+        self.hands_surface_position = (0, 0)
+        self.__hands_surface = self.create_hands_surface(
+            self.player_deck, self.win_tile, self.call_tiles_list, height_ratio=2 / 8
+        )
+        self._surface.blit(self.__hands_surface, self.hands_surface_position)
+
+        # Build Yaku, Fu, Han and total points
+        self.result_surface_position = (0, self._surface.get_height() / 4)
+        self.__result_surface = self.create_result_surface(
+            self.match_result, width_ratio=1 / 2, height_ratio=5 / 8
+        )
+        self._surface.blit(self.__result_surface, self.result_surface_position)
+
+        # Build player current position
+        self.players_surface_position = (
+            self._surface.get_width() / 2,
+            self._surface.get_height() / 4,
+        )
+        self.__players_surface = self.create_players_surface(
+            players=self.player_list,
+            deltas=self.deltas,
+            tsumi_number=self.tsumi_number,
+            kyoutaku_number=self.kyoutaku_number,
+            width_ratio=1 / 2,
+            height_ratio=5 / 8,
+        )
+
+        self._surface.blit(self.__players_surface, self.players_surface_position)
+
+        # Build change scene button (New Game, Main Menu, Quit)
+        self.option_buttons_surface_position = (0, 7 * self._surface.get_height() / 8)
+        self.option_buttons_surface = self.create_option_buttons_surface(
+            height_ratio=1 / 8
+        )
+        self._surface.blit(
+            self.option_buttons_surface, self.option_buttons_surface_position
+        )
+
+        center_pos = build_center_rect(screen, self._surface)
+        self.update_absolute_position_rect(
+            Rect(
+                center_pos.x,
+                center_pos.y,
+                self._surface.get_width(),
+                self._surface.get_height(),
+            )
+        )
+        screen.blit(self._surface, (center_pos.x, center_pos.y))
+
+    def update_data(self, data: AfterMatchData):
+        self.player_deck = data["player_deck"]
+        self.win_tile = data["win_tile"]
+        self.call_tiles_list = data["call_tiles_list"]
+        self.deltas = data["deltas"]
+        self.player_list = data["player_list"]
+        self.match_result = data["result"]
+
+        self.tsumi_number = data["tsumi_number"]
+        self.kyoutaku_number = data["kyoutaku_number"]
 
     def create_hands_surface(
         self,
@@ -229,7 +299,7 @@ class AfterMatchPopup:
                 points_data.get_height(),
                 deltas_data.get_height(),
             )
-            table_data_height = max_height + 20
+            table_data_height = max_height + self.table_data_offset
             rank_column_surface = Surface(
                 (players_surface.get_width() / len(data), table_data_height),
                 pygame.SRCALPHA,
@@ -378,20 +448,32 @@ class AfterMatchPopup:
         draw_hitbox(new_game_surface)
         draw_hitbox(quit_surface)
 
-        self.hoverable_buttons = [quit_button, new_game_button, main_menu_button]
-        self.clickable_buttons = [quit_button, new_game_button, main_menu_button]
+        quit_surface_position = (2 * full_surface.get_width() / 3, 0)
+        new_game_surface_position = (full_surface.get_width() / 3, 0)
+        main_menu_surface_position = (0, 0)
 
-        full_surface.blit(main_menu_surface, (0, 0))
-        full_surface.blit(new_game_surface, (full_surface.get_width() / 3, 0))
-        full_surface.blit(quit_surface, (2 * full_surface.get_width() / 3, 0))
+        full_surface.blit(main_menu_surface, main_menu_surface_position)
+        full_surface.blit(new_game_surface, new_game_surface_position)
+        full_surface.blit(quit_surface, quit_surface_position)
+
+        self.hoverable_buttons = [
+            (quit_surface_position, quit_button),
+            (new_game_surface_position, new_game_button),
+            (main_menu_surface_position, main_menu_button),
+        ]
+        self.clickable_buttons = [
+            (quit_surface_position, quit_button),
+            (new_game_surface_position, new_game_button),
+            (main_menu_surface_position, main_menu_button),
+        ]
 
         return full_surface
 
     def __create_full_surface(self, width_ratio: float = 1, height_ratio: float = 1):
         return Surface(
             (
-                self.surface.get_size()[0] * width_ratio,
-                self.surface.get_size()[1] * height_ratio,
+                self._surface.get_size()[0] * width_ratio,
+                self._surface.get_size()[1] * height_ratio,
             ),
             pygame.SRCALPHA,
         )
@@ -438,3 +520,36 @@ class AfterMatchPopup:
             ),
             pygame.SRCALPHA,
         )
+
+    def handle_event(self, event: Event) -> Button:
+        match event.type:
+            case pygame.MOUSEBUTTONDOWN | pygame.MOUSEMOTION:
+                if self.check_collide(event.pos):
+                    # Check collide with scene change option
+                    local_mouse = self.build_local_mouse(event.pos)
+
+                    option_buttons_rect = self.option_buttons_surface.get_rect().copy()
+                    option_buttons_rect.x = self.option_buttons_surface_position[0]
+                    option_buttons_rect.y = self.option_buttons_surface_position[1]
+                    mouse_inside_option_surface = (
+                        local_mouse[0] - option_buttons_rect.x,
+                        local_mouse[1] - option_buttons_rect.y,
+                    )
+                    if self.option_buttons_surface.get_rect().collidepoint(
+                        mouse_inside_option_surface
+                    ):
+                        for position, button in self.clickable_buttons:
+                            if Rect(
+                                position[0],
+                                position[1],
+                                option_buttons_rect.width / 3,
+                                option_buttons_rect.height,
+                            ).collidepoint(mouse_inside_option_surface):
+                                mouse_inside_each_button = (
+                                    mouse_inside_option_surface[0] - position[0],
+                                    mouse_inside_option_surface[1] - position[1],
+                                )
+                                if button.get_position().collidepoint(
+                                    mouse_inside_each_button
+                                ):
+                                    return button
