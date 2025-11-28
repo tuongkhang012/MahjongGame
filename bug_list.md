@@ -10,7 +10,8 @@
 10. Xử lý trường hợp vẫn có thể call ankan trong khi đang riichi (Need more time to check)
 11. ~~In log~~ (DONE)
 12. ~~Sau khi riichi, nếu player bốc lên lá không thể hoàn thành được riichi thì sẽ phải discard chính lá đó~~ (DONE)
-13. ~~**Hòa nếu như có 4 Kan**~~ (DONE)
+13. ~~Hòa nếu như có 4 Kan~~ (DONE)
+14. **Make move cho con bot shanten**
 
 ### Màn hình
 
