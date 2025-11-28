@@ -11,7 +11,7 @@ from utils.constants import (
     UI_TEXT_COLOR,
     UI_BUTTON_COLOR,
     UI_BUTTON_SIZE,
-    COLOR_BLACK,
+    COLOR_BLACK
 )
 from pygame.freetype import Font
 from pygame.event import Event
@@ -63,3 +63,4 @@ class MainMenu:
                     )
             case pygame.MOUSEMOTION:
                 pass
+
