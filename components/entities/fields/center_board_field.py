@@ -44,6 +44,7 @@ class CenterBoardField(Field):
         super().__init__()
         self.__directions_list = directions_list
 
+        self.__discards_fields = []
         for player in player_list:
             self.__discards_fields.append(player.discard_field)
 
