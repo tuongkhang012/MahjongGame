@@ -17,6 +17,12 @@ DIRECTION_HEIGHT = 32
 
 SMOKE_PARTICLE_IMAGE_LINK = "public/images/particles/smoke/"
 
+DISCARD_MODEL = "public/model/mahjong_cnn_discard_best.pth"
+CHI_MODEL = "public/model/mahjong_cnn_chi_best.pth"
+PON_MODEL = "public/model/mahjong_cnn_pon_best.pth"
+RIICHI_MODEL = "public/model/mahjong_cnn_riichi_best.pth"
+COMBINED_MODEL = "public/model/mahjong_cnn_discard_chi_pon_riichi_best.pth"
+
 TURN_BAR_HEIGHT = 10
 
 CENTER_BOARD_FIELD_SIZE = (540, 540)

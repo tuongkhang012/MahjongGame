@@ -1,7 +1,5 @@
-import pygame
 import typing
 import pygame
-from pygame.event import Event
 from pygame import Surface
 from components.entities.buttons.ui_button import UIButton
 from utils.constants import (
@@ -63,3 +61,6 @@ class MainMenu:
                     self.scenes_controller.change_scene(
                         scene=GameScene.GAME
                     )
+            case pygame.MOUSEMOTION:
+                pass
+

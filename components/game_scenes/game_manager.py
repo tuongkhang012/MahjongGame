@@ -6,6 +6,11 @@ from utils.constants import (
     TILE_ANIMATION_DURATION,
     TILE_POPUP_DURATION,
     TILE_SCALE_BY,
+    DISCARD_MODEL,
+    CHI_MODEL,
+    PON_MODEL,
+    RIICHI_MODEL,
+    COMBINED_MODEL,
 )
 from components.game_builder import GameBuilder
 from utils.enums import Direction, ActionType, CallType, GamePopup
@@ -21,6 +26,7 @@ from components.entities.mouse import Mouse
 import typing
 import random
 from components.game_event_log import GameEventLog
+from components.entities.ai.mahjong_ai_agent import MahjongAIAgent
 
 
 # Tile
@@ -103,6 +109,17 @@ class GameManager:
 
         # Init deck
         self.builder = GameBuilder(self.screen, self.clock, init_deck, start_data)
+
+        # AI designated seat
+        self.ai_seat_idx = {1, 3}
+
+        self.ai_agent_SMART = MahjongAIAgent(
+            DISCARD_MODEL, CHI_MODEL, PON_MODEL, RIICHI_MODEL
+        )
+
+        self.ai_agent_MID = MahjongAIAgent(
+            COMBINED_MODEL, COMBINED_MODEL, COMBINED_MODEL, COMBINED_MODEL
+        )
 
         # Init game
         self.builder.new(self)
