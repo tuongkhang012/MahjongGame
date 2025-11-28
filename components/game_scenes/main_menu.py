@@ -1,11 +1,22 @@
 import typing
+import pygame
+from pygame.event import Event
 from pygame import Surface
 from components.entities.buttons.ui_button import UIButton
-from utils.constants import MADOU_FUTO_FONT, ANMOTALES_FONT, MINTSODA_FONT, PIXELARI_FONT, UI_FONT_SIZE, UI_TEXT_COLOR, \
-    UI_BUTTON_COLOR, UI_BUTTON_SIZE
+from utils.constants import (
+    MADOU_FUTO_FONT,
+    ANMOTALES_FONT,
+    MINTSODA_FONT,
+    PIXELARI_FONT,
+    UI_FONT_SIZE,
+    UI_TEXT_COLOR,
+    UI_BUTTON_COLOR,
+    UI_BUTTON_SIZE,
+)
 from pygame.freetype import Font
 from utils.helper import build_center_rect
-from components.events.mouse_button_down_MM import MouseButtonDown
+
+from utils.enums import GameScene
 
 if typing.TYPE_CHECKING:
     from components.game_scenes.scenes_controller import ScenesController
@@ -27,11 +38,6 @@ class MainMenu:
             bg_color=UI_BUTTON_COLOR,
         )
 
-        self.mouse_button_down = MouseButtonDown(
-            screen=self.screen,
-            main_menu=self,
-        )
-
     def render(self) -> Surface:
         self.screen.fill((0, 0, 0))
         # Render main menu elements here
@@ -49,3 +55,11 @@ class MainMenu:
 
     def update(self):
         pass
+
+    def handle_event(self, event: Event):
+        match event.type:
+            case pygame.MOUSEBUTTONDOWN:
+                if self.start_button.check_collidepoint(event.pos):
+                    self.scenes_controller.change_scene(scene=GameScene.GAME)
+            case pygame.MOUSEMOTION:
+                pass

@@ -79,6 +79,9 @@ class GameManager:
     tsumi_number: int = 0
     kyoutaku_number: int = 0
 
+    # Change direction when new game
+    change_direction: bool = False
+
     def __init__(
         self,
         screen: Surface,
@@ -89,7 +92,9 @@ class GameManager:
         # Display setting
         self.main_screen = screen
         self.screen = screen.copy()
-        self.clock = pygame.time.Clock() # TODO: Maybe don't need it since scene_controller has one
+        self.clock = (
+            pygame.time.Clock()
+        )  # TODO: Maybe don't need it since scene_controller has one
         self.clock.tick(FPS_LIMIT)  # limits FPS to 60
         self.last_time = pygame.time.get_ticks()  # For calculating delta time
 
@@ -766,7 +771,8 @@ class GameManager:
 
         self.pause = True
         deltas = [0, 0, 0, 0]
-
+        for player in self.player_list:
+            player.reveal_hand()
         if self.is_disable_round:
             self.game_log.round = None
             return
@@ -849,20 +855,23 @@ class GameManager:
             total_cost = int(result.cost["total"] / 100)
             if self.action == ActionType.TSUMO:
                 deltas[win_player.player_idx] += total_cost
-                if win_player.direction == self.round_direction:
+                if win_player.direction == Direction.EAST:
                     for i in range(0, len(deltas)):
                         if i == win_player.player_idx:
                             continue
                         deltas[i] -= int(total_cost / 3)
                 else:
+                    self.change_direction = True
                     for i in range(0, len(deltas)):
                         if i == win_player.player_idx:
                             continue
-                        if self.player_list[i].direction == self.round_direction:
+                        if self.player_list[i].direction == Direction.EAST:
                             deltas[i] -= int(total_cost / 4) * 2
                         else:
                             deltas[i] -= int(total_cost / 4)
             elif self.action == ActionType.RON:
+                if win_player.direction != Direction.EAST:
+                    self.change_direction = True
                 deltas[win_player.player_idx] += total_cost
                 deltas[roned_player.player_idx] -= total_cost
 
@@ -899,6 +908,8 @@ class GameManager:
                             max_deltas_points / len(tenpai_players)
                         )
                     if player not in tenpai_players:
+                        if player.direction == Direction.EAST:
+                            self.change_direction = True
                         deltas[player.player_idx] -= int(
                             max_deltas_points / (4 - len(tenpai_players))
                         )
@@ -951,4 +962,39 @@ class GameManager:
             round_wind,
             self.tsumi_number,
             self.kyoutaku_number,
+        )
+
+    def new_game(self):
+
+        self.call_button_field = CallButtonField(self.screen)
+        self.pause = False
+        self.prev_player: Player = None
+
+        self.bot_move_timer: float = 0
+        self.BOT_MOVE_DELAY: float = 1
+
+        self.animation_tile: Tile | None = None
+
+        # Game logic relavent
+        self.latest_discarded_tile: Tile | None = None
+        self.latest_called_tile: Tile | None = None
+        self.call_order: list[Player] = []
+        self.calling_player: Player = None
+        self.prev_called_player: Player = None
+        self.action: ActionType = None
+        self.prev_action: ActionType = None
+        self.kan_count: int = 0
+        self.is_disable_round: bool = False
+        self.first_ron_player: Player = None
+        self.ron_count: int = 0
+
+        # Change direction when new game
+        self.change_direction: bool = False
+
+        # Init game
+        self.builder.new(self, self.change_direction)
+        self.__create_new_round_log()
+        self.deck.add_new_dora()
+        self.game_log.append_event(
+            ActionType.DORA, self.deck.death_wall[self.deck.current_dora_idx]
         )

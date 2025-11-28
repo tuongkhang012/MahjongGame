@@ -28,7 +28,7 @@ class Deck:
     draw_deck: list[Tile] = []
 
     # Dora relative
-    current_dora_idx: int = 5
+    current_dora_idx: int
     dora: list[Tile] = []
     ura_dora: list[Tile] = []
 
@@ -40,10 +40,10 @@ class Deck:
     def create_new_deck(self, start_data: Any | None = None) -> dict[str, list[Tile]]:
         # Create a random seed
         self.random_seed = generate_random_seed()
-
+        self.current_dora_idx = 5
         self.death_wall: list[Tile] = []
         self.draw_deck: list[Tile] = []
-
+        self.full_deck = []
         # Dora relative
         self.dora: list[Tile] = []
         self.ura_dora: list[Tile] = []
@@ -163,6 +163,10 @@ class Deck:
 
         for i in tenhou:
             tile = list(filter(lambda tile: tile.hand136_idx == i, self.__init_deck))[0]
+            if len(sys.argv) > 1 and "debug" in sys.argv:
+                tile.hidden = False
+            else:
+                tile.hidden = True
             full_deck.append(tile)
 
         return full_deck
