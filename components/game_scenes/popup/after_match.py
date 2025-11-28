@@ -45,7 +45,60 @@ class AfterMatchPopup(Popup):
             self.render_houra(screen)
 
     def render_ryuukyoku(self, screen: Surface):
-        pass
+        RYUUKYOU_TEXT_OFFSET = 40
+        RYUUKYOKU_REASON_TEXT_OFFSET = 20
+        ryuukyoku_text_surface = self.__create_font_surface("RYUUKYOKU", font_size=40)
+        center_pos = build_center_rect(self._surface, ryuukyoku_text_surface)
+        self._surface.blit(ryuukyoku_text_surface, (center_pos.x, RYUUKYOU_TEXT_OFFSET))
+
+        if self.ryuukyoku_reason:
+            reason_text_surface = self.__create_font_surface(f"{self.ryuukyoku_reason}")
+            center_pos = build_center_rect(self._surface, reason_text_surface)
+            self._surface.blit(
+                reason_text_surface,
+                (
+                    center_pos.x,
+                    ryuukyoku_text_surface.get_height()
+                    + RYUUKYOU_TEXT_OFFSET
+                    + RYUUKYOKU_REASON_TEXT_OFFSET,
+                ),
+            )
+
+        # Build player current position
+        self.__players_surface = self.create_players_surface(
+            players=self.player_list,
+            deltas=self.deltas,
+            tsumi_number=self.tsumi_number,
+            kyoutaku_number=self.kyoutaku_number,
+            width_ratio=1 / 2,
+            height_ratio=5 / 8,
+        )
+        center_pos = build_center_rect(self._surface, self.__players_surface)
+        self.players_surface_position = (
+            center_pos.x,
+            self._surface.get_height() / 4,
+        )
+        self._surface.blit(self.__players_surface, self.players_surface_position)
+
+        # Build change scene button (New Game, Main Menu, Quit)
+        self.option_buttons_surface_position = (0, 7 * self._surface.get_height() / 8)
+        self.option_buttons_surface = self.create_option_buttons_surface(
+            height_ratio=1 / 8
+        )
+        self._surface.blit(
+            self.option_buttons_surface, self.option_buttons_surface_position
+        )
+
+        center_pos = build_center_rect(screen, self._surface)
+        self.update_absolute_position_rect(
+            Rect(
+                center_pos.x,
+                center_pos.y,
+                self._surface.get_width(),
+                self._surface.get_height(),
+            )
+        )
+        screen.blit(self._surface, (center_pos.x, center_pos.y))
 
     def render_houra(self, screen: Surface):
         # Build render hands surface

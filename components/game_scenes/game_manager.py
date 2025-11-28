@@ -78,6 +78,7 @@ class GameManager:
     prev_action: ActionType = None
     kan_count: int = 0
     is_disable_round: bool = False
+    disable_reason: str = None
     first_ron_player: Player = None
     ron_count: int = 0
 
@@ -204,6 +205,7 @@ class GameManager:
         self.current_discard_player_direction = None
 
         self.last_time = pygame.time.get_ticks()
+        self.detect_mouse_pos(pygame.mouse.get_pos())
 
     def handle_event(self, event: Event):
         if self.pause:
@@ -234,7 +236,8 @@ class GameManager:
                 ):
                     call_button_field.click(event.pos, self)
             case pygame.MOUSEMOTION:
-                pass
+                self.detect_mouse_pos(pygame.mouse.get_pos())
+
         pass
 
     def detect_mouse_pos(self, mouse_pos: tuple[int, int]):
@@ -389,6 +392,7 @@ class GameManager:
                 ):
                     self.action = ActionType.RYUUKYOKU
                     self.is_disable_round = True
+                    self.disable_reason = "Suufon Renda"
                     return
 
             for player in self.player_list:
@@ -425,6 +429,7 @@ class GameManager:
             elif len(self.call_order) == 0 and self.kan_count == 4:
                 self.action = ActionType.RYUUKYOKU
                 self.is_disable_round = True
+                self.disable_reason = "Suukaikan"
                 return
 
             # Checking for Reach4
@@ -436,6 +441,7 @@ class GameManager:
             ):
                 self.action = ActionType.RYUUKYOKU
                 self.is_disable_round = True
+                self.disable_reason = "Suucha Riichi"
                 return
 
         if turn:
@@ -694,6 +700,7 @@ class GameManager:
                         if self.ron_count >= 3:
                             self.action = ActionType.RYUUKYOKU
                             self.is_disable_round = True
+                            self.disable_reason = "Sanchahou"
                             return
                     else:
                         return self.end_match(
@@ -721,6 +728,7 @@ class GameManager:
                         if self.ron_count >= 3:
                             self.action = ActionType.RYUUKYOKU
                             self.is_disable_round = True
+                            self.disable_reason = "Sanchahou"
                             return
                     else:
                         return self.end_match(
@@ -762,6 +770,7 @@ class GameManager:
             case ActionType.RYUUKYOKU:
                 if self.calling_player and self.calling_player.check_yao9():
                     self.is_disable_round = True
+                    self.disable_reason = "Kyuushu Kyuuhai"
                 return self.end_match()
 
         if len(self.deck.death_wall) < 14:
@@ -805,9 +814,11 @@ class GameManager:
         win_player: Player = None,
         roned_player: Player = None,
         win_tile: Tile = None,
+        disable_reason: str = None,
     ):
         import datetime
 
+        "Kyuushu kyuuhai"
         self.pause = True
         deltas = [0, 0, 0, 0]
         for player in self.player_list:
@@ -815,8 +826,7 @@ class GameManager:
         if self.is_disable_round:
             self.game_log.round = None
             reason = None
-            if self.calling_player and self.calling_player.check_yao9():
-                reason = "yao9"
+
             popup_data: AfterMatchData = {
                 "deltas": deltas,
                 "win_tile": None,
@@ -827,7 +837,7 @@ class GameManager:
                 "call_tiles_list": None,
                 "tsumi_number": self.tsumi_number,
                 "ryuukyoku": True,
-                "ryuukyoku_reason": reason,
+                "ryuukyoku_reason": self.disable_reason,
             }
             self.scenes_controller.popup(GamePopup.AFTER_MATCH, popup_data)
 
@@ -989,7 +999,7 @@ class GameManager:
                 "result": None,
                 "tsumi_number": self.tsumi_number,
                 "ryuukyoku": True,
-                "ryuukyoku_reason": None,
+                "ryuukyoku_reason": self.disable_reason,
             }
 
         for idx, delta in enumerate(deltas):
@@ -1045,6 +1055,7 @@ class GameManager:
         self.prev_action: ActionType = None
         self.kan_count: int = 0
         self.is_disable_round: bool = False
+        self.disable_reason: str = None
         self.first_ron_player: Player = None
         self.ron_count: int = 0
 
