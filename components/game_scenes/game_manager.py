@@ -796,6 +796,23 @@ class GameManager:
             player.reveal_hand()
         if self.is_disable_round:
             self.game_log.round = None
+            reason = None
+            if self.calling_player and self.calling_player.check_yao9():
+                reason = "yao9"
+            popup_data: AfterMatchData = {
+                "deltas": deltas,
+                "win_tile": None,
+                "kyoutaku_number": self.kyoutaku_number,
+                "player_list": self.player_list,
+                "result": None,
+                "player_deck": None,
+                "call_tiles_list": None,
+                "tsumi_number": self.tsumi_number,
+                "ryuukyoku": True,
+                "ryuukyoku_reason": reason,
+            }
+            self.scenes_controller.popup(GamePopup.AFTER_MATCH, popup_data)
+
             return
         if win_player:
             # is_tsumo
@@ -915,6 +932,8 @@ class GameManager:
                 "player_deck": win_player.player_deck,
                 "call_tiles_list": win_player.call_tiles_list,
                 "tsumi_number": self.tsumi_number,
+                "ryuukyoku": False,
+                "ryuukyoku_reason": None,
             }
         else:
             max_deltas_points = 30
@@ -951,6 +970,8 @@ class GameManager:
                 "player_list": self.player_list,
                 "result": None,
                 "tsumi_number": self.tsumi_number,
+                "ryuukyoku": True,
+                "ryuukyoku_reason": None,
             }
 
         for idx, delta in enumerate(deltas):

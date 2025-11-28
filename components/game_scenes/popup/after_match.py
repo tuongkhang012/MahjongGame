@@ -39,6 +39,15 @@ class AfterMatchPopup(Popup):
         self.update_data(data)
 
     def render(self, screen: Surface):
+        if self.ryuukyoku:
+            self.render_ryuukyoku(screen)
+        else:
+            self.render_houra(screen)
+
+    def render_ryuukyoku(self, screen: Surface):
+        pass
+
+    def render_houra(self, screen: Surface):
         # Build render hands surface
         self.hands_surface_position = (0, 0)
         self.__hands_surface = self.create_hands_surface(
@@ -99,6 +108,9 @@ class AfterMatchPopup(Popup):
 
         self.tsumi_number = data["tsumi_number"]
         self.kyoutaku_number = data["kyoutaku_number"]
+
+        self.ryuukyoku = data["ryuukyoku"]
+        self.ryuukyoku_reason = data["ryuukyoku_reason"]
 
     def create_hands_surface(
         self,

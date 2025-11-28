@@ -17,3 +17,5 @@ class AfterMatchData(TypedDict):
     deltas: list[int]
     tsumi_number: int
     kyoutaku_number: int
+    ryuukyoku: bool
+    ryuukyoku_reason: str | None
