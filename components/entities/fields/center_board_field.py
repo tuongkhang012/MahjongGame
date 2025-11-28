@@ -91,16 +91,25 @@ class CenterBoardField(Field):
             direction_turn_surface,
             build_center_rect(surface, direction_turn_surface),
         )
+
+        # Build discard surface
         for idx, discard_field in enumerate(self.__discards_fields):
-            discard_field.render()
-            relative_position = self.build_discard_surface_position(idx)
+            discard_surface = discard_field.render()
+            relative_position = self.build_discard_surface_position(
+                discard_surface, idx
+            )
             discard_field.update_relative_position(relative_position)
 
             self.render_surface(surface, discard_field.surface, relative_position)
 
+        # Build dora surface:
+        dora_surface = Surface(
+            (CENTER_BOARD_FIELD_SIZE[0] / 3, CENTER_BOARD_FIELD_SIZE[1] / 3),
+            pygame.SRCALPHA,
+        )
         return surface
 
-    def build_discard_surface_position(self, idx: int) -> Rect:
+    def build_discard_surface_position(self, surface: Surface, idx: int) -> Rect:
         match idx:
             case 0:
                 return Rect(
@@ -108,10 +117,13 @@ class CenterBoardField(Field):
                 )
             case 1:
                 return Rect(
-                    CENTER_BOARD_FIELD_SIZE[0] - DISCARD_FIELD_SIZE[0], 180, 180, 180
+                    CENTER_BOARD_FIELD_SIZE[0] - DISCARD_FIELD_SIZE[0],
+                    360 - surface.get_height(),
+                    180,
+                    180,
                 )
             case 2:
-                return Rect(180, 0, 180, 180)
+                return Rect(360 - surface.get_width(), 0, 180, 180)
             case 3:
                 return Rect(0, 180, 180, 180)
 

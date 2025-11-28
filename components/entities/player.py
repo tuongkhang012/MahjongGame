@@ -588,8 +588,13 @@ class Player:
         self.deck_field = DeckField(
             self.screen, self.player_idx, self.player_deck, self.full_deck
         )
+
         # Game properties
         self.__winning_tiles = []
+        self.__is_riichi = False
+        self.__riichi_turn: int = None
+
+        self.__skip_yao9 = False
 
     def __eq__(self, value):
         if not isinstance(value, Player):

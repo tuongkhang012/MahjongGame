@@ -36,6 +36,7 @@ class DiscardField(TilesField):
             tile.render(self.surface)
 
         draw_hitbox(self.surface, (0, 255, 255))
+        return self.surface
 
     def build_field_surface(self) -> Surface:
         check_riichi_tiles = list(

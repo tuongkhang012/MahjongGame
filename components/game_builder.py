@@ -79,27 +79,26 @@ class GameBuilder:
             game_manager.round_direction_number += 1
 
     def init_game(self, players: list[Player] = None):
-        # Choose direction for player
-        if self.start_data and self.start_data["direction"]:
-            direction: list[Direction] = []
-            for direction_char in list(self.start_data["direction"]):
-                match direction_char:
-                    case "S":
-                        direction.append(Direction.SOUTH)
-                    case "W":
-                        direction.append(Direction.WEST)
-                    case "E":
-                        direction.append(Direction.EAST)
-                    case "N":
-                        direction.append(Direction.NORTH)
-        else:
-            direction = self.direction()
-        print(f"Current player direction is {direction[0]}")
-
         self.deck.create_new_deck(self.start_data)
 
         # Create player
         if not players:
+            # Choose direction for player
+            if self.start_data and self.start_data["direction"]:
+                direction: list[Direction] = []
+                for direction_char in list(self.start_data["direction"]):
+                    match direction_char:
+                        case "S":
+                            direction.append(Direction.SOUTH)
+                        case "W":
+                            direction.append(Direction.WEST)
+                        case "E":
+                            direction.append(Direction.EAST)
+                        case "N":
+                            direction.append(Direction.NORTH)
+            else:
+                direction = self.direction()
+            print(f"Current player direction is {direction[0]}")
             player_list: list[Player] = []
             for i in range(4):
                 player_list.append(
@@ -107,10 +106,14 @@ class GameBuilder:
                 )
         else:
             player_list = players
+            direction: list[Direction] = []
             for i in range(4):
                 player_list[i].renew_deck()
 
-                player_list[i].direction = direction[i]
+                player_list[i].direction = Direction(
+                    (player_list[i].direction.value + 1) % 4
+                )
+                direction.append(player_list[i].direction)
                 player_list[i].full_deck = self.deck.full_deck
 
         if self.start_data and self.start_data["player_deck"]:
