@@ -79,10 +79,6 @@ class DiscardField(TilesField):
                     )
 
     def build_tiles_position(self):
-        riichi_tile_idx = None
-        riichi_tile_line = None
-        riichi_tile = None
-
         start_width = 0
         start_height = 0
         for idx, tile in enumerate(self.get_tiles_list()):
@@ -170,9 +166,3 @@ class DiscardField(TilesField):
                         tile.surface.get_height(),
                     )
                     start_height += tile.get_surface().get_height()
-
-    def update_absolute_position(self, absolute_position: Rect):
-        self._absolute_position = absolute_position
-
-    def update_relative_position(self, relative_position: Rect):
-        self._relative_position = relative_position

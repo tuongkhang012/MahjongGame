@@ -73,11 +73,11 @@ class Tile(Button):
 
     def render(self, screen: Surface):
         if self.hidden:
-            self.surface = self._hidden_surface
+            self.set_surface(self._hidden_surface)
         elif self.is_highlighted:
-            self.surface = self._highlight_surface
+            self.set_surface(self._highlight_surface)
         else:
-            self.surface = self._original_surface
+            self.set_surface(self._original_surface)
 
         draw_hitbox(self.surface)
         screen.blit(self.surface, (self._position.x, self._position.y))

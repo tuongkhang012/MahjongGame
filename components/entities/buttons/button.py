@@ -57,14 +57,29 @@ class Button:
         self.animation_timer = 0.0
         self.animation_duration = 1.0
 
-    def render(self, screen: Surface) -> tuple[Surface, Rect]:
-        screen.blit(self.surface, (self._position.x, self._position.y))
+    def set_surface(self, surface: Surface, bgColor: Color = None):
+        if bgColor:
+            surface.fill(bgColor)
+        self.surface = surface
 
-    def build_text_surface(self):
-        return self.font.render(self.text, self.text_color)
+    def render(self, screen: Surface) -> tuple[Surface, Rect]:
+        if self.surface:
+            text_surface = self._build_text_surface()
+            text_pos = build_center_rect(self.surface, text_surface)
+            self.surface.blit(text_surface, (text_pos.x, text_pos.y))
+            screen.blit(self.surface, (self.get_position().x, self.get_position().y))
+
+    def _build_text_surface(self) -> Surface:
+        text_surface, _ = self.font.render(self.text, self.text_color)
+
+        return text_surface
 
     def update_position(
-        self, x: float, y: float, width: float = None, height: float = None
+        self,
+        x: float,
+        y: float,
+        width: float = None,
+        height: float = None,
     ):
         self._position.x = x
         self._position.y = y
@@ -128,3 +143,15 @@ class Button:
 
     def get_hidden_surface(self):
         return self._hidden_surface
+
+    def draw_rect(self, border_color: Color = (255, 255, 255)):
+        pygame.draw.rect(
+            self.surface,
+            self.bg_color,
+            self.surface.get_rect(),
+            border_radius=10,
+        )
+
+        pygame.draw.rect(
+            self.surface, border_color, self.surface.get_rect(), 2, border_radius=10
+        )

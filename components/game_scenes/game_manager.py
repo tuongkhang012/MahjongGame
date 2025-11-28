@@ -9,18 +9,19 @@ from utils.constants import (
 )
 from components.game_builder import GameBuilder
 from utils.enums import Direction, ActionType, CallType, GamePopup
-from components.events.mouse_button_down import MouseButtonDown
-from components.events.mouse_motion import MouseMotion
+
 from utils.game_data_dict import AfterMatchData
 from pygame import Surface
+from pygame.event import Event
 from components.entities.player import Player
 from components.entities.deck import Deck
 from utils.helper import build_center_rect, map_action_to_call, count_shanten_points
 from components.entities.fields.center_board_field import CenterBoardField
-from components.entities.fields.discard_field import DiscardField
+from components.entities.mouse import Mouse
 import typing
 import random
-from components.game_event_log import GameEventLog, GameEvent, GameRoundLog
+from components.game_event_log import GameEventLog
+
 
 # Tile
 from components.entities.buttons.tile import Tile
@@ -79,7 +80,11 @@ class GameManager:
     kyoutaku_number: int = 0
 
     def __init__(
-        self, screen: Surface, scenes_controller: "ScenesController", start_data=None
+        self,
+        screen: Surface,
+        scenes_controller: "ScenesController",
+        init_deck: Deck,
+        start_data=None,
     ):
         # Display setting
         self.main_screen = screen
@@ -92,21 +97,17 @@ class GameManager:
         self.game_log = GameEventLog()
 
         # Init deck
-        init_deck = Deck(self.game_log)
         self.builder = GameBuilder(self.screen, self.clock, init_deck, start_data)
 
         # Init game
         self.builder.new(self)
         self.__create_new_round_log()
         self.deck.add_new_dora()
-
-        # Create class event listener
-        self.mouse_button_down = MouseButtonDown(
-            self.screen, self, init_deck.get_init_deck()
+        self.game_log.append_event(
+            ActionType.DORA, self.deck.death_wall[self.deck.current_dora_idx]
         )
-        self.mouse_motion = MouseMotion(self.screen, self, init_deck.get_init_deck())
-        self.call_button_field = CallButtonField(self.screen)
 
+        self.call_button_field = CallButtonField(self.screen)
         self.scenes_controller = scenes_controller
 
     def render(self) -> tuple[Surface, Surface | None]:
@@ -179,6 +180,81 @@ class GameManager:
         self.current_discard_player_direction = None
 
         self.last_time = pygame.time.get_ticks()
+
+    def handle_event(self, event: Event):
+        if self.pause:
+            return
+        match event.type:
+            case pygame.MOUSEBUTTONDOWN:
+                player = self.player_list[0]
+                call_button_field = self.call_button_field
+
+                if player == self.current_player and player.deck_field.check_collide(
+                    event.pos
+                ):
+                    player.deck_field.click(event, self)
+
+                if player == self.calling_player and call_button_field.check_collide(
+                    event.pos
+                ):
+                    call_button_field.click(event, self)
+            case pygame.MOUSEMOTION:
+                player = self.player_list[0]
+
+                hover_tiles = None
+                if player.deck_field.check_collide(event.pos):
+                    hover_tiles = (
+                        player.deck_field.hover(event)
+                        if hover_tiles is None
+                        else hover_tiles
+                    )
+                if self.center_board_field.check_collide(event.pos):
+                    for discard_field in self.center_board_field.get_discard_fields():
+                        if discard_field.check_collide(event.pos):
+                            hover_tiles = (
+                                discard_field.hover(event)
+                                if hover_tiles is None
+                                else hover_tiles
+                            )
+                            break
+
+                for player in self.player_list:
+                    if player.call_field.check_collide(event.pos):
+                        hover_tiles = (
+                            player.call_field.hover(event)
+                            if hover_tiles is None
+                            else hover_tiles
+                        )
+                        break
+
+                for tile in self.deck.full_deck:
+                    tile.unhighlighted()
+                    tile.unhovered()
+
+                if hover_tiles:
+                    for hover_tile in hover_tiles:
+                        hover_tile.hovered()
+                        same_tile_list = list(
+                            filter(
+                                lambda tile: tile.type == hover_tile.type
+                                and tile.number == hover_tile.number
+                                and not tile.hidden,
+                                self.deck.full_deck,
+                            )
+                        )
+
+                        for same_tile in same_tile_list:
+                            same_tile.highlighted()
+                            same_tile.update_hover()
+
+                call_button_field_hover = None
+                if self.call_button_field.check_collide(event.pos):
+                    call_button_field_hover = self.call_button_field.hover(event)
+
+                if hover_tiles or call_button_field_hover:
+                    self.scenes_controller.mouse.hover()
+                else:
+                    self.scenes_controller.mouse.default()
 
     def update(self, delta_time: float):
         # --- Handle animation FIRST ---
@@ -476,6 +552,9 @@ class GameManager:
             case ActionType.KAN:
                 self.kan_count += 1
                 self.deck.add_new_dora()
+                self.game_log.append_event(
+                    ActionType.DORA, self.deck.death_wall[self.deck.current_dora_idx]
+                )
                 is_kakan = False
                 calling_player = self.calling_player
                 if self.prev_action == ActionType.DRAW:
@@ -633,10 +712,11 @@ class GameManager:
                         self.__reset_calling_state()
                         self.switch_turn()
                 else:
+                    self.action = None
                     self.calling_player = self.call_order.pop()
 
             case ActionType.RYUUKYOKU:
-                if self.calling_player.check_yao9():
+                if self.calling_player and self.calling_player.check_yao9():
                     self.is_disable_round = True
                 return self.end_match()
 

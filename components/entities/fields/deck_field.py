@@ -48,13 +48,16 @@ class DeckField(TilesField):
                     pygame.SRCALPHA,
                 )
 
-        self._relative_position = build_center_rect(half_screen_surface, self.surface)
+        self.update_relative_position(
+            build_center_rect(half_screen_surface, self.surface)
+        )
 
         draw_hitbox(self.surface)
         draw_hitbox(half_screen_surface)
 
         half_screen_surface.blit(
-            self.surface, (self._relative_position.x, self._relative_position.y)
+            self.surface,
+            (self.get_relative_position().x, self.get_relative_position().y),
         )
         match player.player_idx:
             case 0:
@@ -67,10 +70,10 @@ class DeckField(TilesField):
                 half_screen_surface_position = (0, 0)
 
         self._absolute_position = Rect(
-            half_screen_surface_position[0] + self._relative_position.x,
-            half_screen_surface_position[1] + self._relative_position.y,
-            self._relative_position.width,
-            self._relative_position.height,
+            half_screen_surface_position[0] + self.get_relative_position().x,
+            half_screen_surface_position[1] + self.get_relative_position().y,
+            self.get_relative_position().width,
+            self.get_relative_position().height,
         )
 
         self.screen.blit(half_screen_surface, half_screen_surface_position)

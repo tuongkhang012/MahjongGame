@@ -31,3 +31,9 @@ class Field:
 
     def get_absolute_position(self):
         return self._absolute_position
+
+    def update_relative_position(self, position: Rect):
+        self._relative_position = position
+
+    def update_absolute_position(self, position: Rect):
+        self._absolute_position = position

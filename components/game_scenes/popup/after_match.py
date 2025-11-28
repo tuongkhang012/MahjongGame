@@ -1,6 +1,12 @@
 from pygame import Surface, Color
 from pygame.freetype import Font
-from utils.constants import ANCIENT_MODERN_FONT, COLOR_WHITE, COLOR_GREEN, COLOR_RED
+from utils.constants import (
+    ANCIENT_MODERN_FONT,
+    COLOR_WHITE,
+    COLOR_GREEN,
+    COLOR_RED,
+    COLOR_GREY,
+)
 import pygame
 from utils.enums import TileSource
 import typing
@@ -8,6 +14,7 @@ from utils.helper import build_center_rect, draw_hitbox
 
 from mahjong.hand_calculating.hand_response import HandResponse
 from mahjong.hand_calculating.yaku import Yaku
+from components.entities.buttons.button import Button
 
 if typing.TYPE_CHECKING:
     from components.entities.buttons.tile import Tile
@@ -20,6 +27,8 @@ class AfterMatchPopup:
         self.agari_width_offset = 5
         self.call_width_offset = 10
         self.yaku_height_offset = 20
+        self.clickable_buttons = []
+        self.hoverable_buttons = []
 
     def create_hands_surface(
         self,
@@ -307,13 +316,76 @@ class AfterMatchPopup:
         full_surface = self.__create_full_surface(height_ratio=height_ratio)
 
         # Main menu button
-        main_menu_text_surface = self.__create_font_surface("Main Menu")
+        main_menu_surface = self.__create_rescale_surface(
+            full_surface, width_scale_by=1 / 3
+        )
+
+        main_menu_button = Button(
+            "Main Menu", Font(ANCIENT_MODERN_FONT, 20), COLOR_WHITE, COLOR_GREY
+        )
+        main_menu_button.set_surface(
+            self.__create_rescale_surface(main_menu_surface, 0.5)
+        )
+        main_menu_button.draw_rect()
+        center_pos = build_center_rect(main_menu_surface, main_menu_button.surface)
+        main_menu_button.update_position(
+            center_pos.x,
+            center_pos.y,
+            main_menu_button.surface.get_width(),
+            main_menu_button.surface.get_height(),
+        )
+        main_menu_button.render(main_menu_surface)
 
         # New game button
-        new_game_text_surface = self.__create_font_surface("New game")
+        new_game_surface = self.__create_rescale_surface(
+            full_surface, width_scale_by=1 / 3
+        )
+
+        new_game_button = Button(
+            "New Game", Font(ANCIENT_MODERN_FONT, 20), COLOR_WHITE, COLOR_GREY
+        )
+        new_game_button.set_surface(
+            self.__create_rescale_surface(new_game_surface, 0.5)
+        )
+        new_game_button.draw_rect()
+        center_pos = build_center_rect(new_game_surface, new_game_button.surface)
+        new_game_button.update_position(
+            center_pos.x,
+            center_pos.y,
+            new_game_button.surface.get_width(),
+            new_game_button.surface.get_height(),
+        )
+        new_game_button.render(new_game_surface)
 
         # Quit button
-        quit_text_surface = self.__create_font_surface("Quit")
+        quit_surface = self.__create_rescale_surface(full_surface, width_scale_by=1 / 3)
+
+        quit_button = Button(
+            "Quit", Font(ANCIENT_MODERN_FONT, 20), COLOR_WHITE, COLOR_GREY
+        )
+        quit_button.set_surface(self.__create_rescale_surface(quit_surface, 0.5))
+        quit_button.draw_rect()
+        center_pos = build_center_rect(quit_surface, quit_button.surface)
+        quit_button.update_position(
+            center_pos.x,
+            center_pos.y,
+            quit_button.surface.get_width(),
+            quit_button.surface.get_height(),
+        )
+        quit_button.render(quit_surface)
+
+        draw_hitbox(main_menu_surface)
+        draw_hitbox(new_game_surface)
+        draw_hitbox(quit_surface)
+
+        self.hoverable_buttons = [quit_button, new_game_button, main_menu_button]
+        self.clickable_buttons = [quit_button, new_game_button, main_menu_button]
+
+        full_surface.blit(main_menu_surface, (0, 0))
+        full_surface.blit(new_game_surface, (full_surface.get_width() / 3, 0))
+        full_surface.blit(quit_surface, (2 * full_surface.get_width() / 3, 0))
+
+        return full_surface
 
     def __create_full_surface(self, width_ratio: float = 1, height_ratio: float = 1):
         return Surface(
