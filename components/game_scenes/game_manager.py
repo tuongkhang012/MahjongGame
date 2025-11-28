@@ -216,73 +216,91 @@ class GameManager:
                 if player == self.current_player and player.deck_field.check_collide(
                     event.pos
                 ):
-                    player.deck_field.click(event, self)
+                    clicked_tiles = player.deck_field.click(event.pos)
+                    for tile in clicked_tiles:
+                        tile.clicked()
+                    self.action = player.make_move(ActionType.DISCARD)
+                    self.scenes_controller.mouse.default()
+                    for tile in [
+                        tile
+                        for tile in self.deck.full_deck
+                        if tile.is_hovered or tile.is_highlighted
+                    ]:
+                        tile.unhovered()
+                        tile.unhighlighted()
 
                 if player == self.calling_player and call_button_field.check_collide(
                     event.pos
                 ):
-                    call_button_field.click(event, self)
+                    call_button_field.click(event.pos, self)
             case pygame.MOUSEMOTION:
-                player = self.player_list[0]
+                pass
+        pass
 
-                hover_tiles = None
-                if player.deck_field.check_collide(event.pos):
+    def detect_mouse_pos(self, mouse_pos: tuple[int, int]):
+        player = self.player_list[0]
+
+        hover_tiles = None
+        if player.deck_field.check_collide(mouse_pos):
+            hover_tiles = (
+                player.deck_field.hover(mouse_pos)
+                if hover_tiles is None
+                else hover_tiles
+            )
+        if self.center_board_field.check_collide(mouse_pos):
+            for discard_field in self.center_board_field.get_discard_fields():
+                if discard_field.check_collide(mouse_pos):
                     hover_tiles = (
-                        player.deck_field.hover(event)
+                        discard_field.hover(mouse_pos)
                         if hover_tiles is None
                         else hover_tiles
                     )
-                if self.center_board_field.check_collide(event.pos):
-                    for discard_field in self.center_board_field.get_discard_fields():
-                        if discard_field.check_collide(event.pos):
-                            hover_tiles = (
-                                discard_field.hover(event)
-                                if hover_tiles is None
-                                else hover_tiles
-                            )
-                            break
+                    break
 
-                for player in self.player_list:
-                    if player.call_field.check_collide(event.pos):
-                        hover_tiles = (
-                            player.call_field.hover(event)
-                            if hover_tiles is None
-                            else hover_tiles
-                        )
-                        break
+        for player in self.player_list:
+            if player.call_field.check_collide(mouse_pos):
+                hover_tiles = (
+                    player.call_field.hover(mouse_pos)
+                    if hover_tiles is None
+                    else hover_tiles
+                )
+                break
 
-                for tile in self.deck.full_deck:
-                    tile.unhighlighted()
-                    tile.unhovered()
+        for tile in self.deck.full_deck:
+            tile.unhighlighted()
+            tile.unhovered()
 
-                if hover_tiles:
-                    for hover_tile in hover_tiles:
-                        hover_tile.hovered()
-                        same_tile_list = list(
-                            filter(
-                                lambda tile: tile.type == hover_tile.type
-                                and tile.number == hover_tile.number
-                                and not tile.hidden,
-                                self.deck.full_deck,
-                            )
-                        )
+        if hover_tiles:
+            for hover_tile in hover_tiles:
+                hover_tile.hovered()
+                same_tile_list = list(
+                    filter(
+                        lambda tile: tile.type == hover_tile.type
+                        and tile.number == hover_tile.number
+                        and not tile.hidden,
+                        self.deck.full_deck,
+                    )
+                )
 
-                        for same_tile in same_tile_list:
-                            same_tile.highlighted()
-                            same_tile.update_hover()
+                for same_tile in same_tile_list:
+                    same_tile.highlighted()
+                    same_tile.update_hover()
 
-                call_button_field_hover = None
-                if self.call_button_field.check_collide(event.pos):
-                    call_button_field_hover = self.call_button_field.hover(event)
+        call_button_field_hover = None
+        if self.call_button_field.check_collide(mouse_pos):
+            call_button_field_hover = self.call_button_field.hover(mouse_pos)
+        else:
+            self.call_button_field.unhover()
 
-                if hover_tiles or call_button_field_hover:
-                    self.scenes_controller.mouse.hover()
-                else:
-                    self.scenes_controller.mouse.default()
+        if hover_tiles or call_button_field_hover:
+            self.scenes_controller.mouse.hover()
+        else:
+            self.scenes_controller.mouse.default()
 
     def update(self, delta_time: float):
         # --- Passing time for particles ---
         self.call_button_field.update_particles(delta_time)
+
         # --- Handle animation FIRST ---
         if self.animation_tile:
             self.animation_timer += delta_time

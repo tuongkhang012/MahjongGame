@@ -4,7 +4,8 @@
   "description": "Mahjong project",
   "main": "main.py",
   "scripts": {
-    "start": "python main.py"
+    "start": "python main.py",
+    "install": "pip install pygame; pip install mahjong; pip install torch"
   },
   "author": "Le Minh Chanh",
   "license": "ISC"

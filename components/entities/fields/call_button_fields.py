@@ -17,6 +17,7 @@ from components.entities.buttons.tsumo import Tsumo
 from components.entities.buttons.richii import Riichi
 from components.entities.buttons.ryuukyoku import Ryuukyoku
 from components.entities.buttons.call_button import CallButton
+
 # Particle
 from components.entities.particles.smoke_particle import SmokeParticle
 
@@ -63,6 +64,8 @@ class CallButtonField(Field):
 
         self._particles: list[SmokeParticle] = []
 
+        self.hidden = True
+
     def render(self, call_list: list[CallType]):
         self.build_surface(call_list)
         render_surface = Surface(
@@ -78,8 +81,8 @@ class CallButtonField(Field):
         self._absolute_position = Rect(
             screen_pos[0] + center_pos.x,
             screen_pos[1] + center_pos.y,
-            render_surface.get_width(),
-            render_surface.get_height(),
+            self.surface.get_width(),
+            self.surface.get_height(),
         )
 
     def update_particles(self, dt: float):
@@ -90,11 +93,15 @@ class CallButtonField(Field):
                 alive.append(p)
         self._particles = alive
 
-        if self._hovered_button is not None:
-            self._smoke_spawn_timer += dt
-            while self._smoke_spawn_timer >= self._smoke_spawn_interval:
-                self._smoke_spawn_timer -= self._smoke_spawn_interval
-                self._spawn_smoke_for_button(self._hovered_button)
+        hovered_buttons = list(
+            filter(lambda button: button.is_hovered, self.__all_button)
+        )
+        if len(hovered_buttons) > 0:
+            for button in hovered_buttons:
+                self._smoke_spawn_timer += dt
+                while self._smoke_spawn_timer >= self._smoke_spawn_interval:
+                    self._smoke_spawn_timer -= self._smoke_spawn_interval
+                    self._spawn_smoke_for_button(button)
         else:
             self._smoke_spawn_timer = 0.0
 
@@ -114,7 +121,10 @@ class CallButtonField(Field):
         field_rect = self._absolute_position
 
         # Top-center of the button in *screen* coordinates
-        x = random.uniform(field_rect.x + button_rect.x, field_rect.x + button_rect.x + button_rect.width)
+        x = random.uniform(
+            field_rect.x + button_rect.x,
+            field_rect.x + button_rect.x + button_rect.width,
+        )
         y = field_rect.y + button_rect.y
 
         self._particles.append(
@@ -146,11 +156,13 @@ class CallButtonField(Field):
             ),
             pygame.SRCALPHA,
         )
+        draw_hitbox(self.surface, (0, 0, 0))
         self.build_button_position(call_list)
 
         for button in self.render_button_list:
             button.render(self.surface)
             button.hidden = False
+            self.hidden = False
 
     def build_button_position(self, call_list: list[CallType]):
         for idx, call_type in enumerate(call_list):
@@ -228,36 +240,28 @@ class CallButtonField(Field):
                     )
                     self.render_button_list.append(self.__ryuukyoku_button)
 
-    def hover(self, event: Event) -> CallButton | None:
-        local_mouse = self.build_local_mouse(event.pos)
+    def hover(self, mouse_pos: tuple[int, int]) -> CallButton | None:
+        if self.hidden:
+            return None
 
-        new_hovered: CallButton | None = None
+        local_mouse = self.build_local_mouse(mouse_pos)
+
+        for button in self.__all_button:
+            button.unhovered()
 
         for button in self.render_button_list:
             if button.check_collidepoint(local_mouse) and not button.hidden:
-                new_hovered = button
-                break
+                button.hovered()
+                return button
 
-        if new_hovered is self._hovered_button:
-            return new_hovered
-
-        if self._hovered_button is not None and self._hovered_button is not new_hovered:
-            self._hovered_button.unhovered()
-
-        if new_hovered is not None:
-            new_hovered.hovered()
-
-        self._hovered_button = new_hovered
-        print(new_hovered)
-        return new_hovered
+        return None
 
     def unhover(self):
-        if self._hovered_button is not None:
-            self._hovered_button.unhovered()
-            self._hovered_button = None
+        for button in self.__all_button:
+            button.unhovered()
 
-    def click(self, event: Event, game_manager: "GameManager"):
-        local_mouse = self.build_local_mouse(event.pos)
+    def click(self, mouse_pos: tuple[int, int], game_manager: "GameManager"):
+        local_mouse = self.build_local_mouse(mouse_pos)
         player = game_manager.player_list[0]
         for button in self.render_button_list:
             if button.check_collidepoint(local_mouse):
@@ -278,3 +282,5 @@ class CallButtonField(Field):
                     game_manager.action = player.make_move(ActionType.RIICHI)
                 elif isinstance(button, Ryuukyoku):
                     game_manager.action = player.make_move(ActionType.RYUUKYOKU)
+
+        self.hidden = True
