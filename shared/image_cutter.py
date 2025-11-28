@@ -1,5 +1,7 @@
 import pygame
+import os
 from pygame import Surface, Rect
+from pygame import Color
 from utils.enums import TileType
 from utils.constants import TILE_SCALE_BY, TILE_WIDTH, TILE_HEIGHT
 
@@ -101,6 +103,27 @@ class ImageCutter:
                 surface = pygame.transform.flip(surface, True, False)
 
         return self._scale_surface(self._trimmed_surface(surface), TILE_SCALE_BY)
+
+    @staticmethod
+    def load_frames_from_folder(folder_path: str, max_idx: int) -> list[Surface]:
+        """
+        Load a list of PNG frames like 0.png, 1.png ... from a given folder path.
+        """
+        frames: list[Surface] = []
+        for i in range(max_idx):
+            path = os.path.join(folder_path, f"{i}.png")
+            image = pygame.image.load(path).convert_alpha()
+            frames.append(image)
+        return frames
+
+    @staticmethod
+    def tint_surface(surface: Surface, tint_color: Color) -> Surface:
+        """
+        Return a tinted copy of the given surface.
+        """
+        tinted_surface = surface.copy()
+        tinted_surface.fill((*tint_color, 0), special_flags=pygame.BLEND_RGBA_ADD)
+        return tinted_surface
 
     def _tile_offset_surface(self, x: int, y: int) -> Rect:
         return Rect(x * 32, y * 32, 32, 32)

@@ -8,7 +8,7 @@ from utils.helper import build_center_rect
 
 
 class UIButton(Button):
-    def __init__(self, text: str, font: Font, text_color: Color, bg_color: Color):
+    def __init__(self, text: str, font: Font, text_color: Color, bg_color: Color, border_color: Color):
         super().__init__(text, font, text_color)
 
         # Text Color
@@ -16,6 +16,7 @@ class UIButton(Button):
 
         # Background color
         self.bg_color = bg_color
+        self.border_color = border_color
 
         self.button_size = UI_BUTTON_SIZE
 
@@ -31,7 +32,7 @@ class UIButton(Button):
     def init_button(self):
         self.hidden = True
         self.surface = self.__create_new_surface()
-        self.draw_rect()
+        self.draw_rect(self.border_color)
 
     def draw_hitbox(surface: Surface, color: Color = (255, 0, 0)) -> None:
         if len(sys.argv) > 1 and "debug" in sys.argv:
@@ -40,7 +41,7 @@ class UIButton(Button):
     def __create_new_surface(self) -> Surface:
         return Surface(self.button_size, pygame.SRCALPHA)
 
-    def draw_rect(self):
+    def draw_rect(self, border_color: Color = (255, 255, 255)):
         pygame.draw.rect(
             self.surface,
             self.bg_color,
@@ -49,5 +50,5 @@ class UIButton(Button):
         )
 
         pygame.draw.rect(
-            self.surface, (255, 255, 255), self.surface.get_rect(), 2, border_radius=10
+            self.surface, border_color, self.surface.get_rect(), 2, border_radius=10
         )
