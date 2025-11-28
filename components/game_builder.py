@@ -34,9 +34,9 @@ class GameBuilder:
         return standard[current_idx:] + standard[:current_idx]
         # return standard
 
-    def new(self, game_manager: "GameManager"):
-        direction, player_list, deck = self.init_game()
-
+    def new(self, game_manager: "GameManager", keep_direction: bool = False):
+        direction, player_list, deck = self.init_game(game_manager.player_list)
+        print(direction, player_list, deck)
         # Assign to game manager
         game_manager.direction = direction
         game_manager.player_list = player_list
@@ -51,7 +51,7 @@ class GameBuilder:
         game_manager.main_player = player_list[0]
         game_manager.switch_turn(game_manager.current_turn)
 
-        self.assign_round_direction(game_manager)
+        self.assign_round_direction(game_manager, keep_direction)
 
         # Center board field related
         game_manager.center_board_field = CenterBoardField(
@@ -71,14 +71,14 @@ class GameBuilder:
         if keep_direction:
             return
         if game_manager.round_direction_number == 4:
-            game_manager.round_direction += Direction(
+            game_manager.round_direction = Direction(
                 (game_manager.round_direction.value + 1) % 4
             )
             game_manager.round_direction_number = 1
         else:
             game_manager.round_direction_number += 1
 
-    def init_game(self):
+    def init_game(self, players: list[Player] = None):
         # Choose direction for player
         if self.start_data and self.start_data["direction"]:
             direction: list[Direction] = []
@@ -99,11 +99,19 @@ class GameBuilder:
         self.deck.create_new_deck(self.start_data)
 
         # Create player
-        player_list: list[Player] = []
-        for i in range(4):
-            player_list.append(
-                Player(self.screen, i, direction[i], self.deck.full_deck)
-            )
+        if not players:
+            player_list: list[Player] = []
+            for i in range(4):
+                player_list.append(
+                    Player(self.screen, i, direction[i], self.deck.full_deck)
+                )
+        else:
+            player_list = players
+            for i in range(4):
+                player_list[i].renew_deck()
+
+                player_list[i].direction = direction[i]
+                player_list[i].full_deck = self.deck.full_deck
 
         if self.start_data and self.start_data["player_deck"]:
             if (
@@ -114,7 +122,7 @@ class GameBuilder:
                     f"Not enough custom deck player to init game! Please try again... Current numbers of players are {len(self.start_data['player_deck'])}"
                 )
             for player_idx, player_deck in enumerate(self.start_data["player_deck"]):
-                # Draw tiles (13 tiles, main draws 14 tiles)
+                # Draw tiles (13 tiles)
                 current_type = None
                 honors = ""
                 mans = ""

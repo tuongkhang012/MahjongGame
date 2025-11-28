@@ -69,14 +69,21 @@ class Player:
         self.__already_discard_tiles: list[Tile] = []
         self.call_tiles_list = call_tiles_list if call_tiles_list is not None else []
         self.call_list: list[Call] = []
+
+        self.full_deck = full_deck
+        self.screen = screen
         self.discard_field = DiscardField(
-            screen, self.player_idx, self.discard_tiles, full_deck
+            self.screen, self.player_idx, self.discard_tiles, self.full_deck
         )
         self.call_field = CallField(
-            screen, self.player_idx, self.call_list, self.call_tiles_list, full_deck
+            self.screen,
+            self.player_idx,
+            self.call_list,
+            self.call_tiles_list,
+            self.full_deck,
         )
         self.deck_field = DeckField(
-            screen, self.player_idx, self.player_deck, full_deck
+            self.screen, self.player_idx, self.player_deck, self.full_deck
         )
 
         # Call init
@@ -554,6 +561,35 @@ class Player:
             return self.__riichi_turn
         else:
             return -1
+
+    def renew_deck(self):
+        # Tile deck field init
+        self.player_deck = []
+        self.discard_tiles = []
+        self.__already_discard_tiles: list[Tile] = []
+        self.call_tiles_list = []
+        self.call_list: list[Call] = []
+
+        # Call init
+        self.can_call = []
+        self.callable_tiles_list = []
+        self.melds = []
+
+        self.discard_field = DiscardField(
+            self.screen, self.player_idx, self.discard_tiles, self.full_deck
+        )
+        self.call_field = CallField(
+            self.screen,
+            self.player_idx,
+            self.call_list,
+            self.call_tiles_list,
+            self.full_deck,
+        )
+        self.deck_field = DeckField(
+            self.screen, self.player_idx, self.player_deck, self.full_deck
+        )
+        # Game properties
+        self.__winning_tiles = []
 
     def __eq__(self, value):
         if not isinstance(value, Player):
