@@ -62,7 +62,7 @@ class Button:
             surface.fill(bgColor)
         self.surface = surface
 
-    def render(self, screen: Surface) -> tuple[Surface, Rect]:
+    def render(self, screen: Surface):
         if self.surface:
             text_surface = self._build_text_surface()
             text_pos = build_center_rect(self.surface, text_surface)

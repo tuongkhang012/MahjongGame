@@ -123,11 +123,13 @@ class GameManager:
         # --- Rendering ---
         self.screen.fill("aquamarine4")
         self.center_board_field.render(self.current_turn)
+        self.call_button_field.render_particles(self.screen)
         for player in self.player_list:
             player.deck_field.render(player)
 
             if player == self.main_player:
                 if self.calling_player and self.main_player == self.calling_player:
+
                     self.call_button_field.render(self.main_player.can_call)
                 player.reveal_hand()
 
@@ -257,6 +259,8 @@ class GameManager:
                     self.scenes_controller.mouse.default()
 
     def update(self, delta_time: float):
+        # --- Passing time for particles ---
+        self.call_button_field.update_particles(delta_time)
         # --- Handle animation FIRST ---
         if self.animation_tile:
             self.animation_timer += delta_time

@@ -112,7 +112,7 @@ class ScenesController:
                             if self.game_manager.animation_tile is None:
                                 self.game_manager.handle_event(event)
                         case GameScene.START:
-                            self.start_menu.mouse_button_down.run(event)
+                            self.start_menu.handle_event(event)
 
                 case pygame.MOUSEMOTION:
                     match self.__scene:

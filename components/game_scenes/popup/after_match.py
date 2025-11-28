@@ -139,7 +139,7 @@ class AfterMatchPopup:
         )
         # total_fu_surface = self.__create_font_surface(f"Fu: ")
         total_cost_surface = self.__create_font_surface(
-            f"Total: {result.cost["total"]}"
+            f"Total: {result.cost['total']}"
         )
 
         # Render all

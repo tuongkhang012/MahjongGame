@@ -1,8 +1,9 @@
 from components.entities.fields.field import Field
-from pygame import Surface, Rect
+from pygame import Surface, Rect, Color
 from pygame.event import Event
 import pygame
-from utils.constants import CALL_BUTTON_SIZE
+import random
+from utils.constants import CALL_BUTTON_SIZE, SMOKE_PARTICLE_IMAGE_LINK, COLOR_BLUE
 from utils.enums import CallType, ActionType
 from utils.helper import build_center_rect, draw_hitbox
 
@@ -16,13 +17,13 @@ from components.entities.buttons.tsumo import Tsumo
 from components.entities.buttons.richii import Riichi
 from components.entities.buttons.ryuukyoku import Ryuukyoku
 from components.entities.buttons.call_button import CallButton
+# Particle
+from components.entities.particles.smoke_particle import SmokeParticle
 
 import typing
 
 if typing.TYPE_CHECKING:
     from components.game_scenes.game_manager import GameManager
-    from components.events.mouse_button_down import MouseButtonDown
-    from components.events.mouse_motion import MouseMotion
 
 
 class CallButtonField(Field):
@@ -54,6 +55,14 @@ class CallButtonField(Field):
         self.space_between_each_button = 20
         self.render_button_list: list[CallButton] = []
 
+        self._hovered_button: CallButton | None = None
+
+        # Smoke spawning while hovering
+        self._smoke_spawn_timer: float = 0.0
+        self._smoke_spawn_interval: float = 0.05  # seconds between smoke puffs
+
+        self._particles: list[SmokeParticle] = []
+
     def render(self, call_list: list[CallType]):
         self.build_surface(call_list)
         render_surface = Surface(
@@ -71,6 +80,60 @@ class CallButtonField(Field):
             screen_pos[1] + center_pos.y,
             render_surface.get_width(),
             render_surface.get_height(),
+        )
+
+    def update_particles(self, dt: float):
+        alive: list[SmokeParticle] = []
+        for p in self._particles:
+            p.update(dt)
+            if not p.dead:
+                alive.append(p)
+        self._particles = alive
+
+        if self._hovered_button is not None:
+            self._smoke_spawn_timer += dt
+            while self._smoke_spawn_timer >= self._smoke_spawn_interval:
+                self._smoke_spawn_timer -= self._smoke_spawn_interval
+                self._spawn_smoke_for_button(self._hovered_button)
+        else:
+            self._smoke_spawn_timer = 0.0
+
+    def render_particles(self, screen: Surface):
+        for p in self._particles:
+            p.draw(screen)
+
+    def _spawn_smoke_for_button(self, button):
+        frames = button.get_smoke_frames()
+        if not frames:
+            return
+
+        # Button rect is in field-local coordinates
+        button_rect = button.get_position()
+
+        # _absolute_position is set in render()
+        field_rect = self._absolute_position
+
+        # Top-center of the button in *screen* coordinates
+        x = random.uniform(field_rect.x + button_rect.x, field_rect.x + button_rect.x + button_rect.width)
+        y = field_rect.y + button_rect.y
+
+        self._particles.append(
+            SmokeParticle(
+                frames=frames,
+                pos=(x, y),
+            )
+        )
+        self._particles.append(
+            SmokeParticle(
+                frames=frames,
+                pos=(x, y),
+            )
+        )
+        self._particles.append(
+            SmokeParticle(
+                frames=frames,
+                pos=(x, y),
+            )
         )
 
     def build_surface(self, call_list: list[CallType]) -> Surface:
@@ -167,16 +230,29 @@ class CallButtonField(Field):
 
     def hover(self, event: Event) -> CallButton | None:
         local_mouse = self.build_local_mouse(event.pos)
+
+        new_hovered: CallButton | None = None
         for button in self.render_button_list:
             if button.check_collidepoint(local_mouse) and not button.hidden:
-                button.hovered()
-                return button
+                new_hovered = button
+                break
 
-        return None
+        if new_hovered is self._hovered_button:
+            return new_hovered
+
+        if self._hovered_button is not None and self._hovered_button is not new_hovered:
+            self._hovered_button.unhovered()
+
+        if new_hovered is not None:
+            new_hovered.hovered()
+
+        self._hovered_button = new_hovered
+        return new_hovered
 
     def unhover(self):
-        for button in self.render_button_list:
-            button.unhovered()
+        if self._hovered_button is not None:
+            self._hovered_button.unhovered()
+            self._hovered_button = None
 
     def click(self, event: Event, game_manager: "GameManager"):
         local_mouse = self.build_local_mouse(event.pos)

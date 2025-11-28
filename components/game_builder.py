@@ -302,6 +302,6 @@ class GameBuilder:
             config=config,
         )
         print(
-            f"FINAL RESULT: {result} {result.yaku} and player scores: {result.cost["total"]}"
+            f"FINAL RESULT: {result} {result.yaku} and player scores: {result.cost['total']}"
         )
         return result
