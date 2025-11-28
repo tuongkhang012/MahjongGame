@@ -45,7 +45,10 @@ class GameBuilder:
         for player in player_list:
             player.game_manager = game_manager
 
-            if hasattr(game_manager, "ai_seat_idx") and player.player_idx in game_manager.ai_seat_idx:
+            if (
+                hasattr(game_manager, "ai_seat_idx")
+                and player.player_idx in game_manager.ai_seat_idx
+            ):
                 print(f"Assigning AI agent to player {player.player_idx}")
                 if player.player_idx == 1:
                     player.agent = game_manager.ai_agent_MID
@@ -70,6 +73,7 @@ class GameBuilder:
             self.screen,
             (game_manager.round_direction, game_manager.round_direction_number),
             direction,
+            deck,
             player_list,
         )
 

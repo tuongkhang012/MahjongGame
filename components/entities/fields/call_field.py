@@ -155,11 +155,11 @@ class CallField(TilesField):
                     )
                 )
 
-    def hover(self, event: Event) -> "Tile":
+    def hover(self, mouse_pos: tuple[int, int]) -> "Tile":
         hovered_call_surface_idx: int = None
         for idx, call_surface in enumerate(self.__call_surface):
             surface_position = self.__call_surface_position[idx]
-            local_mouse_pos = self.build_local_mouse(event.pos)
+            local_mouse_pos = self.build_local_mouse(mouse_pos)
             surface_rect = call_surface.get_rect()
             if Rect(
                 surface_position[0],
@@ -176,7 +176,7 @@ class CallField(TilesField):
         if hovered_call_surface_idx is not None:
             call = self.__call_list[hovered_call_surface_idx]
             for tile in call.tiles:
-                local_mouse = self.build_local_mouse(event.pos)
+                local_mouse = self.build_local_mouse(mouse_pos)
                 if tile.get_position().collidepoint(
                     local_mouse[0] - surface_position[0],
                     local_mouse[1] - surface_position[1],

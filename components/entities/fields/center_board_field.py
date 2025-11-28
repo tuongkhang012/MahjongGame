@@ -19,6 +19,7 @@ from components.entities.player import Player
 from shared.image_cutter import ImageCutter
 import math
 from pygame.freetype import Font
+from components.entities.deck import Deck
 
 
 class CenterBoardField(Field):
@@ -39,6 +40,7 @@ class CenterBoardField(Field):
         screen: Surface,
         round_wind: tuple[Direction, int],
         directions_list: list[Direction],
+        deck: Deck,
         player_list: list[Player],
     ):
         super().__init__()
@@ -50,6 +52,7 @@ class CenterBoardField(Field):
 
         self.__player_list = player_list
         self.__round_wind = round_wind
+        self.deck = deck
         self.screen = screen
         self.image_cutter = ImageCutter(DIRECTION_IMAGE_LINK)
         self.__direction_width = DIRECTION_WIDTH
@@ -102,12 +105,62 @@ class CenterBoardField(Field):
 
             self.render_surface(surface, discard_field.surface, relative_position)
 
+        # Build dora surface
+        dora_surface = self.build_dora_tiles_surface()
+
+        surface.blit(dora_surface, (0, 0))
+        return surface
+
+    def build_dora_tiles_surface(self) -> Surface:
+        TEXT_AND_TILE_MARGIN = 10
+
         # Build dora surface:
         dora_surface = Surface(
             (CENTER_BOARD_FIELD_SIZE[0] / 3, CENTER_BOARD_FIELD_SIZE[1] / 3),
             pygame.SRCALPHA,
         )
-        return surface
+        max_width = 0
+        max_height = 0
+
+        # Build surface for each dora tile
+        for dora_tile in self.deck.dora:
+            dora_tile.update_tile_surface(0)
+            dora_tile.scale_surface(0.8)
+            dora_tile.hidden = False
+            max_width += dora_tile.get_surface().get_width()
+            max_height = max(max_height, dora_tile.get_surface().get_height())
+
+        # Build dora text surface
+        dora_font = Font(MADOU_FUTO_FONT, 15)
+        dora_text_surface, _ = dora_font.render("DORA", (0, 0, 0))
+        # Build a wrap surface for dora text and tile
+        dora_tiles_surface = Surface(
+            (
+                max(max_width, dora_text_surface.get_width() + 20),
+                max_height + dora_text_surface.get_height() + TEXT_AND_TILE_MARGIN,
+            ),
+            pygame.SRCALPHA,
+        )
+        center_pos = build_center_rect(dora_tiles_surface, dora_text_surface)
+
+        dora_tiles_surface.blit(dora_text_surface, (center_pos.x, 0))
+
+        start_x_width = build_center_rect(
+            dora_tiles_surface, Surface((max_width, max_height), pygame.SRCALPHA)
+        ).x
+        for dora_tile in self.deck.dora:
+            dora_tile.update_position(
+                start_x_width,
+                dora_text_surface.get_height() + TEXT_AND_TILE_MARGIN,
+                dora_tile.get_surface().get_width(),
+                dora_tile.get_surface().get_height(),
+            )
+            dora_tile.render(dora_tiles_surface)
+            start_x_width += dora_tile.get_surface().get_width()
+        center_pos = build_center_rect(dora_surface, dora_tiles_surface)
+        dora_surface.blit(dora_tiles_surface, (center_pos.x, center_pos.y))
+
+        return dora_surface
 
     def build_discard_surface_position(self, surface: Surface, idx: int) -> Rect:
         match idx:
@@ -229,8 +282,46 @@ class CenterBoardField(Field):
                 round_wind_str = f"NORTH {self.__round_wind[1]}"
         round_wind_font = Font(MADOU_FUTO_FONT, 14)
         round_wind_surface, _ = round_wind_font.render(round_wind_str, COLOR_BLUE)
-        center_pos = build_center_rect(center_field_surface, round_wind_surface)
-        center_field_surface.blit(round_wind_surface, (center_pos.x, center_pos.y))
+
+        # Render draw tiles left
+        draw_tiles_number_font = Font(MADOU_FUTO_FONT, 14)
+        draw_tiles_number_surface, _ = draw_tiles_number_font.render(
+            f"Draw: {len(self.deck.draw_deck)}"
+        )
+
+        # Create wrap surface for round wind and draw tiles left
+        WRAP_WIDTH_OFFSET = 30
+        WRAP_HEIGHT_OFFSET = 10
+        wrap_draw_tiles_round_wind_surface = Surface(
+            (
+                round_wind_surface.get_width()
+                + draw_tiles_number_surface.get_width()
+                + WRAP_WIDTH_OFFSET,
+                round_wind_surface.get_height()
+                + draw_tiles_number_surface.get_height()
+                + WRAP_HEIGHT_OFFSET,
+            ),
+            pygame.SRCALPHA,
+        )
+        center_pos = build_center_rect(
+            wrap_draw_tiles_round_wind_surface, round_wind_surface
+        )
+        wrap_draw_tiles_round_wind_surface.blit(round_wind_surface, (center_pos.x, 0))
+
+        center_pos = build_center_rect(
+            wrap_draw_tiles_round_wind_surface, draw_tiles_number_surface
+        )
+        wrap_draw_tiles_round_wind_surface.blit(
+            draw_tiles_number_surface,
+            (center_pos.x, round_wind_surface.get_height() + WRAP_HEIGHT_OFFSET),
+        )
+
+        center_pos = build_center_rect(
+            center_field_surface, wrap_draw_tiles_round_wind_surface
+        )
+        center_field_surface.blit(
+            wrap_draw_tiles_round_wind_surface, (center_pos.x, center_pos.y)
+        )
         return center_field_surface
 
     def draw_turn_empty(self) -> Surface:

@@ -51,10 +51,6 @@ class Tile(Button):
 
         self.__handle_hover()
 
-    def update_clicked(self, game_manager: "GameManager"):
-        pass
-        # self.__handle_clicked(game_manager)
-
     def __handle_hover(self):
         target_y = self._position.y
         if self.is_hovered:

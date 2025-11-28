@@ -106,6 +106,7 @@ class ScenesController:
             return True
 
     def listenEvent(self) -> dict[str, bool]:
+        self.game_manager.detect_mouse_pos(pygame.mouse.get_pos())
         for event in pygame.event.get():
             match event.type:
                 case pygame.QUIT:
