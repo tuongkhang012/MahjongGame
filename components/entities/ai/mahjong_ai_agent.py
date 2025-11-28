@@ -42,6 +42,9 @@ class MahjongAIAgent:
     def make_move(self, player: Player) -> ActionType:
         gm = player.game_manager  # set in GameBuilder.new
 
+        if CallType.RYUUKYOKU in player.can_call:
+            return ActionType.SKIP
+
         if CallType.RON in player.can_call:
             return ActionType.RON
         if CallType.TSUMO in player.can_call:
