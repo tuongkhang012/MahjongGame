@@ -220,6 +220,8 @@ class GameManager:
                 ):
                     clicked_tiles = player.deck_field.click(event.pos)
                     for tile in clicked_tiles:
+                        if tile.is_disabled:
+                            continue
                         tile.clicked()
                     self.action = player.make_move(ActionType.DISCARD)
                     self.scenes_controller.mouse.default()
@@ -237,8 +239,6 @@ class GameManager:
                     call_button_field.click(event.pos, self)
             case pygame.MOUSEMOTION:
                 self.detect_mouse_pos(pygame.mouse.get_pos())
-
-        pass
 
     def detect_mouse_pos(self, mouse_pos: tuple[int, int]):
         player = self.player_list[0]
@@ -544,7 +544,7 @@ class GameManager:
                         and len(
                             list(
                                 filter(
-                                    lambda tile: tile.discard_from_richii(),
+                                    lambda tile: tile.is_discard_from_riichi(),
                                     self.current_player.discard_tiles,
                                 )
                             )

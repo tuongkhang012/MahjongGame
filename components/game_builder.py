@@ -88,7 +88,7 @@ class GameBuilder:
             return
         if game_manager.round_direction_number == 4:
             game_manager.round_direction = Direction(
-                (game_manager.round_direction.value + 1) % 4
+                (game_manager.round_direction.value - 1) % 4
             )
             game_manager.round_direction_number = 1
         else:

@@ -224,9 +224,10 @@ class Player:
             tile.source = TileSource.PLAYER
 
         print(
-            f"Player {self.player_idx} call: {call_type} for {list(map(lambda tile: tile.__str__(True),call_list))}"
+            f"Player {self.player_idx} call: {call_type} for {list(map(lambda call_tile: call_tile.__str__(True),call_list))}"
         )
         if player and not is_kakan:
+            tile.undiscard_riichi()
             player.discard_tiles.remove(tile)
             self.player_deck.append(tile)
 
@@ -255,7 +256,15 @@ class Player:
         self.deck_field.build_tiles_position(self)
 
     def discard(self, tile: Tile, game_manager: "GameManager" = None):
-        if game_manager.prev_action == ActionType.RIICHI:
+        if game_manager.prev_action == ActionType.RIICHI or (
+            self.__is_riichi
+            and any(
+                [
+                    tile.is_discard_from_riichi()
+                    for tile in self.discard_field.get_tiles_list()
+                ]
+            )
+        ):
             tile.update_tile_surface((game_manager.current_player.player_idx - 1) % 4)
             tile.discard_riichi()
 
@@ -563,7 +572,7 @@ class Player:
 
     def is_riichi(self) -> int:
         """
-        Return the turn called riichi
+        Return the turn number called riichi
         """
         if self.__is_riichi:
             return self.__riichi_turn
