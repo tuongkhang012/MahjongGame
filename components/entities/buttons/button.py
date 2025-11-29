@@ -5,23 +5,28 @@ from utils.helper import build_center_rect
 
 
 class Button:
-    screen: Surface
+    # Button surface
     surface: Surface = None
     _original_surface: Surface = None
     _highlight_surface: Surface = None
     _hidden_surface: Surface = None
+    _disable_surface: Surface = None
 
+    # Position of button
     _position: Rect
     _base_position: Rect
 
+    # Button properties
     text: str
     color: Color
     hidden: bool
     hover_color: Color
 
+    # Button state
     is_hovered: bool
     is_clicked: bool
     is_highlighted: bool
+    is_disabled: bool
 
     # Timer
     animation_timer: float
@@ -52,6 +57,7 @@ class Button:
         self.is_hovered = False
         self.is_clicked = False
         self.is_highlighted = False
+        self.is_disabled = False
 
         # Timer
         self.animation_timer = 0.0
@@ -115,6 +121,12 @@ class Button:
     def unhighlighted(self):
         self.is_highlighted = False
 
+    def disabled(self):
+        self.is_disabled = True
+
+    def undisabled(self):
+        self.is_disabled = False
+
     def check_collidepoint(self, position: tuple[int, int]) -> bool:
         return (
             self.get_position().collidepoint(position[0], position[1])
@@ -128,13 +140,17 @@ class Button:
         """Creates a highlighted version of the input surface."""
         # Create a copy to draw on
         # .convert_alpha() ensures it has the correct pixel format for transparency
-        hover_surface = surface.copy().convert_alpha()
-
+        original_surface = surface.copy()
+        mask = pygame.mask.from_surface(original_surface)
         # Fill the surface with this color using an "ADD" blend mode.
         # This brightens the image without washing it out.
-        hover_surface.fill(highlight_color, None, pygame.BLEND_RGBA_MULT)
+        highlight_surface = mask.to_surface(
+            setcolor=highlight_color, unsetcolor=(0, 0, 0, 0)
+        )
 
-        return hover_surface
+        original_surface.blit(highlight_surface, (0, 0))
+
+        return original_surface
 
     def get_position(self) -> Rect:
         return self._position

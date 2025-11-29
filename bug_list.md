@@ -1,4 +1,4 @@
-1. Cập nhật vị trí chuột mỗi lần animation tile (detect mouse.pos())
+1. ~~Cập nhật vị trí chuột mỗi lần animation tile (detect mouse.pos())~~ (DONE)
 2. Player chọn chii muốn discard nếu có nhiều chii
 3. ~~Button không hiển thị thì không hover được~~ (DONE)
 4. ~~Giải quyết kết thúc ván sau khi kêu Tsumo hoặc Ron~~ (DONE)
@@ -10,7 +10,10 @@
 10. Xử lý trường hợp vẫn có thể call ankan trong khi đang riichi (Need more time to check)
 11. ~~In log~~ (DONE)
 12. ~~Sau khi riichi, nếu player bốc lên lá không thể hoàn thành được riichi thì sẽ phải discard chính lá đó~~ (DONE)
-13. ~~**Hòa nếu như có 4 Kan**~~ (DONE)
+13. ~~Hòa nếu như có 4 Kan~~ (DONE)
+14. ~~Make move cho con bot shanten~~ (NO NEED)
+15. Nếu nó đưa ra discard con 5s, 5p, 5m mà có nhiều lá như thế thì ưu tiên chừa lá 5sr, 5pr, 5mr, bot chỉ Ankan
+16. ~~Nếu lá discard từ riichi bị lấy mất, lá tiếp theo discard của người riichi đó sẽ là lá riichi~~ (DONE)
 
 ### Màn hình
 

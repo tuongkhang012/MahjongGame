@@ -40,10 +40,12 @@ class DiscardField(TilesField):
 
     def build_field_surface(self) -> Surface:
         check_riichi_tiles = list(
-            filter(lambda tile: tile.discard_from_richii(), self.get_tiles_list())
+            filter(lambda tile: tile.is_discard_from_riichi(), self.get_tiles_list())
         )
         not_riichi_tiles = list(
-            filter(lambda tile: not tile.discard_from_richii(), self.get_tiles_list())
+            filter(
+                lambda tile: not tile.is_discard_from_riichi(), self.get_tiles_list()
+            )
         )
         if len(check_riichi_tiles) == 0 or len(not_riichi_tiles) == 0:
             self.surface = Surface(DISCARD_FIELD_SIZE, pygame.SRCALPHA)
@@ -82,6 +84,7 @@ class DiscardField(TilesField):
     def build_tiles_position(self):
         start_width = 0
         start_height = 0
+
         for idx, tile in enumerate(self.get_tiles_list()):
             line = math.floor(idx / 6)
 
@@ -92,7 +95,7 @@ class DiscardField(TilesField):
             tile_height = DISCARD_FIELD_SIZE[1] / 6
             tile_width = DISCARD_FIELD_SIZE[0] / 6
 
-            if tile.discard_from_richii():
+            if tile.is_discard_from_riichi():
                 tile.update_tile_surface(player_idx=(self.player_idx - 1) % 4)
                 match self.player_idx:
                     case 0 | 2:
@@ -102,7 +105,7 @@ class DiscardField(TilesField):
 
             match self.player_idx:
                 case 0:
-                    if tile.discard_from_richii():
+                    if tile.is_discard_from_riichi():
                         tile.scale_surface(self.__ratio_riichi)
                     else:
                         self.__ratio_normal = (
@@ -118,7 +121,7 @@ class DiscardField(TilesField):
                     )
                     start_width += tile.get_surface().get_width()
                 case 1:
-                    if tile.discard_from_richii():
+                    if tile.is_discard_from_riichi():
                         tile.scale_surface(self.__ratio_riichi)
                     else:
                         self.__ratio_normal = (
@@ -134,7 +137,7 @@ class DiscardField(TilesField):
                         tile.surface.get_height(),
                     )
                 case 2:
-                    if tile.discard_from_richii():
+                    if tile.is_discard_from_riichi():
                         tile.scale_surface(self.__ratio_riichi)
                     else:
                         self.__ratio_normal = (
@@ -151,7 +154,7 @@ class DiscardField(TilesField):
                         tile.surface.get_height(),
                     )
                 case 3:
-                    if tile.discard_from_richii():
+                    if tile.is_discard_from_riichi():
                         tile.scale_surface(self.__ratio_riichi)
                     else:
                         self.__ratio_normal = (
