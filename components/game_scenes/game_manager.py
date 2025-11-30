@@ -27,7 +27,8 @@ import typing
 import random
 from components.game_event_log import GameEventLog
 from components.entities.ai.mahjong_ai_agent import MahjongAIAgent
-
+from components.entities.buttons.chii import Chii
+from shared.bubble import Bubble
 
 # Tile
 from components.entities.buttons.tile import Tile
@@ -40,6 +41,7 @@ if typing.TYPE_CHECKING:
 class GameManager:
     screen: Surface
     scenes_controller: "ScenesController"
+    bubble: Bubble = None
     pause: bool = False
     # Player
     player_list: list[Player] = []
@@ -144,6 +146,8 @@ class GameManager:
             self.update(delta_time)
 
         # --- Rendering ---
+        if self.bubble:
+            self.bubble.draw(self.screen, (0, 0))
         self.screen.fill("aquamarine4")
         self.center_board_field.render(self.current_turn)
         self.call_button_field.render_particles(self.screen)
@@ -238,7 +242,7 @@ class GameManager:
                 ):
                     call_button_field.click(event.pos, self)
             case pygame.MOUSEMOTION:
-                self.detect_mouse_pos(pygame.mouse.get_pos())
+                self.detect_mouse_pos(event.pos)
 
     def detect_mouse_pos(self, mouse_pos: tuple[int, int]):
         player = self.player_list[0]
@@ -253,29 +257,32 @@ class GameManager:
         if self.center_board_field.check_collide(mouse_pos):
             for discard_field in self.center_board_field.get_discard_fields():
                 if discard_field.check_collide(mouse_pos):
-                    hover_tiles = (
-                        discard_field.hover(mouse_pos)
-                        if hover_tiles is None
-                        else hover_tiles
-                    )
+                    if hover_tiles:
+                        break
+
+                    hover_tiles = discard_field.hover(mouse_pos)
                     break
 
         for player in self.player_list:
             if player.call_field.check_collide(mouse_pos):
-                hover_tiles = (
-                    player.call_field.hover(mouse_pos)
-                    if hover_tiles is None
-                    else hover_tiles
-                )
+                if hover_tiles:
+                    break
+                player.call_field.hover(mouse_pos)
                 break
 
         for tile in self.deck.full_deck:
+            if hover_tiles and tile in hover_tiles:
+                continue
+            if tile.hidden:
+                continue
             tile.unhighlighted()
             tile.unhovered()
 
         if hover_tiles:
             for hover_tile in hover_tiles:
                 hover_tile.hovered()
+                hover_tile.update_hover()
+
                 same_tile_list = list(
                     filter(
                         lambda tile: tile.type == hover_tile.type
@@ -287,13 +294,20 @@ class GameManager:
 
                 for same_tile in same_tile_list:
                     same_tile.highlighted()
-                    same_tile.update_hover()
 
         call_button_field_hover = None
+
         if self.call_button_field.check_collide(mouse_pos):
             call_button_field_hover = self.call_button_field.hover(mouse_pos)
         else:
             self.call_button_field.unhover()
+
+        if (
+            isinstance(call_button_field_hover, Chii)
+            and self.calling_player
+            and self.calling_player == self.main_player
+        ):
+            self.bubble = Bubble("CHIIIIII")
 
         if hover_tiles or call_button_field_hover:
             self.scenes_controller.mouse.hover()

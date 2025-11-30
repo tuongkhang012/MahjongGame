@@ -1,8 +1,7 @@
 import pygame
 
 
-# --- 1. The Clean Code Bubble Class ---
-class MangaBubble:
+class Bubble:
     def __init__(self, text, font_size=20):
         self.font = pygame.font.SysFont("Arial", font_size, bold=True)
         self.text_surf = self.font.render(text, True, (0, 0, 0))  # Black text
@@ -49,50 +48,3 @@ class MangaBubble:
         text_x = bubble_x + self.padding
         text_y = bubble_y + self.padding
         surface.blit(self.text_surf, (text_x, text_y))
-
-
-# --- 2. Main Game Setup ---
-pygame.init()
-screen = pygame.display.set_mode((800, 600))
-pygame.display.set_caption("Manga Hover Effect")
-clock = pygame.time.Clock()
-
-# Create dummy objects (e.g., Mahjong tiles or characters)
-# Structure: (Rect, BubbleInstance)
-objects = [
-    {"rect": pygame.Rect(200, 300, 50, 80), "bubble": MangaBubble("Ron! (Win)")},
-    {"rect": pygame.Rect(400, 300, 50, 80), "bubble": MangaBubble("Riichi?")},
-    {"rect": pygame.Rect(600, 300, 50, 80), "bubble": MangaBubble("Dora: 3 Sou")},
-]
-
-running = True
-while running:
-    mouse_pos = pygame.mouse.get_pos()
-
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
-
-    # --- Draw ---
-    screen.fill((50, 50, 50))  # Grey background
-
-    for obj in objects:
-        # 1. Draw the object (Yellow Rectangle)
-        color = (255, 200, 0)
-
-        # Check Hover Logic
-        if obj["rect"].collidepoint(mouse_pos):
-            color = (255, 255, 0)  # Highlight bright yellow on hover
-
-        pygame.draw.rect(screen, color, obj["rect"])
-
-    # 2. Draw the Popups (Always draw these LAST so they appear on top)
-    for obj in objects:
-        if obj["rect"].collidepoint(mouse_pos):
-            # Pass the top-left or top-right of the rect as the "target"
-            obj["bubble"].draw(screen, (obj["rect"].right, obj["rect"].top))
-
-    pygame.display.flip()
-    clock.tick(60)
-
-pygame.quit()
