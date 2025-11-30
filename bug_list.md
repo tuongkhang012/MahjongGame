@@ -3,7 +3,7 @@
 3. ~~Button không hiển thị thì không hover được~~ (DONE)
 4. ~~Giải quyết kết thúc ván sau khi kêu Tsumo hoặc Ron~~ (DONE)
 5. ~~Tổng điểm cho player (cơ chế cộng và trừ điểm)~~ (DONE)
-6. ~~Gió bàn (Thể hiện gió bàn)~~ + số tile còn lại (hiển thị ở center_board_field) + Dora
+6. ~~Gió bàn (Thể hiện gió bàn) + số tile còn lại (hiển thị ở center_board_field) + Dora~~ (DONE)
 7. ~~Hover được call field~~ (DONE)
 8. ~~Sửa hàm update relative và absolute position cho các field~~ (DONE)
 9. ~~Xử lý trường hợp cho Chankan (cướp từ Kakan)~~ (DONE)
