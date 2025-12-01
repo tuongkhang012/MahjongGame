@@ -16,6 +16,22 @@ class Tile(Button):
     source: TileSource
     from_death_wall: bool = False
 
+    # Tile properties
+    type: TileType
+    number: int
+    aka: bool
+    hand136_idx: int
+    hand34_idx: int
+    name: str  # This is the name for naming in mahjong, not for AI, AI please use __str__()
+
+    # Hovering animation
+    hover_offset_y: float = 12
+    animation_speed: float = 0.5
+    animation_duration: float = TILE_ANIMATION_DURATION
+
+    # Riichi relative
+    __is_riichi_discard: bool  # Is a riichi discard
+
     def __init__(
         self, idx: int, type: TileType, number: int, name: str, aka: bool = False
     ):
@@ -51,10 +67,6 @@ class Tile(Button):
 
         self.__handle_hover()
 
-    def update_clicked(self, game_manager: "GameManager"):
-        pass
-        # self.__handle_clicked(game_manager)
-
     def __handle_hover(self):
         target_y = self._position.y
         if self.is_hovered:
@@ -74,6 +86,8 @@ class Tile(Button):
     def render(self, screen: Surface):
         if self.hidden:
             self.set_surface(self._hidden_surface)
+        elif self.is_disabled:
+            self.set_surface(self._disable_surface)
         elif self.is_highlighted:
             self.set_surface(self._highlight_surface)
         else:
@@ -99,7 +113,10 @@ class Tile(Button):
             self.surface = reveal_surface
             self._original_surface = reveal_surface
             self._highlight_surface = self._create_highlight_surface(
-                reveal_surface, pygame.Color(255, 247, 0, 180)
+                reveal_surface, pygame.Color(255, 247, 0, 160)
+            )
+            self._disable_surface = self._create_highlight_surface(
+                reveal_surface, pygame.Color(0, 0, 0, 128)
             )
 
         if hidden_surface:
@@ -125,7 +142,10 @@ class Tile(Button):
     def discard_riichi(self):
         self.__is_riichi_discard = True
 
-    def discard_from_richii(self):
+    def undiscard_riichi(self):
+        self.__is_riichi_discard = False
+
+    def is_discard_from_riichi(self):
         return self.__is_riichi_discard
 
     def __eq__(self, other):

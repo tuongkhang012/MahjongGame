@@ -1,7 +1,8 @@
 from components.entities.fields.tiles_field import TilesField
+from mahjong.shanten import Shanten
 from pygame import Rect, Surface
 import typing
-from utils.helper import build_center_rect, draw_hitbox
+from utils.helper import build_center_rect, draw_hitbox, convert_tiles_list_to_hand34
 import pygame
 
 if typing.TYPE_CHECKING:
@@ -129,6 +130,21 @@ class DeckField(TilesField):
                 )
 
     def build_tiles_position(self, player: "Player"):
+        shanten_calculator = Shanten()
+        if player.is_riichi() >= 0:
+
+            for tile in self.get_tiles_list():
+                copy_deck = self.get_tiles_list().copy()
+                copy_deck.remove(tile)
+
+                if (
+                    shanten_calculator.calculate_shanten(
+                        convert_tiles_list_to_hand34(copy_deck)
+                    )
+                    > 0
+                ):
+                    tile.disabled()
+
         for idx, tile in enumerate(self.get_tiles_list()):
             if tile.is_hovered == True:
                 continue

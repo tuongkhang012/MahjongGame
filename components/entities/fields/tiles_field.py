@@ -30,50 +30,33 @@ class TilesField(Field):
         self.__full_tiles_list = full_tiles_list
         self.player_idx = player_idx
 
-    def click(self, event: Event, game_manager: "GameManager"):
-        player = game_manager.player_list[0]
+    def click(self, mouse_pos: tuple[int, int]):
 
-        update_tiles: list[Tile] = []
+        for tile in self.get_tiles_list():
+            tile.unclicked()
 
         # Check for collide tiles
         collide_tiles = list(
             filter(
-                lambda tile: tile.check_collidepoint(self.build_local_mouse(event.pos))
+                lambda tile: tile.check_collidepoint(self.build_local_mouse(mouse_pos))
                 and not tile.hidden,
                 self.get_tiles_list(),
             )
         )
-        for tile in collide_tiles:
-            tile.clicked()
-            update_tiles.append(tile)
-            game_manager.action = player.make_move(ActionType.DISCARD)
 
-        # Check for uncollided clicked tiles
-        remaining_clicked_tiles = list(
-            filter(
-                lambda tile: not tile.check_collidepoint(
-                    self.build_local_mouse(event.pos)
-                )
-                and not tile.hidden
-                and tile.is_clicked,
-                self.get_tiles_list(),
-            )
-        )
-        for tile in remaining_clicked_tiles:
-            tile.unclicked()
-            update_tiles.append(tile)
+        if len(collide_tiles) > 0:
+            return collide_tiles
 
-        for tile in update_tiles:
-            tile.update_clicked(game_manager)
+        return None
 
     def unclicked(self, event: Event):
         pass
 
-    def hover(self, event: Event) -> list["Tile"]:
+    def hover(self, mouse_pos: tuple[int, int]) -> list["Tile"]:
         # Check for collide tiles
         collide_tile = list(
             filter(
-                lambda tile: tile.check_collidepoint(self.build_local_mouse(event.pos))
+                lambda tile: tile.check_collidepoint(self.build_local_mouse(mouse_pos))
                 and not tile.hidden,
                 self.get_tiles_list(),
             )
