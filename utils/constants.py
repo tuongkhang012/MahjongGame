@@ -16,12 +16,13 @@ DIRECTION_WIDTH = 32
 DIRECTION_HEIGHT = 32
 
 SMOKE_PARTICLE_IMAGE_LINK = "public/images/particles/smoke/"
-
 DISCARD_MODEL = "public/model/mahjong_cnn_discard_best.pth"
 CHI_MODEL = "public/model/mahjong_cnn_chi_best.pth"
 PON_MODEL = "public/model/mahjong_cnn_pon_best.pth"
 RIICHI_MODEL = "public/model/mahjong_cnn_riichi_best.pth"
 COMBINED_MODEL = "public/model/mahjong_cnn_discard_chi_pon_riichi_best.pth"
+
+MAIN_MENU_BACKGROUND = "public/images/main_menu_bg.png"
 
 TURN_BAR_HEIGHT = 10
 
@@ -62,10 +63,10 @@ COLOR_BLACK = (0, 0, 0)
 CALL_BUTTON_SIZE = (100, 40)
 CALL_TEXT_COLOR = COLOR_WHITE
 
-UI_BUTTON_SIZE = (240, 100)
-UI_TEXT_COLOR = COLOR_BLACK
-UI_BUTTON_COLOR = (230, 230, 230)
-UI_FONT_SIZE = 30
+UI_BUTTON_SIZE = (200, 60)
+UI_TEXT_COLOR = COLOR_WHITE
+UI_BUTTON_COLOR = (0, 0, 0, int(255 * 0))
+UI_FONT_SIZE = 25
 
 HAND_CONFIG_OPTIONS = OptionalRules(
     has_aka_dora=True, has_open_tanyao=True, has_double_yakuman=True

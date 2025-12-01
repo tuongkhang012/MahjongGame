@@ -135,7 +135,9 @@ class ScenesController:
                             if self.game_manager.animation_tile is None:
                                 self.game_manager.handle_event(event)
                         case GameScene.START:
-                            self.start_menu.handle_event(event)
+                            quit_event = self.start_menu.handle_event(event)
+                            if quit_event:
+                                return {"exit": True}
 
                 case pygame.MOUSEMOTION:
                     if self.__popup_screen:
@@ -149,7 +151,7 @@ class ScenesController:
                         case GameScene.GAME:
                             self.game_manager.handle_event(event)
                         case GameScene.START:
-                            pass
+                            self.start_menu.handle_event(event)
 
         return {"exit": False}
 
