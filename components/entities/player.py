@@ -65,6 +65,7 @@ class Player:
     ):
         self.player_idx = player_idx
         self.direction = direction
+        self.__initial_direction = direction
         # Tile deck field init
         self.player_deck = player_deck if player_deck is not None else []
         self.discard_tiles = discard_tiles if discard_tiles is not None else []
@@ -612,6 +613,9 @@ class Player:
         self.__riichi_turn: int = None
 
         self.__skip_yao9 = False
+
+    def get_initial_direction(self):
+        return self.__initial_direction
 
     def __eq__(self, value):
         if not isinstance(value, Player):
