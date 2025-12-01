@@ -68,6 +68,8 @@ class Tile(Button):
         self.__handle_hover()
 
     def __handle_hover(self):
+        if self._position.y == self._base_position.y - self.hover_offset_y:
+            return
         target_y = self._position.y
         if self.is_hovered:
             target_y = self._base_position.y - self.hover_offset_y

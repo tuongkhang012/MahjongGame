@@ -155,7 +155,7 @@ class CallField(TilesField):
                     )
                 )
 
-    def hover(self, mouse_pos: tuple[int, int]) -> "Tile":
+    def hover(self, mouse_pos: tuple[int, int]) -> list["Tile"]:
         hovered_call_surface_idx: int = None
         for idx, call_surface in enumerate(self.__call_surface):
             surface_position = self.__call_surface_position[idx]

@@ -3,7 +3,7 @@
 3. ~~Button không hiển thị thì không hover được~~ (DONE)
 4. ~~Giải quyết kết thúc ván sau khi kêu Tsumo hoặc Ron~~ (DONE)
 5. ~~Tổng điểm cho player (cơ chế cộng và trừ điểm)~~ (DONE)
-6. ~~Gió bàn (Thể hiện gió bàn)~~ + số tile còn lại (hiển thị ở center_board_field) + Dora
+6. ~~Gió bàn (Thể hiện gió bàn) + số tile còn lại (hiển thị ở center_board_field) + Dora~~ (DONE)
 7. ~~Hover được call field~~ (DONE)
 8. ~~Sửa hàm update relative và absolute position cho các field~~ (DONE)
 9. ~~Xử lý trường hợp cho Chankan (cướp từ Kakan)~~ (DONE)
@@ -14,6 +14,8 @@
 14. ~~Make move cho con bot shanten~~ (NO NEED)
 15. Nếu nó đưa ra discard con 5s, 5p, 5m mà có nhiều lá như thế thì ưu tiên chừa lá 5sr, 5pr, 5mr, bot chỉ Ankan
 16. ~~Nếu lá discard từ riichi bị lấy mất, lá tiếp theo discard của người riichi đó sẽ là lá riichi~~ (DONE)
+17. Cần array chứa những state final của game gần nhất - lên tới 6 game recent (cần thông tin, tay của 4 người chơi, discard 4 ng, meld 4 ng, 4 trạng thái riichi và dora)
+18. Encode lịch sử game vô AI, chỉnh lại cách AI coi rank
 
 ### Màn hình
 
