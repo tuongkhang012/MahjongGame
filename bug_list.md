@@ -14,6 +14,8 @@
 14. ~~Make move cho con bot shanten~~ (NO NEED)
 15. Nếu nó đưa ra discard con 5s, 5p, 5m mà có nhiều lá như thế thì ưu tiên chừa lá 5sr, 5pr, 5mr, bot chỉ Ankan
 16. ~~Nếu lá discard từ riichi bị lấy mất, lá tiếp theo discard của người riichi đó sẽ là lá riichi~~ (DONE)
+17. Cần array chứa những state final của game gần nhất - lên tới 6 game recent (cần thông tin, tay của 4 người chơi, discard 4 ng, meld 4 ng, 4 trạng thái riichi và dora)
+18. Encode lịch sử game vô AI, chỉnh lại cách AI coi rank
 
 ### Màn hình
 
