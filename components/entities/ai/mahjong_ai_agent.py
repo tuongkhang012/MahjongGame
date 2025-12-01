@@ -6,6 +6,7 @@ import typing
 from utils.enums import ActionType, CallType
 from components.entities.ai.model import MahjongCNN
 from components.entities.ai.encoder import Encoder
+
 if typing.TYPE_CHECKING:
     from components.entities.player import Player
     from components.game_scenes.game_manager import GameManager
@@ -24,7 +25,9 @@ class MahjongAIAgent:
         self.encoder = Encoder()
 
         self.discard_model = MahjongCNN().to(device)
-        self.discard_model.load_state_dict(torch.load(discard_path, map_location=device))
+        self.discard_model.load_state_dict(
+            torch.load(discard_path, map_location=device)
+        )
         self.discard_model.eval()
 
         self.chi_model = MahjongCNN().to(device)
@@ -96,4 +99,3 @@ class MahjongAIAgent:
         tile = player.player_deck[tile_idx]
         tile.clicked()
         return ActionType.DISCARD
-

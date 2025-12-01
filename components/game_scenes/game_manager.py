@@ -27,7 +27,9 @@ import typing
 import random
 from components.game_event_log import GameEventLog
 from components.entities.ai.mahjong_ai_agent import MahjongAIAgent
-
+from components.entities.buttons.chii import Chii
+from components.game_scenes.popup.choose_chii import ChiiPicker
+from components.game_scenes.popup.popup import Popup
 
 # Tile
 from components.entities.buttons.tile import Tile
@@ -41,6 +43,7 @@ class GameManager:
     screen: Surface
     scenes_controller: "ScenesController"
     pause: bool = False
+    popup: Popup = None
     # Player
     player_list: list[Player] = []
     current_player: Player
@@ -81,6 +84,7 @@ class GameManager:
     disable_reason: str = None
     first_ron_player: Player = None
     ron_count: int = 0
+    picked_chii: list[Tile] = None
 
     # Score relavent
     tsumi_number: int = 0
@@ -145,6 +149,7 @@ class GameManager:
 
         # --- Rendering ---
         self.screen.fill("aquamarine4")
+
         self.center_board_field.render(self.current_turn)
         self.call_button_field.render_particles(self.screen)
         for player in self.player_list:
@@ -161,6 +166,9 @@ class GameManager:
 
         if self.animation_tile:
             self.render_discarded_animation(self.animation_tile)
+
+        if self.popup:
+            self.popup.render(self.screen)
 
         self.main_screen.blit(self.screen, (0, 0))
         return self.main_screen
@@ -233,15 +241,51 @@ class GameManager:
                         tile.unhovered()
                         tile.unhighlighted()
 
+                if self.popup:
+                    if self.popup.check_collide(event.pos):
+                        self.picked_chii = self.popup.handle_event(event.pos)
+                        self.action = ActionType.CHII
+                        self.popup = None
+
+                    else:
+                        self.popup = None
+
                 if player == self.calling_player and call_button_field.check_collide(
                     event.pos
                 ):
-                    call_button_field.click(event.pos, self)
+                    call_button_click = call_button_field.click(event.pos, self)
+
+                    if isinstance(call_button_click, Chii):
+                        if (
+                            self.calling_player
+                            and self.calling_player == self.main_player
+                        ):
+                            self.calling_player.build_chii(self.latest_discarded_tile)
+
+                        if (
+                            self.calling_player
+                            and self.calling_player == self.main_player
+                            and len(self.calling_player.callable_tiles_list) > 1
+                        ):
+                            self.popup = ChiiPicker(
+                                self.calling_player.callable_tiles_list,
+                                self.latest_discarded_tile,
+                            )
+                            self.action = None
+                        else:
+                            self.picked_chii = self.calling_player.callable_tiles_list[
+                                0
+                            ]
+
             case pygame.MOUSEMOTION:
-                self.detect_mouse_pos(pygame.mouse.get_pos())
+                self.detect_mouse_pos(event.pos)
 
     def detect_mouse_pos(self, mouse_pos: tuple[int, int]):
         player = self.player_list[0]
+
+        hover_picking_chii = None
+        if self.popup and self.popup.check_collide(mouse_pos):
+            hover_picking_chii = self.popup.handle_event(mouse_pos)
 
         hover_tiles = None
         if player.deck_field.check_collide(mouse_pos):
@@ -253,29 +297,32 @@ class GameManager:
         if self.center_board_field.check_collide(mouse_pos):
             for discard_field in self.center_board_field.get_discard_fields():
                 if discard_field.check_collide(mouse_pos):
-                    hover_tiles = (
-                        discard_field.hover(mouse_pos)
-                        if hover_tiles is None
-                        else hover_tiles
-                    )
+                    if hover_tiles:
+                        break
+
+                    hover_tiles = discard_field.hover(mouse_pos)
                     break
 
         for player in self.player_list:
             if player.call_field.check_collide(mouse_pos):
-                hover_tiles = (
-                    player.call_field.hover(mouse_pos)
-                    if hover_tiles is None
-                    else hover_tiles
-                )
+                if hover_tiles:
+                    break
+                hover_tiles = player.call_field.hover(mouse_pos)
                 break
 
         for tile in self.deck.full_deck:
+            if hover_tiles and tile in hover_tiles:
+                continue
+            if tile.hidden:
+                continue
             tile.unhighlighted()
             tile.unhovered()
 
         if hover_tiles:
             for hover_tile in hover_tiles:
                 hover_tile.hovered()
+                hover_tile.update_hover()
+
                 same_tile_list = list(
                     filter(
                         lambda tile: tile.type == hover_tile.type
@@ -287,15 +334,15 @@ class GameManager:
 
                 for same_tile in same_tile_list:
                     same_tile.highlighted()
-                    same_tile.update_hover()
 
-        call_button_field_hover = None
+        call_button_hover = None
+
         if self.call_button_field.check_collide(mouse_pos):
-            call_button_field_hover = self.call_button_field.hover(mouse_pos)
+            call_button_hover = self.call_button_field.hover(mouse_pos)
         else:
             self.call_button_field.unhover()
 
-        if hover_tiles or call_button_field_hover:
+        if hover_tiles or call_button_hover or hover_picking_chii:
             self.scenes_controller.mouse.hover()
         else:
             self.scenes_controller.mouse.default()
@@ -561,16 +608,17 @@ class GameManager:
 
             case ActionType.CHII:
                 calling_player = self.calling_player
-                calling_player.build_chii(latest_discarded_tile)
-                # TODO
-                random_list = self.__get_random_callable_list(calling_player)
+                if calling_player != self.main_player:
+                    calling_player.build_chii(latest_discarded_tile)
+                    self.picked_chii = self.__get_random_callable_list(calling_player)
 
                 calling_player.call(
                     latest_discarded_tile,
-                    random_list,
+                    self.picked_chii,
                     map_action_to_call(self.action),
                     self.current_player,
                 )
+
                 self.game_log.append_event(
                     ActionType.CHII,
                     latest_discarded_tile,
@@ -794,6 +842,7 @@ class GameManager:
 
     def __reset_calling_state(self):
         # --- RESET CALLING STATE ---
+        self.picked_chii = None
         self.prev_action = self.action
         self.prev_called_player = self.calling_player
         self.latest_discarded_tile = None

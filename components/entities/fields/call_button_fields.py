@@ -263,6 +263,8 @@ class CallButtonField(Field):
     def click(self, mouse_pos: tuple[int, int], game_manager: "GameManager"):
         local_mouse = self.build_local_mouse(mouse_pos)
         player = game_manager.player_list[0]
+        self.hidden = True
+
         for button in self.render_button_list:
             if button.check_collidepoint(local_mouse):
                 print(f"CLICKING BUTTON {button.text.upper()}")
@@ -282,5 +284,4 @@ class CallButtonField(Field):
                     game_manager.action = player.make_move(ActionType.RIICHI)
                 elif isinstance(button, Ryuukyoku):
                     game_manager.action = player.make_move(ActionType.RYUUKYOKU)
-
-        self.hidden = True
+                return button
