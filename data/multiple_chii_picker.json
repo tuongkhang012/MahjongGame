@@ -1,11 +1,11 @@
 {
   "player_deck": [
-    "12289m12p4567s99p",
+    "1246648m169s345z",
+    "12267m12p4567s99p",
     "13m134r7p28s1124z",
-    "5589m2468p3r26s2z",
-    "1246648m169s345z"
+    "5589m2468p3r26s2z"
   ],
-  "draw_deck": "2z3z1m5m6m7p2m8p7z7p8s4s8p5z7z5p9m6p6p7m2p4p7s6z7s1z9p5p5s3z9p6s4z7z1z2z4s5s4s7m3m2p3s8s8s1s1p6m4m3m6z4m9s8p1s3p1p3p1s6p3s5z6z4p7p2s2srm3s7m",
+  "draw_deck": "2z3z1m5m9m7p2m8p7z7p8s4s8p5z7z5p9m6p6p7m2p4p7s6z7s1z9p5p5s3z9p6s4z7z1z2z4s5s4s7m3m2p3s8s8s1s1p6m4m3m6z4m9s8p1s3p1p3p1s6p3s5z6z4p7p2s2srm3s8m",
   "death_wall": "4z3m7z3z8m3p9s7s9s5z9m7m6z5p",
-  "direction": "SWNE"
+  "direction": "ESWN"
 }
