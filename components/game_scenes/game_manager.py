@@ -1037,12 +1037,12 @@ class GameManager:
             if not (len(tenpai_players) == 0 or len(tenpai_players) == 4):
                 for player in self.player_list:
                     if player in tenpai_players:
+                        if player.direction == Direction.EAST:
+                            self.keep_direction = True
                         deltas[player.player_idx] += int(
                             max_deltas_points / len(tenpai_players)
                         )
                     if player not in tenpai_players:
-                        if player.direction == Direction.EAST:
-                            self.keep_direction = True
                         deltas[player.player_idx] -= int(
                             max_deltas_points / (4 - len(tenpai_players))
                         )

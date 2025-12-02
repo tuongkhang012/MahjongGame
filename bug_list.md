@@ -20,6 +20,8 @@
 20. Encode chỉnh lại cách AI coi rank.
 21. ~~Kuikae~~ (DONE)
 22. ~~Render lại call tile nằm ngang của màn hình thắng~~ (DONE)
+23. Game history
+24. Continue game mới là tiếp tục game, tiếp tục ván, start game là tạo
 
 ### Màn hình
 

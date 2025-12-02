@@ -34,7 +34,7 @@ class Deck:
 
     random_seed: str
 
-    def __init__(self, seed: str):
+    def __init__(self, seed: str = None):
         self.__init_deck = self.__init_full_deck()
         self.__init_seed = seed
 
