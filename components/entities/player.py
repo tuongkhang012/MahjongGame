@@ -259,7 +259,7 @@ class Player:
     def discard(self, tile: Tile, game_manager: "GameManager" = None):
         if game_manager.prev_action == ActionType.RIICHI or (
             self.__is_riichi
-            and any(
+            and not any(
                 [
                     tile.is_discard_from_riichi()
                     for tile in self.discard_field.get_tiles_list()
