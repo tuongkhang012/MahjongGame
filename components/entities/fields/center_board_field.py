@@ -320,9 +320,23 @@ class CenterBoardField(Field):
                 and math.floor((pygame.time.get_ticks() - self.start_timer) / 500) % 2
                 == 0
             ):
-                turn_surface = self.draw_turn_full(self.__player_list[idx].is_riichi())
+                is_furiten = (
+                    self.__player_list[idx].temporary_furiten
+                    or self.__player_list[idx].riichi_furiten
+                    or self.__player_list[idx].discard_furiten
+                )
+                turn_surface = self.draw_turn_full(
+                    self.__player_list[idx].is_riichi(), is_furiten
+                )
             else:
-                turn_surface = self.draw_turn_empty(self.__player_list[idx].is_riichi())
+                is_furiten = (
+                    self.__player_list[idx].temporary_furiten
+                    or self.__player_list[idx].riichi_furiten
+                    or self.__player_list[idx].discard_furiten
+                )
+                turn_surface = self.draw_turn_empty(
+                    self.__player_list[idx].is_riichi(), is_furiten
+                )
             subsurface_size = subsurfaces_list[idx].get_size()
             half_surface = Surface(
                 (subsurface_size[0], subsurface_size[1] / 2), pygame.SRCALPHA

@@ -292,6 +292,9 @@ class Player:
         game_manager.start_discarded_animation(tile)
         self.turn += 1
         self.temporary_furiten = False
+        if self.is_riichi() > 0:
+            for deck_tile in self.player_deck:
+                deck_tile.disabled()
         return tile
 
     def rearrange_deck(self):

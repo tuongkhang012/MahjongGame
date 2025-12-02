@@ -552,9 +552,6 @@ class GameManager:
                             tile=self.deck.death_wall[0],
                         )
 
-                        if len(self.current_player.can_call) > 0 and self.kan_count < 4:
-                            self.call_order.append(self.current_player)
-
                     else:
                         self.__reset_calling_state()
                         tile = self.current_player.draw(
@@ -563,8 +560,12 @@ class GameManager:
                         )
                 except IndexError as e:
                     print("SOME THING WRONG WITH DRAW: ", e.args)
-                if len(self.current_player.can_call) > 0:
+                if len(self.current_player.can_call) > 0 and self.kan_count < 4:
                     self.call_order.append(self.current_player)
+                elif self.current_player.is_riichi() >= 0:
+                    tile.clicked()
+                    self.action = ActionType.DISCARD
+
                 self.game_log.append_event(ActionType.DRAW, tile, self.current_player)
                 print(
                     f"{self.current_player} draw {self.current_player.get_draw_tile()}"
