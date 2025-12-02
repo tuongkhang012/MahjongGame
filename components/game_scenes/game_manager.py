@@ -882,7 +882,8 @@ class GameManager:
         self.pause = True
         deltas = [0, 0, 0, 0]
         for player in self.player_list:
-            player.reveal_hand()
+            if count_shanten_points(player.player_deck) == 0:
+                player.reveal_hand()
         if self.is_disable_round:
             self.game_log.round = None
             reason = None

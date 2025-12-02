@@ -607,16 +607,10 @@ class Player:
         self.__is_riichi = True
         self.__riichi_turn = self.turn
         self.points -= 1000
-        shanten_calculator = Shanten()
         for tile in self.deck_field.get_tiles_list():
             copy_deck = self.deck_field.get_tiles_list().copy()
             copy_deck.remove(tile)
-            if (
-                shanten_calculator.calculate_shanten(
-                    convert_tiles_list_to_hand34(copy_deck)
-                )
-                > 0
-            ):
+            if count_shanten_points(copy_deck) > 0:
                 tile.disabled()
 
     def is_riichi(self) -> int:
