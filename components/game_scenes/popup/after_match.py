@@ -190,7 +190,7 @@ class AfterMatchPopup(Popup):
 
         win_tile_idx = len(full_hands) - 1
 
-        for tile in call_tiles_list:
+        for tile in reversed(call_tiles_list):
             if tile == win_tile:
                 continue
             if tile not in full_hands:
