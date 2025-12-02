@@ -18,8 +18,8 @@
 18. Cần array chứa những state final của game gần nhất - lên tới 6 game recent (cần thông tin, tay của 4 người chơi, discard 4 ng, meld 4 ng, 4 trạng thái riichi và dora)
 19. Encode lịch sử game (6 recent games) vô AI
 20. Encode chỉnh lại cách AI coi rank.
-21. Kuikae
-22. Render lại call tile nằm ngang của màn hình thắng
+21. ~~Kuikae~~ (DONE)
+22. ~~Render lại call tile nằm ngang của màn hình thắng~~ (DONE)
 
 ### Màn hình
 

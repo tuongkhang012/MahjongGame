@@ -49,6 +49,11 @@ class Player:
     __is_riichi: bool = False
     __riichi_turn: int = None
 
+    # Furiten
+    discard_furiten: bool = False
+    riichi_furiten: bool = False
+    temporary_furiten: bool = False
+
     # Skip yao9
     __skip_yao9: bool = False
 
@@ -157,7 +162,7 @@ class Player:
             + [tile]
         )
 
-    def build_kan(self, tile: Tile) -> (bool, "Player"):
+    def build_kan(self, tile: Tile) -> tuple[bool, "Player"]:
         self.callable_tiles_list = []
         is_kakan = False
         from_player: Player = None
@@ -232,9 +237,14 @@ class Player:
             player.discard_tiles.remove(tile)
             self.player_deck.append(tile)
 
+        for hand_tile in self.player_deck:
+            if hand_tile.type == tile.type and hand_tile.number == tile.number:
+                hand_tile.disabled()
+
         for tmp_tile in call_list:
             if tmp_tile in self.player_deck:
                 self.player_deck.remove(tmp_tile)
+                tmp_tile.undisabled()
 
         self.call_list.append(
             Call(
@@ -257,6 +267,10 @@ class Player:
         self.deck_field.build_tiles_position(self)
 
     def discard(self, tile: Tile, game_manager: "GameManager" = None):
+        if self.is_riichi() < 0:
+            for hand_tile in self.player_deck:
+                hand_tile.undisabled()
+
         if game_manager.prev_action == ActionType.RIICHI or (
             self.__is_riichi
             and not any(
@@ -277,6 +291,7 @@ class Player:
         game_manager.latest_discarded_tile = tile
         game_manager.start_discarded_animation(tile)
         self.turn += 1
+        self.temporary_furiten = False
         return tile
 
     def rearrange_deck(self):
@@ -491,10 +506,26 @@ class Player:
             return convert_tiles_list_to_hand34(self.player_deck)[tile.hand34_idx] == 3
 
     def is_ron_able(self, tile: Tile, round_wind: Direction) -> bool:
+        # Check for temporary furiten
+        if self.temporary_furiten:
+            print(
+                f"Player {self.player_idx} is not winning with ron because temporary furiten!!"
+            )
+            return False
+
+        # Check for riichi furiten
+        if self.riichi_furiten:
+            print(
+                f"Player {self.player_idx} is not winning with ron because riichi furiten!!"
+            )
+            return False
+
+        # Check for discard furiten
         for discard_tile in self.__already_discard_tiles:
+            # Need to check for all already discarded tiles
             if convert_tile_to_hand34_index(discard_tile) in self.__winning_tiles:
                 print(
-                    f"Player {self.player_idx} is not winning with ron because furiten: {self.__winning_tiles} is in {self.__already_discard_tiles}"
+                    f"Player {self.player_idx} is not winning with ron because discard furiten: {self.__winning_tiles} is in {self.__already_discard_tiles}"
                 )
                 return False
 
@@ -556,12 +587,17 @@ class Player:
             return False
 
     def is_riichi_able(self) -> bool:
-        if count_shanten_points(self.player_deck) == 0 and (
-            len(self.call_list) == 0
-            or (
-                len(self.call_list) > 0
-                and len(list(filter(lambda call: call.is_opened, self.call_list))) == 0
+        if (
+            count_shanten_points(self.player_deck) == 0
+            and (
+                len(self.call_list) == 0
+                or (
+                    len(self.call_list) > 0
+                    and len(list(filter(lambda call: call.is_opened, self.call_list)))
+                    == 0
+                )
             )
+            and self.points >= 1000
         ):
             return True
         else:
@@ -570,6 +606,18 @@ class Player:
     def riichi(self):
         self.__is_riichi = True
         self.__riichi_turn = self.turn
+        self.points -= 1000
+        shanten_calculator = Shanten()
+        for tile in self.deck_field.get_tiles_list():
+            copy_deck = self.deck_field.get_tiles_list().copy()
+            copy_deck.remove(tile)
+            if (
+                shanten_calculator.calculate_shanten(
+                    convert_tiles_list_to_hand34(copy_deck)
+                )
+                > 0
+            ):
+                tile.disabled()
 
     def is_riichi(self) -> int:
         """
@@ -611,6 +659,11 @@ class Player:
         self.__winning_tiles = []
         self.__is_riichi = False
         self.__riichi_turn: int = None
+
+        # Reset turn
+        self.turn = 0
+        self.riichi_furiten: bool = False
+        self.temporary_furiten: bool = False
 
         self.__skip_yao9 = False
 

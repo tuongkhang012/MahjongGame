@@ -130,20 +130,6 @@ class DeckField(TilesField):
                 )
 
     def build_tiles_position(self, player: "Player"):
-        shanten_calculator = Shanten()
-        if player.is_riichi() >= 0:
-
-            for tile in self.get_tiles_list():
-                copy_deck = self.get_tiles_list().copy()
-                copy_deck.remove(tile)
-
-                if (
-                    shanten_calculator.calculate_shanten(
-                        convert_tiles_list_to_hand34(copy_deck)
-                    )
-                    > 0
-                ):
-                    tile.disabled()
 
         for idx, tile in enumerate(self.get_tiles_list()):
             if tile.is_hovered == True:
@@ -216,43 +202,3 @@ class DeckField(TilesField):
                         position_y = (tile_height / 2) * idx
 
             tile.update_position(position_x, position_y, tile_width, tile_height)
-
-    def calculate_center_range(self, deck_list: list["Tile"], player_idx: int):
-        deck_size = len(deck_list)
-
-        middle_height = self.screen.get_height() * 1 / 2
-        middle_width = self.screen.get_width() * 1 / 2
-        offset_height = self.screen.get_height() * 1 / 3
-        offset_width = self.screen.get_width() * 1 / 3
-
-        total_width = list(
-            map(lambda tile: tile.get_surface().get_bounding_rect().width, deck_list)
-        )
-        total_heigth = list(
-            map(lambda tile: tile.get_surface().get_bounding_rect().height, deck_list)
-        )
-        match player_idx:
-            case 0:
-                return (
-                    middle_width
-                    - (deck_size * (sum(total_width) / len(total_width)) / 2),
-                    middle_height + offset_height,
-                )
-            case 1:
-                return (
-                    middle_width + offset_width,
-                    middle_height
-                    - (deck_size * (sum(total_heigth) / len(total_heigth)) / 4),
-                )
-            case 2:
-                return (
-                    middle_width
-                    + (deck_size * (sum(total_width) / len(total_width)) / 2),
-                    middle_height - offset_height,
-                )
-            case 3:
-                return (
-                    middle_width - offset_width,
-                    middle_height
-                    - (deck_size * (sum(total_heigth) / len(total_heigth)) / 4),
-                )

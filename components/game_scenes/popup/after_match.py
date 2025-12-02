@@ -229,7 +229,13 @@ class AfterMatchPopup(Popup):
         for surface_idx, tile_surface in enumerate(tiles_surface_list):
             new_tile_surface = pygame.transform.scale_by(tile_surface, scale_factor)
 
-            hands_surface.blit(new_tile_surface, (start_tile_position, 0))
+            hands_surface.blit(
+                new_tile_surface,
+                (
+                    start_tile_position,
+                    hands_surface.get_height() - new_tile_surface.get_height(),
+                ),
+            )
             if surface_idx == start_call_idx - 1:
                 start_tile_position += (
                     new_tile_surface.get_width() + self.call_width_offset

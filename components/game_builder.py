@@ -35,8 +35,9 @@ class GameBuilder:
         # return standard
 
     def new(self, game_manager: "GameManager", keep_direction: bool = False):
-        direction, player_list, deck = self.init_game(game_manager.player_list)
-        print(direction, player_list, deck)
+        direction, player_list, deck = self.init_game(
+            game_manager.player_list, keep_direction
+        )
         # Assign to game manager
         game_manager.direction = direction
         game_manager.player_list = player_list
@@ -75,6 +76,8 @@ class GameBuilder:
             direction,
             deck,
             player_list,
+            game_manager.tsumi_number,
+            game_manager.kyoutaku_number,
         )
 
     def assign_round_direction(
@@ -94,7 +97,7 @@ class GameBuilder:
         else:
             game_manager.round_direction_number += 1
 
-    def init_game(self, players: list[Player] = None):
+    def init_game(self, players: list[Player] = None, keep_direction: bool = False):
         self.deck.create_new_deck(self.start_data)
 
         # Create player
@@ -125,12 +128,14 @@ class GameBuilder:
             direction: list[Direction] = []
             for i in range(4):
                 player_list[i].renew_deck()
-
-                player_list[i].direction = Direction(
-                    (player_list[i].direction.value + 1) % 4
-                )
-                direction.append(player_list[i].direction)
-                player_list[i].full_deck = self.deck.full_deck
+                if not keep_direction:
+                    player_list[i].direction = Direction(
+                        (player_list[i].direction.value - 1) % 4
+                    )
+                    direction.append(player_list[i].direction)
+                    player_list[i].full_deck = self.deck.full_deck
+                else:
+                    direction.append(player_list[i].direction)
 
         if self.start_data and self.start_data["player_deck"]:
             if (

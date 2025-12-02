@@ -34,12 +34,17 @@ class Deck:
 
     random_seed: str
 
-    def __init__(self):
+    def __init__(self, seed: str):
         self.__init_deck = self.__init_full_deck()
+        self.__init_seed = seed
 
     def create_new_deck(self, start_data: Any | None = None) -> dict[str, list[Tile]]:
         # Create a random seed
-        self.random_seed = generate_random_seed()
+        if self.__init_seed:
+            self.random_seed = self.__init_seed
+            self.__init_seed = None
+        else:
+            self.random_seed = generate_random_seed()
         self.current_dora_idx = 5
         self.death_wall: list[Tile] = []
         self.draw_deck: list[Tile] = []

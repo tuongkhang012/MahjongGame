@@ -7,6 +7,8 @@ import json
 from components.game_scenes.scenes_controller import ScenesController
 from components.entities.deck import Deck
 from components.game_scenes.main_menu import MainMenu
+import os
+
 
 # Init Scene controller
 scenes_controller = ScenesController()

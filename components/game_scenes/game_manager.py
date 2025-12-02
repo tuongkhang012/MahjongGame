@@ -91,7 +91,7 @@ class GameManager:
     kyoutaku_number: int = 0
 
     # Change direction when new game
-    change_direction: bool = False
+    keep_direction: bool = False
 
     def __init__(
         self,
@@ -231,7 +231,7 @@ class GameManager:
                         return
                     for tile in clicked_tiles:
                         if tile.is_disabled:
-                            continue
+                            return
                         tile.clicked()
                     self.action = player.make_move(ActionType.DISCARD)
                     self.scenes_controller.mouse.default()
@@ -719,6 +719,7 @@ class GameManager:
             case ActionType.RIICHI:
                 calling_player = self.calling_player
                 self.kyoutaku_number += 1
+                self.center_board_field.update_kyoutaku_number(self.kyoutaku_number)
                 calling_player.riichi()
                 self.game_log.append_event(
                     ActionType.RIICHI,
@@ -800,6 +801,14 @@ class GameManager:
                 )
 
             case ActionType.SKIP:
+                if (
+                    CallType.RON in self.calling_player.can_call
+                    and self.calling_player.is_riichi() >= 0
+                ):
+                    self.calling_player.riichi_furiten = True
+                elif CallType.RON in self.calling_player.can_call:
+                    self.calling_player.temporary_furiten = True
+
                 if CallType.RYUUKYOKU in self.calling_player.can_call:
                     self.calling_player.skip_yao9()
                 if self.prev_action == ActionType.KAN and self.prev_called_player:
@@ -972,25 +981,30 @@ class GameManager:
             total_cost = int(result.cost["total"] / 100)
             if self.action == ActionType.TSUMO:
                 deltas[win_player.player_idx] += total_cost
+                divided_cost = (
+                    total_cost - self.tsumi_number * 3 - self.kyoutaku_number * 10
+                )
                 if win_player.direction == Direction.EAST:
+                    self.keep_direction = True
                     for i in range(0, len(deltas)):
                         if i == win_player.player_idx:
                             continue
-                        deltas[i] -= int(total_cost / 3)
+
+                        deltas[i] -= int(divided_cost / 3) + self.tsumi_number
                 else:
-                    self.change_direction = True
                     for i in range(0, len(deltas)):
                         if i == win_player.player_idx:
                             continue
                         if self.player_list[i].direction == Direction.EAST:
-                            deltas[i] -= int(total_cost / 4) * 2
+                            deltas[i] -= int(divided_cost / 4) * 2 + self.tsumi_number
                         else:
-                            deltas[i] -= int(total_cost / 4)
+                            deltas[i] -= int(divided_cost / 4) + self.tsumi_number
             elif self.action == ActionType.RON:
-                if win_player.direction != Direction.EAST:
-                    self.change_direction = True
+                actual_cost = total_cost - self.kyoutaku_number * 10
+                if win_player.direction == Direction.EAST:
+                    self.keep_direction = True
                 deltas[win_player.player_idx] += total_cost
-                deltas[roned_player.player_idx] -= total_cost
+                deltas[roned_player.player_idx] -= actual_cost
 
             self.kyoutaku_number = 0
             if win_player.direction == Direction.EAST:
@@ -1028,7 +1042,7 @@ class GameManager:
                         )
                     if player not in tenpai_players:
                         if player.direction == Direction.EAST:
-                            self.change_direction = True
+                            self.keep_direction = True
                         deltas[player.player_idx] -= int(
                             max_deltas_points / (4 - len(tenpai_players))
                         )
@@ -1110,11 +1124,11 @@ class GameManager:
         self.first_ron_player: Player = None
         self.ron_count: int = 0
 
-        # Change direction when new game
-        self.change_direction: bool = False
-
         # Init game
-        self.builder.new(self, self.change_direction)
+        self.builder.new(self, self.keep_direction)
+
+        # Change direction when new game
+        self.keep_direction: bool = False
         self.__create_new_round_log()
         self.deck.add_new_dora()
         self.game_log.append_event(
