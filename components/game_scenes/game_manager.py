@@ -227,6 +227,8 @@ class GameManager:
                     event.pos
                 ):
                     clicked_tiles = player.deck_field.click(event.pos)
+                    if clicked_tiles is None:
+                        return
                     for tile in clicked_tiles:
                         if tile.is_disabled:
                             continue

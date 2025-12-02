@@ -70,14 +70,18 @@ class Encoder:
         X[1, :, :] = plane
 
         # Planes 2-5: Every discards [self, right, across, left]
+        j = 0
         for i in self.pov_order:
             discards = player_list[i].discard_tiles
-            X[2 + i, :, :] = self._from_arr_to_plane(discards)
+            X[2 + j, :, :] = self._from_arr_to_plane(discards)
+            j += 1
 
         # Planes 6-9: Every melds [self, right, across, left]
+        j = 0
         for i in self.pov_order:
             meld_tiles = player_list[i].call_field.get_tiles_list()
-            X[6 + i, :, :] = self._from_arr_to_plane(meld_tiles)
+            X[6 + j, :, :] = self._from_arr_to_plane(meld_tiles)
+            j += 1
 
         # Plane 10: Dora indicators
         X[10, :, :] = self._from_arr_to_plane(game_state.deck.dora)
