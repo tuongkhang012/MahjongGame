@@ -1,5 +1,5 @@
 1. ~~Cập nhật vị trí chuột mỗi lần animation tile (detect mouse.pos())~~ (DONE)
-2. Player chọn chii muốn discard nếu có nhiều chii
+2. ~~Player chọn chii muốn discard nếu có nhiều chii~~ (DONE)
 3. ~~Button không hiển thị thì không hover được~~ (DONE)
 4. ~~Giải quyết kết thúc ván sau khi kêu Tsumo hoặc Ron~~ (DONE)
 5. ~~Tổng điểm cho player (cơ chế cộng và trừ điểm)~~ (DONE)
@@ -12,17 +12,21 @@
 12. ~~Sau khi riichi, nếu player bốc lên lá không thể hoàn thành được riichi thì sẽ phải discard chính lá đó~~ (DONE)
 13. ~~Hòa nếu như có 4 Kan~~ (DONE)
 14. ~~Make move cho con bot shanten~~ (NO NEED)
-15. Nếu nó đưa ra discard con 5s, 5p, 5m mà có nhiều lá như thế thì ưu tiên chừa lá 5sr, 5pr, 5mr, bot chỉ Ankan
-16. ~~Nếu lá discard từ riichi bị lấy mất, lá tiếp theo discard của người riichi đó sẽ là lá riichi~~ (DONE)
-17. Cần array chứa những state final của game gần nhất - lên tới 6 game recent (cần thông tin, tay của 4 người chơi, discard 4 ng, meld 4 ng, 4 trạng thái riichi và dora)
-18. Encode lịch sử game vô AI, chỉnh lại cách AI coi rank
+15. ~~Nếu nó đưa ra discard con 5s, 5p, 5m mà có nhiều lá như thế thì ưu tiên chừa lá 5sr, 5pr, 5mr~~ (DONE)
+16. ~~Bot chỉ Ankan~~ (DONE)
+17. ~~Nếu lá discard từ riichi bị lấy mất, lá tiếp theo discard của người riichi đó sẽ là lá riichi~~ (DONE)
+18. Cần array chứa những state final của game gần nhất - lên tới 6 game recent (cần thông tin, tay của 4 người chơi, discard 4 ng, meld 4 ng, 4 trạng thái riichi và dora)
+19. Encode lịch sử game (6 recent games) vô AI
+20. Encode chỉnh lại cách AI coi rank.
+21. Kuikae
+22. Render lại call tile nằm ngang của màn hình thắng
 
 ### Màn hình
 
-1\*. Start menu
+1\*. ~~Start menu~~ (DONE)
 
 2\*. Introduction (Hướng dẫn + luật chơi)
 
-3\*. Sau khi kết thúc, phải hiển thị kết quả trận đấu (Thắng, thua, hòa, chuyển điểm thế nào) (Còn phần hiển thị khi hòa)
+3\*. ~~Sau khi kết thúc, phải hiển thị kết quả trận đấu (Thắng, thua, hòa, chuyển điểm thế nào) (Còn phần hiển thị khi hòa)~~ (DONE)
 
-4\*. Nút chuyển màn (Chuyển đổi giữa các màn hình (chuyển scene))
+4\*. ~~Nút chuyển màn (Chuyển đổi giữa các màn hình (chuyển scene))~~ (DONE)

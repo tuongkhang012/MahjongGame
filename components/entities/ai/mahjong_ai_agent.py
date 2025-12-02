@@ -9,6 +9,7 @@ from utils.enums import ActionType, CallType
 from components.entities.ai.model import MahjongCNN
 from components.entities.ai.encoder import Encoder
 from components.entities.ai.helper import TILE_IDX, AKA_DORA_TILES
+from utils.enums import TileSource
 if typing.TYPE_CHECKING:
     from components.entities.player import Player
     from components.game_scenes.game_manager import GameManager
@@ -56,7 +57,26 @@ class MahjongAIAgent:
             return ActionType.TSUMO
 
         if CallType.KAN in player.can_call:
-            return ActionType.KAN
+            ANKAN_FLAG = False
+            player.build_kan(player.get_draw_tile())
+            for call in player.callable_tiles_list:
+                if len(call) == 4:
+                    IS_ANKAN = True
+
+                    for tile in call:
+                        if tile.source == TileSource.PLAYER:
+                            IS_ANKAN = False
+                            break
+
+                    if IS_ANKAN:
+                        ANKAN_FLAG = True
+                        break
+            if ANKAN_FLAG:
+                print("Choosing ANKAN")
+                return ActionType.KAN
+            else:
+                print("Skipping KAN")
+                return ActionType.SKIP
 
         X = self.encoder.empty_plane()
         self.encoder.change_POV(player.player_idx)
@@ -73,11 +93,12 @@ class MahjongAIAgent:
             else:
                 return ActionType.SKIP
 
-        # 5) Pon / Chi decisions
+        # Pon / Chi decisions
         if CallType.PON in player.can_call:
             with torch.no_grad():
                 _, _, out_pon, _ = self.pon_model(x)
             probs_pon = torch.softmax(out_pon, dim=-1)[0]
+            print("Test:", torch.softmax(out_pon, dim=-1))
             print("Pon probs:", probs_pon)
             if probs_pon[1].item() > 0.5:
                 return ActionType.PON
@@ -88,7 +109,7 @@ class MahjongAIAgent:
             with torch.no_grad():
                 _, out_chi, _, _ = self.chi_model(x)
             probs_chi = torch.softmax(out_chi, dim=-1)[0]
-            print("Chi probs:", probs_chi)
+            print("Chi probs:", probs_chi.argmax())
             prob_list = list(map(lambda prob: prob.item(), probs_chi))
             if prob_list.index(max(prob_list)) == 0:
                 return ActionType.SKIP

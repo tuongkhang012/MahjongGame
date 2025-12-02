@@ -157,7 +157,7 @@ class Player:
             + [tile]
         )
 
-    def build_kan(self, tile: Tile) -> bool:
+    def build_kan(self, tile: Tile) -> (bool, "Player"):
         self.callable_tiles_list = []
         is_kakan = False
         from_player: Player = None
