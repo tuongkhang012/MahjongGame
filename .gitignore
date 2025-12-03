@@ -1,5 +1,6 @@
 # game log relative
 log/*.json
+.history/
 
 # test file
 test.py

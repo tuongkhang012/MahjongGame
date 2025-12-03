@@ -29,7 +29,6 @@ class GameHistoryData(TypedDict):
     kyoutaku_number: int
     tsumi_number: int
     call_order: list[int]
-    calling_tile: TileData
     current_direction: int
     direction: list[int]
     action: int
@@ -38,6 +37,7 @@ class GameHistoryData(TypedDict):
     latest_discard_tile_hand136_idx: int
     latest_called_tile_hand136_idx: int
     calling_player: int
+    end_game: bool
 
     # Wind
     round_direction: int

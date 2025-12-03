@@ -5,6 +5,7 @@ from utils.enums import ActionType, CallType
 import typing
 from mahjong.tile import TilesConverter
 from utils.game_history_data_dict import GameHistoryData
+import os
 
 if typing.TYPE_CHECKING:
     from components.entities.buttons.tile import Tile
@@ -54,8 +55,9 @@ class GameEventLog:
 
         if data:
             log_name = data["from_log_name"]
-            with open(f"log/{log_name}.json") as file:
+            with open(f"log/{log_name}.json", "r") as file:
                 json_data = json.load(file)
+            os.remove(f"log/{log_name}.json")
             self.rounds = json_data["rounds"]
             self.round = json_data["rounds"][-1]
             self.events = json_data["rounds"][-1]["events"]

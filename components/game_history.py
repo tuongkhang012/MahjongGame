@@ -22,6 +22,7 @@ class GameHistory:
     def update(self, data: GameHistoryData):
         if self.data is None:
             self.data = {}
+        self.data["end_game"] = data["end_game"]
         self.data["death_wall"] = data["death_wall"]
         self.data["discards"] = data["discards"]
         self.data["already_discards"] = data["already_discards"]

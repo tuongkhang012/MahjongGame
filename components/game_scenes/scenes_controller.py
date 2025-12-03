@@ -5,14 +5,17 @@ import pygame
 from pygame import Surface
 import typing
 from typing import Any
-from utils.helper import build_center_rect
+from utils.helper import build_center_rect, get_data_from_file
 from components.game_scenes.popup.after_match import AfterMatchPopup
 from components.entities.mouse import Mouse
 import datetime
 from components.game_history import GameHistory
+from components.entities.deck import Deck
+from components.game_scenes.game_manager import GameManager
+import os
+import json
 
 if typing.TYPE_CHECKING:
-    from components.game_scenes.game_manager import GameManager
     from components.game_scenes.main_menu import MainMenu
     from components.entities.buttons.tile import Tile
     from components.entities.buttons.button import Button
@@ -23,6 +26,8 @@ class ScenesController:
     __scene: GameScene
     __screen: Surface
     __popup_screen: "Popup" = None
+
+    game_manager: "GameManager" = None
 
     def __init__(self, history: GameHistory):
         pygame.init()
@@ -48,6 +53,8 @@ class ScenesController:
         self.clickable_buttons: list["Button"] = []
 
         self.history = history
+
+        self.deck = Deck(self.history.data["seed"] if self.history.data else None)
 
     def change_scene(self, scene: GameScene):
         self.__scene = scene
@@ -115,14 +122,17 @@ class ScenesController:
         for event in pygame.event.get():
             match event.type:
                 case pygame.QUIT:
-                    self.game_manager.game_log.end_round(self.game_manager.player_list)
-                    log_name = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
-                    self.game_manager.game_log.export(log_name)
+                    if self.game_manager:
+                        self.game_manager.game_log.end_round(
+                            self.game_manager.player_list
+                        )
+                        log_name = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+                        self.game_manager.game_log.export(log_name)
 
-                    data = self.game_manager.__dict__()
-                    data["from_log_name"] = f"{log_name}"
-                    self.history.update(data)
-                    self.history.export()
+                        data = self.game_manager.__dict__()
+                        data["from_log_name"] = f"{log_name}"
+                        self.history.update(data)
+                        self.history.export()
                     return {"exit": True}
                 case pygame.MOUSEBUTTONDOWN:
                     if self.__popup_screen:
@@ -149,8 +159,42 @@ class ScenesController:
                             if self.game_manager.animation_tile is None:
                                 self.game_manager.handle_event(event)
                         case GameScene.START:
-                            quit_event = self.start_menu.handle_event(event)
-                            if quit_event:
+                            action = self.start_menu.handle_event(event)
+                            log_name = None
+                            end_game = False
+                            if self.history.data:
+                                log_name = self.history.data["from_log_name"]
+
+                            if action == "New Game":
+                                if self.history.data:
+                                    end_game = self.history.data["end_game"]
+                                self.history.data = None
+                                for entry in os.listdir(".history"):
+                                    file_path = os.path.join(".history", entry)
+                                    if os.path.isfile(file_path):
+                                        os.remove(file_path)
+                                if log_name:
+                                    with open(f"log/{log_name}.json", "r") as file:
+                                        json_data = json.load(file)
+                                        if (
+                                            len(json_data["rounds"]) > 0
+                                            and not end_game
+                                        ):
+                                            json_data["rounds"].remove(
+                                                json_data["rounds"][-1]
+                                            )
+                                    if len(json_data["rounds"]) == 0:
+                                        os.remove(f"log/{log_name}.json")
+                                    else:
+                                        with open(f"log/{log_name}.json", "w") as file:
+                                            json.dump(json_data, file)
+
+                            # Create game manager
+                            self.create_game_manager()
+
+                            if action == "New Game" or action == "Continue":
+                                self.change_scene(GameScene.GAME)
+                            elif action == "Quit":
                                 return {"exit": True}
 
                 case pygame.MOUSEMOTION:
@@ -168,6 +212,32 @@ class ScenesController:
                             self.start_menu.handle_event(event)
 
         return {"exit": False}
+
+    def create_game_manager(self):
+        import sys
+
+        # Run game
+        if len(sys.argv) > 1 and any([argv.startswith("data=") for argv in sys.argv]):
+            data = get_data_from_file(
+                list(filter(lambda argv: argv.startswith("data="), sys.argv))[0].split(
+                    "="
+                )[-1]
+            )
+            self.game_manager = GameManager(
+                self.get_render_surface(),
+                self,
+                init_deck=self.deck,
+                game_history=self.history,
+                start_data=data,
+            )
+        else:
+            self.game_manager = GameManager(
+                self.get_render_surface(),
+                self,
+                init_deck=self.deck,
+                game_history=self.history,
+            )
+        self.handle_scene(GameScene.GAME, self.game_manager)
 
     def __create_after_match_popup(self, data: AfterMatchData) -> Surface:
         surface = self.create_popup_surface(0.8)
