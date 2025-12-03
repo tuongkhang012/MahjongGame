@@ -131,6 +131,7 @@ class GameManager:
         )
 
         self.game_history = game_history
+
         if self.game_history.data is None:
             # Init game
             self.builder.new(self)
@@ -1127,6 +1128,10 @@ class GameManager:
 
         self.game_log.end_round(self.player_list, deltas)
 
+        game_history_data = self.__dict__()
+        game_history_data["end_game"] = True
+        self.game_history.update(self.__dict__())
+        self.game_history.export()
         self.scenes_controller.popup(GamePopup.AFTER_MATCH, popup_data)
 
     def __create_new_round_log(self):
@@ -1192,6 +1197,7 @@ class GameManager:
     def __dict__(self):
 
         data: GameHistoryData = {
+            "end_game": False,
             "seed": self.deck.random_seed,
             "death_wall": self.__map_tiles_data(self.deck.death_wall),
             "full_deck": self.__map_tiles_data(self.deck.full_deck),
@@ -1218,7 +1224,6 @@ class GameManager:
             "tsumi_number": self.tsumi_number,
             "latest_draw_tile_idx": [],
             "call_order": list(map(lambda player: player.player_idx, self.call_order)),
-            "calling_tile": None,
             "action": self.action.value if self.action else None,
             "prev_action": self.prev_action.value if self.prev_action else None,
             "prev_called_player": (

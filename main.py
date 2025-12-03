@@ -17,9 +17,13 @@ for entry in os.listdir(".history/"):
     if os.path.isfile(file_path):
         files.append(file_path)
 if len(files) > 0:
-    with open(files[-1], "+r") as json_data:
-        game_history = GameHistory(json.load(json_data))
-    # os.remove(files[-1])
+    with open(files[-1], "+r") as file:
+        json_data = json.load(file)
+    if not json_data["end_game"]:
+        game_history = GameHistory(json_data)
+        os.remove(files[-1])
+    else:
+        game_history = GameHistory()
 else:
     game_history = GameHistory()
 
@@ -27,31 +31,11 @@ else:
 # Init Scene controller
 scenes_controller = ScenesController(game_history)
 
-# Run game
-if len(sys.argv) > 1 and any([argv.startswith("data=") for argv in sys.argv]):
-    data = get_data_from_file(
-        list(filter(lambda argv: argv.startswith("data="), sys.argv))[0].split("=")[-1]
-    )
-    game_manager = GameManager(
-        scenes_controller.get_render_surface(),
-        scenes_controller,
-        init_deck=Deck(),
-        game_history=game_history,
-        start_data=data,
-    )
-else:
-    game_manager = GameManager(
-        scenes_controller.get_render_surface(),
-        scenes_controller,
-        init_deck=Deck(),
-        game_history=game_history,
-    )
 
 start_menu = MainMenu(scenes_controller.get_render_surface(), scenes_controller)
 running = True
 
 # Add handler for each scene
-scenes_controller.handle_scene(GameScene.GAME, game_manager)
 scenes_controller.handle_scene(GameScene.START, start_menu)
 while running:
     running = scenes_controller.render()

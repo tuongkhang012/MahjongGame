@@ -117,7 +117,7 @@ class MainMenu:
                     self.new_game_button.check_collidepoint(local_mouse)
                     and self.new_game_button.is_disabled == False
                 ):
-                    self.scenes_controller.change_scene(scene=GameScene.GAME)
+                    return "New Game"
 
                 # Click continue button
                 if (
@@ -127,14 +127,14 @@ class MainMenu:
                     self.scenes_controller.change_scene(scene=GameScene.GAME)
 
                 if self.instruction_button.check_collidepoint(local_mouse):
-                    pass
+                    return "Continue"
 
                 # Click quit button
                 if (
                     self.quit_button.check_collidepoint(local_mouse)
                     and self.new_game_button.is_disabled == False
                 ):
-                    return True
+                    return "Quit"
 
             case pygame.MOUSEMOTION:
                 self.new_game_button.unhovered()
