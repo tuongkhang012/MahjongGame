@@ -59,6 +59,7 @@ class Tile(Button):
 
         # Riichi discard Tile
         self.__is_riichi_discard: bool = False
+        self.source = TileSource.DRAW
 
     def update_hover(self):
         """Handles all frame-by-frame logic, like animation."""

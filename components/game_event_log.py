@@ -4,6 +4,7 @@ from mahjong.meld import Meld
 from utils.enums import ActionType, CallType
 import typing
 from mahjong.tile import TilesConverter
+from utils.game_history_data_dict import GameHistoryData
 
 if typing.TYPE_CHECKING:
     from components.entities.buttons.tile import Tile
@@ -48,15 +49,28 @@ class GameRoundLog(TypedDict):
 class GameEventLog:
     rounds: list[GameRoundLog]
 
-    def __init__(self):
+    def __init__(self, data: GameHistoryData):
+        import json
+
+        if data:
+            log_name = data["from_log_name"]
+            with open(f"log/{log_name}.json") as file:
+                json_data = json.load(file)
+            self.rounds = json_data["rounds"]
+            self.round = json_data["rounds"][-1]
+            self.events = json_data["rounds"][-1]["events"]
+            print(self.round, self.events)
+            return
         self.rounds = []
         self.round = None
         self.events = []
 
-    def end_round(self, player_list: list["Player"], deltas: list[int]):
+    def end_round(self, player_list: list["Player"], deltas: list[int] = None):
+        self.round["turns"] = []
         for player in player_list:
             self.round["turns"].append(player.turn)
-        self.round["deltas"] = deltas
+        if deltas:
+            self.round["deltas"] = deltas
         self.rounds.append(self.round)
 
     def new_rounds(
@@ -160,4 +174,4 @@ class GameEventLog:
         file_path.parent.mkdir(parents=True, exist_ok=True)
 
         with open(file_path, "w+") as file:
-            json.dump(self.rounds, file, indent=2)
+            json.dump({"rounds": self.rounds}, file, indent=2)

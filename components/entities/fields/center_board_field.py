@@ -15,6 +15,7 @@ from utils.constants import (
     COLOR_WHITE,
     COLOR_BLUE,
     TILES_IMAGE_LINK,
+    COLOR_BLACK,
 )
 from components.entities.player import Player
 from shared.image_cutter import ImageCutter
@@ -359,7 +360,7 @@ class CenterBoardField(Field):
                 (subsurface_size[0], subsurface_size[1] / 2), pygame.SRCALPHA
             )
             font = Font(MADOU_FUTO_FONT, 20)
-            font_surface, font_rect = font.render(f"{player.points}", COLOR_WHITE)
+            font_surface, font_rect = font.render(f"{player.points}", COLOR_BLACK)
             center_pos = build_center_rect(half_surface, font_surface)
             subsurfaces_list[idx].blit(
                 font_surface,

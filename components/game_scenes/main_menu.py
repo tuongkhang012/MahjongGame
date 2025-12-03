@@ -46,7 +46,6 @@ class MainMenu:
             bg_color=UI_BUTTON_COLOR,
             border_color=COLOR_WHITE,
         )
-        self.continue_button.disabled()
         self.instruction_button = UIButton(
             text="How to play",
             font=Font(MINTSODA_FONT, UI_FONT_SIZE),
@@ -125,7 +124,7 @@ class MainMenu:
                     self.continue_button.check_collidepoint(local_mouse)
                     and self.new_game_button.is_disabled == False
                 ):
-                    pass
+                    self.scenes_controller.change_scene(scene=GameScene.GAME)
 
                 if self.instruction_button.check_collidepoint(local_mouse):
                     pass

@@ -13,9 +13,11 @@ from utils.constants import (
     COMBINED_MODEL,
 )
 from components.game_builder import GameBuilder
-from utils.enums import Direction, ActionType, CallType, GamePopup
+from utils.enums import Direction, ActionType, CallType, GamePopup, TileType
 
 from utils.game_data_dict import AfterMatchData
+from utils.game_history_data_dict import GameHistoryData, MeldData
+
 from pygame import Surface
 from pygame.event import Event
 from components.entities.player import Player
@@ -30,6 +32,7 @@ from components.entities.ai.mahjong_ai_agent import MahjongAIAgent
 from components.entities.buttons.chii import Chii
 from components.game_scenes.popup.choose_chii import ChiiPicker
 from components.game_scenes.popup.popup import Popup
+from components.game_history import GameHistory
 
 # Tile
 from components.entities.buttons.tile import Tile
@@ -98,6 +101,7 @@ class GameManager:
         screen: Surface,
         scenes_controller: "ScenesController",
         init_deck: Deck,
+        game_history: GameHistory,
         start_data=None,
     ):
         # Display setting
@@ -110,7 +114,7 @@ class GameManager:
         self.last_time = pygame.time.get_ticks()  # For calculating delta time
 
         # Game log
-        self.game_log = GameEventLog()
+        self.game_log = GameEventLog(game_history.data)
 
         # Init deck
         self.builder = GameBuilder(self.screen, self.clock, init_deck, start_data)
@@ -126,13 +130,18 @@ class GameManager:
             COMBINED_MODEL, COMBINED_MODEL, COMBINED_MODEL, COMBINED_MODEL
         )
 
-        # Init game
-        self.builder.new(self)
-        self.__create_new_round_log()
-        self.deck.add_new_dora()
-        self.game_log.append_event(
-            ActionType.DORA, self.deck.death_wall[self.deck.current_dora_idx]
-        )
+        self.game_history = game_history
+        if self.game_history.data is None:
+            # Init game
+            self.builder.new(self)
+            self.__create_new_round_log()
+            self.deck.add_new_dora()
+            self.game_log.append_event(
+                ActionType.DORA, self.deck.death_wall[self.deck.current_dora_idx]
+            )
+        else:
+            # Init continue game
+            self.builder.continue_game(self)
 
         self.call_button_field = CallButtonField(self.screen)
         self.scenes_controller = scenes_controller
@@ -333,7 +342,6 @@ class GameManager:
                         self.deck.full_deck,
                     )
                 )
-
                 for same_tile in same_tile_list:
                     same_tile.highlighted()
 
@@ -1031,30 +1039,75 @@ class GameManager:
                 "ryuukyoku_reason": None,
             }
         else:
-            max_deltas_points = 30
-            tenpai_players: list[Player] = []
-            for player in self.player_list:
-                if count_shanten_points(player.player_deck) == 0:
-                    tenpai_players.append(player)
-            if not (len(tenpai_players) == 0 or len(tenpai_players) == 4):
+            # Check nagashi mangan player
+            is_nagashi_mangan = False
+            nagashi_mangan_player = None
+            for direction_value in Direction.value:
+                player = self.find_player(Direction(direction_value))
+                if len(player.get_all_discarded_tiles()) == len(player.discard_tiles):
+                    for tile in player.discard_tiles:
+                        if tile.type not in [TileType.DRAGON, TileType.WIND] and not (
+                            tile.number == 1 or tile.number == 9
+                        ):
+                            break
+                    is_nagashi_mangan = True
+                    nagashi_mangan_player = player
+                    break
+
+            # Handle nagashi mangan
+            if is_nagashi_mangan:
+                result = self.builder.calculate_player_score(is_nagashi_mangan=True)
+                total_cost = int(result.cost["total"] / 100)
+                deltas[nagashi_mangan_player.player_idx] += total_cost
+
+                if nagashi_mangan_player.direction == Direction.EAST:
+                    for i in range(0, len(deltas)):
+                        if i == nagashi_mangan_player.player_idx:
+                            continue
+
+                        deltas[i] -= int(total_cost / 3)
+                else:
+                    for i in range(0, len(deltas)):
+                        if i == nagashi_mangan_player.player_idx:
+                            continue
+                        if self.player_list[i].direction == Direction.EAST:
+                            deltas[i] -= int(total_cost / 4) * 2
+                        else:
+                            deltas[i] -= int(total_cost / 4)
+
                 for player in self.player_list:
-                    if player in tenpai_players:
+                    if count_shanten_points(player.player_deck) == 0:
                         if player.direction == Direction.EAST:
                             self.keep_direction = True
-                        deltas[player.player_idx] += int(
-                            max_deltas_points / len(tenpai_players)
-                        )
-                    if player not in tenpai_players:
-                        deltas[player.player_idx] -= int(
-                            max_deltas_points / (4 - len(tenpai_players))
-                        )
+
+            # Tenpai player
+            else:
+                max_deltas_points = 30
+                tenpai_players: list[Player] = []
+                for player in self.player_list:
+                    if count_shanten_points(player.player_deck) == 0:
+                        tenpai_players.append(player)
+                if not (len(tenpai_players) == 0 or len(tenpai_players) == 4):
+                    for player in self.player_list:
+                        if player in tenpai_players:
+                            if player.direction == Direction.EAST:
+                                self.keep_direction = True
+                            deltas[player.player_idx] += int(
+                                max_deltas_points / len(tenpai_players)
+                            )
+                        if player not in tenpai_players:
+                            deltas[player.player_idx] -= int(
+                                max_deltas_points / (4 - len(tenpai_players))
+                            )
+
+                self.game_log.round["ryuukyoku_tenpai"] = (
+                    None
+                    if len(tenpai_players) == 0
+                    else list(map(lambda player: player.player_idx, tenpai_players))
+                )
 
             self.game_log.round["ryuukyoku"] = True
-            self.game_log.round["ryuukyoku_tenpai"] = (
-                None
-                if len(tenpai_players) == 0
-                else list(map(lambda player: player.player_idx, tenpai_players))
-            )
+
             self.game_log.round["deltas"] = deltas
             popup_data: AfterMatchData = {
                 "deltas": deltas,
@@ -1073,7 +1126,6 @@ class GameManager:
             self.player_list[idx].points += delta * 100
 
         self.game_log.end_round(self.player_list, deltas)
-        self.game_log.export(datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S"))
 
         self.scenes_controller.popup(GamePopup.AFTER_MATCH, popup_data)
 
@@ -1136,3 +1188,118 @@ class GameManager:
         self.game_log.append_event(
             ActionType.DORA, self.deck.death_wall[self.deck.current_dora_idx]
         )
+
+    def __dict__(self):
+
+        data: GameHistoryData = {
+            "seed": self.deck.random_seed,
+            "death_wall": self.__map_tiles_data(self.deck.death_wall),
+            "full_deck": self.__map_tiles_data(self.deck.full_deck),
+            "draw_deck": self.__map_tiles_data(self.deck.draw_deck),
+            "dora": self.__map_tiles_data(self.deck.dora),
+            "round_direction": self.round_direction.value,
+            "round_direction_number": self.round_direction_number,
+            "discards": [],
+            "already_discards": [],
+            "melds": [],
+            "hands": [],
+            "points": [],
+            "can_call": [],
+            "callable_tiles_list": [],
+            "reaches": self.game_log.round["reaches"],
+            "reach_turn": self.game_log.round["reach_turns"],
+            "is_reaches": [],
+            "is_riichi_furiten": [],
+            "is_temporary_furiten": [],
+            "is_discard_furiten": [],
+            "current_direction": self.current_turn.value,
+            "direction": [],
+            "kyoutaku_number": self.kyoutaku_number,
+            "tsumi_number": self.tsumi_number,
+            "latest_draw_tile_idx": [],
+            "call_order": list(map(lambda player: player.player_idx, self.call_order)),
+            "calling_tile": None,
+            "action": self.action.value if self.action else None,
+            "prev_action": self.prev_action.value if self.prev_action else None,
+            "prev_called_player": (
+                self.prev_called_player.player_idx if self.prev_called_player else None
+            ),
+            "latest_discard_tile_hand136_idx": (
+                self.latest_discarded_tile.hand136_idx
+                if self.latest_discarded_tile
+                else None
+            ),
+            "latest_called_tile_hand136_idx": (
+                self.latest_called_tile.hand136_idx if self.latest_called_tile else None
+            ),
+            "latest_draw_tile_hand136_idx": [],
+            "calling_player": (
+                self.calling_player.player_idx if self.calling_player else None
+            ),
+        }
+
+        for player in self.player_list:
+            data["discards"].append(self.__map_tiles_data(player.discard_tiles))
+            data["already_discards"].append(
+                self.__map_tiles_data(player.get_all_discarded_tiles())
+            )
+            if player.can_call:
+                data["can_call"].append(
+                    list(map(lambda call: call.value, player.can_call))
+                )
+            else:
+                data["can_call"].append([])
+            full_callable_list = []
+            for callable_list in player.callable_tiles_list:
+                callable = self.__map_tiles_data(callable_list)
+                full_callable_list.append(callable)
+            data["callable_tiles_list"].append(full_callable_list)
+            melds = []
+            data["latest_draw_tile_hand136_idx"].append(
+                player.get_draw_tile().hand136_idx
+            )
+            for call in player.call_list:
+
+                data_meld: MeldData = {
+                    "from_who": call.from_who,
+                    "opened": call.is_opened,
+                    "tiles": self.__map_tiles_data(call.tiles),
+                    "called_tile": (
+                        call.tiles.index(call.another_player_tiles)
+                        if call.another_player_tiles
+                        else None
+                    ),
+                    "type": call.type.value,
+                    "who": call.who,
+                    "kakan": call.is_kakan,
+                }
+                melds.append(data_meld)
+            data["melds"].append(melds)
+            data["hands"].append(self.__map_tiles_data(player.player_deck))
+            data["points"].append(player.points)
+            data["is_reaches"].append(True if player.is_riichi() > 0 else False)
+            data["is_riichi_furiten"].append(player.riichi_furiten)
+            data["is_temporary_furiten"].append(player.temporary_furiten)
+            data["is_discard_furiten"].append(player.discard_furiten)
+            data["direction"].append(player.direction.value)
+
+        print(data)
+        return data
+
+    def __map_tiles_data(self, tiles_list: list[Tile]):
+        from utils.game_history_data_dict import TileData
+
+        return list(
+            map(
+                lambda tile: {
+                    "hand136_idx": tile.hand136_idx,
+                    "riichi_discard": tile.is_discard_from_riichi(),
+                    "from_death_wall": tile.from_death_wall,
+                    "string": str(tile),
+                },
+                tiles_list,
+            )
+        )
+
+    def __to_str_list(self, iterable: list):
+        return list(map(lambda thing: str(thing), iterable))

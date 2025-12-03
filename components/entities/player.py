@@ -42,9 +42,6 @@ class Player:
     callable_tiles_list: list[list[Tile]]
     melds: list[Meld]
 
-    # Honba
-    honba: int
-
     # Riichi
     __is_riichi: bool = False
     __riichi_turn: int = None
@@ -53,6 +50,8 @@ class Player:
     discard_furiten: bool = False
     riichi_furiten: bool = False
     temporary_furiten: bool = False
+
+    __draw_tile: Tile = None
 
     # Skip yao9
     __skip_yao9: bool = False
@@ -65,7 +64,12 @@ class Player:
         full_deck: list[Tile],
         player_deck: list[Tile] = None,
         discard_tiles: list[Tile] = None,
+        already_discard_tiles: list[Tile] = None,
         call_tiles_list: list[Tile] = None,
+        call_list: list[Call] = None,
+        draw_tile: Tile = None,
+        can_call: list[Call] = [],
+        callable_tiles_list: list[list[Tile]] = [],
         agent: any = None,
     ):
         self.player_idx = player_idx
@@ -74,9 +78,11 @@ class Player:
         # Tile deck field init
         self.player_deck = player_deck if player_deck is not None else []
         self.discard_tiles = discard_tiles if discard_tiles is not None else []
-        self.__already_discard_tiles: list[Tile] = []
+        self.__already_discard_tiles: list[Tile] = (
+            already_discard_tiles if already_discard_tiles is not None else []
+        )
         self.call_tiles_list = call_tiles_list if call_tiles_list is not None else []
-        self.call_list: list[Call] = []
+        self.call_list = call_list if call_list is not None else []
 
         self.full_deck = full_deck
         self.screen = screen
@@ -95,8 +101,10 @@ class Player:
         )
 
         # Call init
-        self.can_call = []
-        self.callable_tiles_list = []
+        self.can_call = [] if can_call is not None else can_call
+        self.callable_tiles_list = (
+            [] if callable_tiles_list is not None else callable_tiles_list
+        )
         self.melds = []
 
         # Game properties
@@ -105,10 +113,11 @@ class Player:
         # Player information
         self.points = 25000
         self.turn = 0
-        self.honba = 0
 
         self.agent = agent
         self.game_manager = None
+
+        self.__draw_tile = draw_tile
 
     def draw(
         self,
@@ -530,7 +539,10 @@ class Player:
                 print(
                     f"Player {self.player_idx} is not winning with ron because discard furiten: {self.__winning_tiles} is in {self.__already_discard_tiles}"
                 )
+                self.discard_furiten = True
                 return False
+            else:
+                self.discard_furiten = False
 
         calculator = HandCalculator()
 
@@ -664,8 +676,11 @@ class Player:
 
         self.__skip_yao9 = False
 
-    def get_initial_direction(self):
+    def get_initial_direction(self) -> Direction:
         return self.__initial_direction
+
+    def get_all_discarded_tiles(self) -> list[Tile]:
+        return self.__already_discard_tiles
 
     def __eq__(self, value):
         if not isinstance(value, Player):

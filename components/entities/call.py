@@ -51,7 +51,7 @@ class Call:
                     and self.__check_having_same_amount_of_tiles(tiles, 3)
                 ):
                     raise ValueError(
-                        f"Wrong Pon format! The tiles are {list(map(lambda tile: tile.__str__(), tiles))} which are not the correct for Pon"
+                        f"Wrong Pon format! The tiles are {list(map(lambda tile: tile.__str__(True), tiles))} which are not the correct for Pon"
                     )
                 match (current_player_idx - from_player_idx) % 4:
                     case 1:
@@ -74,7 +74,7 @@ class Call:
 
         self.type = type
         self.tiles = tiles
-        self.from_who = from_player_idx
+        self.from_who = (from_player_idx - current_player_idx + 4) % 4
         self.who = current_player_idx
         self.another_player_tiles = self.__get_another_player_tile(tiles)
         self.meld = Meld(
