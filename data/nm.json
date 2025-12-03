@@ -1,0 +1,12 @@
+{
+  "player_deck": [
+    "19m19p19s1234567z",
+    "2233445566778m",
+    "2233445566778p",
+    "2233445566778s"
+  ],
+  "draw_deck": "9p8s7s6s5s4s3s2s1s9p8p7p6p5p4p3p2p1p9m8m7m6m5m4m3m2m1m1z",
+  "death_wall": "2m2m2s2s2p2p3m3m3s3s3p3p4m4p",
+  "direction": "SWNE",
+  "comment": "Need to disable bot calls"
+}
