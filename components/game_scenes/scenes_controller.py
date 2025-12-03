@@ -8,6 +8,8 @@ from typing import Any
 from utils.helper import build_center_rect
 from components.game_scenes.popup.after_match import AfterMatchPopup
 from components.entities.mouse import Mouse
+import datetime
+from components.game_history import GameHistory
 
 if typing.TYPE_CHECKING:
     from components.game_scenes.game_manager import GameManager
@@ -22,7 +24,7 @@ class ScenesController:
     __screen: Surface
     __popup_screen: "Popup" = None
 
-    def __init__(self):
+    def __init__(self, history: GameHistory):
         pygame.init()
         # pygame.mixer.init()
         # pygame.freetype.init()
@@ -44,6 +46,8 @@ class ScenesController:
 
         self.hoverable_buttons: list["Button"] = []
         self.clickable_buttons: list["Button"] = []
+
+        self.history = history
 
     def change_scene(self, scene: GameScene):
         self.__scene = scene
@@ -93,6 +97,8 @@ class ScenesController:
             case GameScene.GAME:
                 self.__screen = self.game_manager.render()
             case GameScene.START:
+                if self.history.data is None:
+                    self.start_menu.continue_button.disabled()
                 self.__screen = self.start_menu.render()
 
         self.render_popup()
@@ -109,6 +115,14 @@ class ScenesController:
         for event in pygame.event.get():
             match event.type:
                 case pygame.QUIT:
+                    self.game_manager.game_log.end_round(self.game_manager.player_list)
+                    log_name = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+                    self.game_manager.game_log.export(log_name)
+
+                    data = self.game_manager.__dict__()
+                    data["from_log_name"] = f"{log_name}"
+                    self.history.update(data)
+                    self.history.export()
                     return {"exit": True}
                 case pygame.MOUSEBUTTONDOWN:
                     if self.__popup_screen:

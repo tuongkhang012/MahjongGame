@@ -1,11 +1,11 @@
 {
   "player_deck": [
-    "1246648m169s345z",
-    "12344457s456m99p",
+    "289m12p112334s99p",
     "13m134r7p28s1124z",
-    "5582m2468p3r26s2z"
+    "5589m2468p3r26s2z",
+    "1246648m268s333z"
   ],
-  "draw_deck": "9s6s",
+  "draw_deck": "2z4z1m5m6m7p2m8p7z7p9s4s8p5z7z5p9m6p6p7m2p4p7s6z7s1z9p5p5s5z9p6s4z7z1z2z4s5s4s7m3m2p7s8s8s1m1p6m4m3m6z4m9s8p5s3p1p3p1s6p6s5z6z4p7p1s2mrm3s7m",
   "death_wall": "4z3m7z3z8m3p9s7s9s5z9m7m6z5p",
-  "direction": "ESWN"
+  "direction": "SWNE"
 }

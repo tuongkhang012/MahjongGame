@@ -14,6 +14,8 @@ from utils.constants import (
     MADOU_FUTO_FONT,
     COLOR_WHITE,
     COLOR_BLUE,
+    TILES_IMAGE_LINK,
+    COLOR_BLACK,
 )
 from components.entities.player import Player
 from shared.image_cutter import ImageCutter
@@ -35,6 +37,14 @@ class CenterBoardField(Field):
     # Timer
     start_timer: float
 
+    # Tsumi
+    __tsumi_number: int
+    __tsumi_image: Surface
+
+    # Kyoutaku
+    __kyoutaku_number: int
+    __kyoutaku_image: Surface
+
     def __init__(
         self,
         screen: Surface,
@@ -42,6 +52,8 @@ class CenterBoardField(Field):
         directions_list: list[Direction],
         deck: Deck,
         player_list: list[Player],
+        tsumi_number: int,
+        kyoutaku_number: int,
     ):
         super().__init__()
         self.__directions_list = directions_list
@@ -55,9 +67,17 @@ class CenterBoardField(Field):
         self.deck = deck
         self.screen = screen
         self.image_cutter = ImageCutter(DIRECTION_IMAGE_LINK)
+        self.tile_image_cutter = ImageCutter(TILES_IMAGE_LINK)
         self.__direction_width = DIRECTION_WIDTH
         self.__direction_height = DIRECTION_HEIGHT
         self.start_timer = pygame.time.get_ticks()
+
+        # Tsumi, kyoutaku related
+        self.__kyoutaku_image = self.tile_image_cutter.cut_image(0, 1, 32, 32, True)
+        self.__kyoutaku_number = kyoutaku_number
+
+        self.__tsumi_image = self.tile_image_cutter.cut_image(1, 1, 32, 32, True)
+        self.__tsumi_number = tsumi_number
 
     def render(self, turn: Direction):
         self.surface = self.build_center_surface(turn)
@@ -106,16 +126,16 @@ class CenterBoardField(Field):
             self.render_surface(surface, discard_field.surface, relative_position)
 
         # Build dora surface
-        dora_surface = self.build_dora_tiles_surface()
+        dora_surface = self.build_dora_kyoutaku_tsumi_surface()
 
         surface.blit(dora_surface, (0, 0))
         return surface
 
-    def build_dora_tiles_surface(self) -> Surface:
+    def build_dora_kyoutaku_tsumi_surface(self) -> Surface:
         TEXT_AND_TILE_MARGIN = 10
-
+        DORA_KYOUTAKU_PADDING = 10
         # Build dora surface:
-        dora_surface = Surface(
+        dora_kyoutaku_tsumi_surface = Surface(
             (CENTER_BOARD_FIELD_SIZE[0] / 3, CENTER_BOARD_FIELD_SIZE[1] / 3),
             pygame.SRCALPHA,
         )
@@ -157,10 +177,98 @@ class CenterBoardField(Field):
             )
             dora_tile.render(dora_tiles_surface)
             start_x_width += dora_tile.get_surface().get_width()
-        center_pos = build_center_rect(dora_surface, dora_tiles_surface)
-        dora_surface.blit(dora_tiles_surface, (center_pos.x, center_pos.y))
 
-        return dora_surface
+        # Wrap all surface
+        kyoutaku_surface = self.build_kyoutaku_tsumi_bar_surface(
+            dora_kyoutaku_tsumi_surface, True
+        )
+
+        tsumi_surface = self.build_kyoutaku_tsumi_bar_surface(
+            dora_kyoutaku_tsumi_surface, False
+        )
+
+        wrap_all_surface = Surface(
+            (
+                dora_kyoutaku_tsumi_surface.get_width(),
+                dora_tiles_surface.get_height()
+                + kyoutaku_surface.get_height()
+                + DORA_KYOUTAKU_PADDING,
+            ),
+            pygame.SRCALPHA,
+        )
+
+        center_pos = build_center_rect(wrap_all_surface, dora_tiles_surface)
+
+        wrap_all_surface.blit(dora_tiles_surface, (center_pos.x, 0))
+
+        wrap_all_surface.blit(
+            kyoutaku_surface,
+            (0, dora_tiles_surface.get_height() + DORA_KYOUTAKU_PADDING),
+        )
+        wrap_all_surface.blit(
+            tsumi_surface,
+            (
+                dora_kyoutaku_tsumi_surface.get_width() / 2,
+                dora_tiles_surface.get_height() + DORA_KYOUTAKU_PADDING,
+            ),
+        )
+
+        center_pos = build_center_rect(dora_kyoutaku_tsumi_surface, wrap_all_surface)
+        dora_kyoutaku_tsumi_surface.blit(wrap_all_surface, (center_pos.x, center_pos.y))
+        return dora_kyoutaku_tsumi_surface
+
+    def build_kyoutaku_tsumi_bar_surface(
+        self, wrap_surface: Surface, kyoutaku: bool
+    ) -> Surface:
+        PADDING = 10
+        if kyoutaku:
+            target_surface = self.__kyoutaku_image
+            number = self.__kyoutaku_number
+        else:
+            target_surface = self.__tsumi_image
+            number = self.__tsumi_number
+
+        # Build  bar surface
+        text_font = Font(MADOU_FUTO_FONT, 14)
+        text_surface, _ = text_font.render(f"X {number}", COLOR_WHITE)
+        draw_hitbox(text_surface)
+        surface = Surface(
+            (
+                wrap_surface.get_width() / 2,
+                max(text_surface.get_height(), target_surface.get_height()),
+            ),
+            pygame.SRCALPHA,
+        )
+        tmp_center_pos_x = 0
+        center_pos = build_center_rect(
+            surface,
+            Surface(
+                (
+                    text_surface.get_width() + target_surface.get_width() + PADDING,
+                    target_surface.get_height(),
+                ),
+                pygame.SRCALPHA,
+            ),
+        )
+        surface.blit(target_surface, (center_pos.x, center_pos.y))
+        tmp_center_pos_x = center_pos.x
+
+        center_pos = build_center_rect(
+            surface,
+            Surface(
+                (
+                    text_surface.get_width() + target_surface.get_width() + PADDING,
+                    text_surface.get_height(),
+                ),
+                pygame.SRCALPHA,
+            ),
+        )
+        surface.blit(
+            text_surface,
+            (tmp_center_pos_x + target_surface.get_width() + PADDING, center_pos.y),
+        )
+        draw_hitbox(surface, (255, 255, 255))
+        return surface
 
     def build_discard_surface_position(self, surface: Surface, idx: int) -> Rect:
         match idx:
@@ -213,9 +321,23 @@ class CenterBoardField(Field):
                 and math.floor((pygame.time.get_ticks() - self.start_timer) / 500) % 2
                 == 0
             ):
-                turn_surface = self.draw_turn_full()
+                is_furiten = (
+                    self.__player_list[idx].temporary_furiten
+                    or self.__player_list[idx].riichi_furiten
+                    or self.__player_list[idx].discard_furiten
+                )
+                turn_surface = self.draw_turn_full(
+                    self.__player_list[idx].is_riichi(), is_furiten
+                )
             else:
-                turn_surface = self.draw_turn_empty()
+                is_furiten = (
+                    self.__player_list[idx].temporary_furiten
+                    or self.__player_list[idx].riichi_furiten
+                    or self.__player_list[idx].discard_furiten
+                )
+                turn_surface = self.draw_turn_empty(
+                    self.__player_list[idx].is_riichi(), is_furiten
+                )
             subsurface_size = subsurfaces_list[idx].get_size()
             half_surface = Surface(
                 (subsurface_size[0], subsurface_size[1] / 2), pygame.SRCALPHA
@@ -238,7 +360,7 @@ class CenterBoardField(Field):
                 (subsurface_size[0], subsurface_size[1] / 2), pygame.SRCALPHA
             )
             font = Font(MADOU_FUTO_FONT, 20)
-            font_surface, font_rect = font.render(f"{player.points}", COLOR_WHITE)
+            font_surface, font_rect = font.render(f"{player.points}", COLOR_BLACK)
             center_pos = build_center_rect(half_surface, font_surface)
             subsurfaces_list[idx].blit(
                 font_surface,
@@ -324,22 +446,34 @@ class CenterBoardField(Field):
         )
         return center_field_surface
 
-    def draw_turn_empty(self) -> Surface:
+    def draw_turn_empty(self, is_riichi: int, furiten: bool = False) -> Surface:
+        if furiten:
+            turn_bar_color = (255, 221, 0)
+        elif is_riichi >= 0:
+            turn_bar_color = (255, 0, 0)
+        else:
+            turn_bar_color = (255, 255, 255)
         turn_surface = Surface((100, 10), pygame.SRCALPHA)
         pygame.draw.rect(
             turn_surface,
-            (255, 255, 255),
+            turn_bar_color,
             turn_surface.get_rect(),
             2,
             border_radius=10,
         )
         return turn_surface
 
-    def draw_turn_full(self) -> Surface:
+    def draw_turn_full(self, is_riichi: int, furiten: bool = False) -> Surface:
+        if furiten:
+            turn_bar_color = (255, 221, 0)
+        elif is_riichi >= 0:
+            turn_bar_color = (255, 0, 0)
+        else:
+            turn_bar_color = (255, 255, 255)
         turn_surface = Surface((100, 10), pygame.SRCALPHA)
         pygame.draw.rect(
             turn_surface,
-            (255, 255, 255),
+            turn_bar_color,
             turn_surface.get_rect(),
             border_radius=10,
         )
@@ -353,3 +487,9 @@ class CenterBoardField(Field):
 
     def get_discard_fields(self):
         return self.__discards_fields
+
+    def update_kyoutaku_number(self, number: int):
+        self.__kyoutaku_number = number
+
+    def update_tsumi_number(self, number: int):
+        self.__tsumi_number = number

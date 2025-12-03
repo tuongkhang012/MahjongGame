@@ -10,7 +10,13 @@ class ImageCutter:
     def __init__(self, image: str):
         self.image = pygame.image.load(image).convert_alpha()
 
-    def cut_image(self, x: int, y: int, width: float, height: float) -> Surface:
+    def cut_image(
+        self, x: int, y: int, width: float, height: float, trim: bool = False
+    ) -> Surface:
+        if trim:
+            return self._trimmed_surface(
+                self.image.subsurface(Rect(x * width, y * height, width, height))
+            )
         return self.image.subsurface(Rect(x * width, y * height, width, height))
 
     def cut_tiles(
@@ -65,8 +71,8 @@ class ImageCutter:
         tile_surface = self.cut_image(
             x_left,
             y_top,
-            32,
-            32,
+            TILE_WIDTH,
+            TILE_HEIGHT,
         )
 
         return self._scale_surface(self._trimmed_surface(tile_surface), TILE_SCALE_BY)

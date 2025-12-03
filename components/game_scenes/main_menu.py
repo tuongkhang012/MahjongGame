@@ -32,8 +32,8 @@ class MainMenu:
         self.screen = screen.copy()
         self.scenes_controller = scenes_controller
         self.bg_image = pygame.image.load(MAIN_MENU_BACKGROUND)
-        self.start_button = UIButton(
-            text="Start Game",
+        self.new_game_button = UIButton(
+            text="New Game",
             font=Font(MINTSODA_FONT, UI_FONT_SIZE),
             text_color=UI_TEXT_COLOR,
             bg_color=UI_BUTTON_COLOR,
@@ -46,7 +46,6 @@ class MainMenu:
             bg_color=UI_BUTTON_COLOR,
             border_color=COLOR_WHITE,
         )
-        self.continue_button.disabled()
         self.instruction_button = UIButton(
             text="How to play",
             font=Font(MINTSODA_FONT, UI_FONT_SIZE),
@@ -76,8 +75,8 @@ class MainMenu:
         )
 
         # Start Button
-        self.start_button.update_position(0, 0, UI_BUTTON_SIZE[0], UI_BUTTON_SIZE[1])
-        self.start_button.render(main_menu_buttons_surface)
+        self.new_game_button.update_position(0, 0, UI_BUTTON_SIZE[0], UI_BUTTON_SIZE[1])
+        self.new_game_button.render(main_menu_buttons_surface)
         # Continue Button
         self.continue_button.update_position(
             0, UI_BUTTON_SIZE[1], UI_BUTTON_SIZE[0], UI_BUTTON_SIZE[1]
@@ -96,7 +95,7 @@ class MainMenu:
         )
         self.quit_button.render(main_menu_buttons_surface)
 
-        # self.start_button.render(self.screen)
+        # self.new_game_button.render(self.screen)
         draw_hitbox(main_menu_buttons_surface)
         center_pos = build_center_rect(self.screen, main_menu_buttons_surface)
         self.screen.blit(main_menu_buttons_surface, (center_pos.x, 380))
@@ -115,17 +114,17 @@ class MainMenu:
             case pygame.MOUSEBUTTONDOWN:
                 # Click start button
                 if (
-                    self.start_button.check_collidepoint(local_mouse)
-                    and self.start_button.is_disabled == False
+                    self.new_game_button.check_collidepoint(local_mouse)
+                    and self.new_game_button.is_disabled == False
                 ):
                     self.scenes_controller.change_scene(scene=GameScene.GAME)
 
                 # Click continue button
                 if (
                     self.continue_button.check_collidepoint(local_mouse)
-                    and self.start_button.is_disabled == False
+                    and self.new_game_button.is_disabled == False
                 ):
-                    pass
+                    self.scenes_controller.change_scene(scene=GameScene.GAME)
 
                 if self.instruction_button.check_collidepoint(local_mouse):
                     pass
@@ -133,21 +132,21 @@ class MainMenu:
                 # Click quit button
                 if (
                     self.quit_button.check_collidepoint(local_mouse)
-                    and self.start_button.is_disabled == False
+                    and self.new_game_button.is_disabled == False
                 ):
                     return True
 
             case pygame.MOUSEMOTION:
-                self.start_button.unhovered()
+                self.new_game_button.unhovered()
                 self.continue_button.unhovered()
                 self.instruction_button.unhovered()
                 self.quit_button.unhovered()
 
                 is_hovering = False
-                if self.start_button.check_collidepoint(local_mouse):
-                    self.start_button.hovered()
+                if self.new_game_button.check_collidepoint(local_mouse):
+                    self.new_game_button.hovered()
                     is_hovering = (
-                        True if self.start_button.is_disabled == False else False
+                        True if self.new_game_button.is_disabled == False else False
                     )
                 if self.continue_button.check_collidepoint(local_mouse):
                     self.continue_button.hovered()

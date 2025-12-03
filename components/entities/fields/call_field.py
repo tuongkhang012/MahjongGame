@@ -370,11 +370,24 @@ class CallField(TilesField):
                     tile.hidden = False
                 call.another_player_tiles.update_tile_surface((self.player_idx - 1) % 4)
             else:
-                tiles_list = call.tiles
-                tiles_list[0].hidden = True
-                tiles_list[-1].hidden = True
-                tiles_list[1].hidden = False
-                tiles_list[2].hidden = False
+                for idx, tile in enumerate(call.tiles):
+                    hidden_surface = tile.tiles_cutter.cut_hidden_tiles(
+                        False, self.player_idx
+                    )
+                    reveal_surface = tile.tiles_cutter.cut_tiles(
+                        tile.type, tile.number, tile.aka, self.player_idx
+                    )
+                    tile.update_tile_surface(
+                        reveal_surface=reveal_surface, hidden_surface=hidden_surface
+                    )
+                    print(
+                        tile.get_hidden_surface().get_height(),
+                        tile.get_surface().get_height(),
+                    )
+                    if idx == 0 or idx == len(call.tiles) - 1:
+                        tile.hidden = True
+                    else:
+                        tile.hidden = False
             surface_size = self.__build_surface_size_based_on_player_idx(call)
             call_surface = Surface(surface_size, pygame.SRCALPHA)
 

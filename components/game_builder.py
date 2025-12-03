@@ -1,9 +1,9 @@
 from components.entities.buttons.tile import Tile
 from pygame import Surface
-from utils.enums import TileType, ActionType, Direction
+from utils.enums import TileType, ActionType, Direction, CallType
 from components.entities.player import Player
 from components.entities.deck import Deck
-from utils.helper import find_suitable_tile_in_list
+from utils.helper import find_suitable_tile_in_list, parse_string_tile
 from typing import Any
 import typing
 from components.entities.fields.center_board_field import CenterBoardField
@@ -11,6 +11,7 @@ from utils.constants import HAND_CONFIG_OPTIONS
 from mahjong.hand_calculating.hand import HandCalculator
 from mahjong.hand_calculating.hand_config import HandConfig
 from mahjong.hand_calculating.hand_response import HandResponse
+from components.entities.call import Call
 
 if typing.TYPE_CHECKING:
     from components.game_scenes.game_manager import GameManager
@@ -35,8 +36,9 @@ class GameBuilder:
         # return standard
 
     def new(self, game_manager: "GameManager", keep_direction: bool = False):
-        direction, player_list, deck = self.init_game(game_manager.player_list)
-        print(direction, player_list, deck)
+        direction, player_list, deck = self.init_game(
+            game_manager.player_list, keep_direction
+        )
         # Assign to game manager
         game_manager.direction = direction
         game_manager.player_list = player_list
@@ -75,6 +77,112 @@ class GameBuilder:
             direction,
             deck,
             player_list,
+            game_manager.tsumi_number,
+            game_manager.kyoutaku_number,
+        )
+
+    def continue_game(self, game_manager: "GameManager"):
+        self.deck.create_new_deck(
+            random_seed=game_manager.game_history.data["seed"],
+            data=game_manager.game_history.data,
+        )
+        direction = list(
+            map(
+                lambda direction_value: Direction(direction_value),
+                game_manager.game_history.data["direction"],
+            )
+        )
+        player_list: list[Player] = []
+
+        for i in range(0, 4):
+            print(self.deck.discard_tiles[i])
+            call_list = self.deck.call_list[i]
+            call_tiles_list = []
+            for call in call_list:
+                for called_tile in call.tiles:
+                    call_tiles_list.append(called_tile)
+            can_call = []
+            new_player = Player(
+                screen=self.screen,
+                player_idx=i,
+                direction=direction[i],
+                full_deck=self.deck.full_deck,
+                player_deck=self.deck.player_deck[i],
+                discard_tiles=self.deck.discard_tiles[i],
+                already_discard_tiles=self.deck.already_discard_tiles[i],
+                call_list=self.deck.call_list[i],
+                call_tiles_list=call_tiles_list,
+                callable_tiles_list=self.deck.callable_tiles_list[i],
+                can_call=list(
+                    map(
+                        lambda call_value: CallType(call_value),
+                        game_manager.game_history.data["can_call"][i],
+                    )
+                ),
+                draw_tile=self.deck.latest_draw_tile[i],
+            )
+            for tile in new_player.call_tiles_list:
+                tile.update_tile_surface(i)
+                tile.reveal()
+            for tile in new_player.player_deck:
+                tile.update_tile_surface(i)
+            for tile in new_player.discard_tiles:
+                tile.update_tile_surface(i)
+                tile.reveal()
+            new_player.points = game_manager.game_history.data["points"][i]
+            player_list.append(new_player)
+
+        # Assign to game manager
+        game_manager.direction = direction
+        game_manager.player_list = player_list
+        game_manager.deck = self.deck
+
+        for player in player_list:
+            player.game_manager = game_manager
+
+            if (
+                hasattr(game_manager, "ai_seat_idx")
+                and player.player_idx in game_manager.ai_seat_idx
+            ):
+                print(f"Assigning AI agent to player {player.player_idx}")
+                if player.player_idx == 1:
+                    player.agent = game_manager.ai_agent_MID
+                else:
+                    player.agent = game_manager.ai_agent_SMART
+            else:
+                player.agent = None
+        game_manager.latest_discarded_tile = self.deck.latest_discard_tile
+        # Assign Turn and player to game manager
+        game_manager.current_turn = Direction(
+            game_manager.game_history.data["current_direction"]
+        )
+        game_manager.current_player = game_manager.find_player(
+            game_manager.current_turn
+        )
+        game_manager.main_player = player_list[0]
+        game_manager.switch_turn(game_manager.current_turn, False)
+
+        game_manager.round_direction = Direction(
+            game_manager.game_history.data["round_direction"]
+        )
+        game_manager.round_direction_number = game_manager.game_history.data[
+            "round_direction_number"
+        ]
+        game_manager.tsumi_number = game_manager.game_history.data["tsumi_number"]
+        game_manager.kyoutaku_number = game_manager.game_history.data["kyoutaku_number"]
+
+        # Center board field related
+        game_manager.center_board_field = CenterBoardField(
+            self.screen,
+            (
+                game_manager.round_direction,
+                game_manager.round_direction_number,
+            ),
+            direction,
+            self.deck,
+            player_list,
+            game_manager.tsumi_number,
+            game_manager.kyoutaku_number,
         )
 
     def assign_round_direction(
@@ -88,14 +196,14 @@ class GameBuilder:
             return
         if game_manager.round_direction_number == 4:
             game_manager.round_direction = Direction(
-                (game_manager.round_direction.value - 1) % 4
+                (game_manager.round_direction.value + 1) % 4
             )
             game_manager.round_direction_number = 1
         else:
             game_manager.round_direction_number += 1
 
-    def init_game(self, players: list[Player] = None):
-        self.deck.create_new_deck(self.start_data)
+    def init_game(self, players: list[Player] = None, keep_direction: bool = False):
+        self.deck.create_new_deck(start_data=self.start_data)
 
         # Create player
         if not players:
@@ -125,12 +233,14 @@ class GameBuilder:
             direction: list[Direction] = []
             for i in range(4):
                 player_list[i].renew_deck()
-
-                player_list[i].direction = Direction(
-                    (player_list[i].direction.value + 1) % 4
-                )
-                direction.append(player_list[i].direction)
-                player_list[i].full_deck = self.deck.full_deck
+                if not keep_direction:
+                    player_list[i].direction = Direction(
+                        (player_list[i].direction.value - 1) % 4
+                    )
+                    direction.append(player_list[i].direction)
+                    player_list[i].full_deck = self.deck.full_deck
+                else:
+                    direction.append(player_list[i].direction)
 
         if self.start_data and self.start_data["player_deck"]:
             if (
@@ -272,10 +382,10 @@ class GameBuilder:
 
     def calculate_player_score(
         self,
-        player: Player,
-        round_wind: Direction,
-        win_tile: Tile,
-        deck: Deck,
+        player: Player = None,
+        round_wind: Direction = None,
+        win_tile: Tile = None,
+        deck: Deck = None,
         is_tsumo: bool = False,
         is_riichi: bool = False,
         is_daburu_riichi: bool = False,
@@ -287,14 +397,12 @@ class GameBuilder:
         is_tenhou: bool = False,
         is_chiihou: bool = False,
         is_renhou: bool = False,
+        is_nagashi_mangan: bool = False,
         tsumi_number: int = 0,
         kyoutaku_number: int = 0,
     ) -> HandResponse:
 
-        # is_rinshan, include in parameters
-        # is_chankan, include in parameters
-
-        # is_haitei
+        # Init hand config for calculator
         config = HandConfig(
             is_tsumo=is_tsumo,
             is_riichi=is_riichi,
@@ -307,27 +415,32 @@ class GameBuilder:
             is_chiihou=is_chiihou,
             is_renhou=is_renhou,
             is_daburu_riichi=is_daburu_riichi,
-            player_wind=player.direction.value + 27,
+            player_wind=player.direction.value + 27 if player else None,
             tsumi_number=tsumi_number,
             kyoutaku_number=kyoutaku_number,
-            round_wind=round_wind.value + 27,
+            is_nagashi_mangan=is_nagashi_mangan,
+            round_wind=round_wind.value + 27 if round_wind else None,
             options=HAND_CONFIG_OPTIONS,
         )
 
         calculator = HandCalculator()
-        copy_player_deck = player.player_deck.copy()
 
-        if win_tile not in copy_player_deck:
-            copy_player_deck.append(win_tile)
+        if is_nagashi_mangan:
+            result = calculator.estimate_hand_value(config=config)
+        else:
+            copy_player_deck = player.player_deck.copy()
 
-        hands = copy_player_deck + player.call_tiles_list
-        result = calculator.estimate_hand_value(
-            list(map(lambda tile: tile.hand136_idx, hands)),
-            win_tile.hand136_idx,
-            player.melds,
-            list(map(lambda tile: tile.hand136_idx, deck.dora)),
-            config=config,
-        )
+            if win_tile not in copy_player_deck:
+                copy_player_deck.append(win_tile)
+
+            hands = copy_player_deck + player.call_tiles_list
+            result = calculator.estimate_hand_value(
+                list(map(lambda tile: tile.hand136_idx, hands)),
+                win_tile.hand136_idx,
+                player.melds,
+                list(map(lambda tile: tile.hand136_idx, deck.dora)),
+                config=config,
+            )
         print(
             f"FINAL RESULT: {result} {result.yaku} and player scores: {result.cost['total']}"
         )
