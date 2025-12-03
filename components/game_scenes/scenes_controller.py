@@ -163,7 +163,11 @@ class ScenesController:
                             log_name = None
                             end_game = False
                             if self.history.data:
-                                log_name = self.history.data["from_log_name"]
+                                log_name = (
+                                    self.history.data["from_log_name"]
+                                    if self.history.data.get("from_log_name")
+                                    else None
+                                )
 
                             if action == "New Game":
                                 if self.history.data:

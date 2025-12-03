@@ -45,6 +45,7 @@ class TilesField(Field):
         )
 
         if len(collide_tiles) > 0:
+            print(collide_tiles)
             return collide_tiles
 
         return None

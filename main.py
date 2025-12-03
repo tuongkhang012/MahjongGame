@@ -15,13 +15,14 @@ files = []
 for entry in os.listdir(".history/"):
     file_path = os.path.join(".history/", entry)
     if os.path.isfile(file_path):
+        print(file_path)
         files.append(file_path)
 if len(files) > 0:
     with open(files[-1], "+r") as file:
         json_data = json.load(file)
     if not json_data["end_game"]:
         game_history = GameHistory(json_data)
-        os.remove(files[-1])
+        # os.remove(files[-1])
     else:
         game_history = GameHistory()
 else:

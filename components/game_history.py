@@ -45,7 +45,9 @@ class GameHistory:
         self.data["direction"] = data["direction"]
         self.data["kyoutaku_number"] = data["kyoutaku_number"]
         self.data["tsumi_number"] = data["tsumi_number"]
-        self.data["from_log_name"] = data["from_log_name"]
+        self.data["from_log_name"] = (
+            data["from_log_name"] if data.get("from_log_name") else None
+        )
         self.data["call_order"] = data["call_order"]
         self.data["can_call"] = data["can_call"]
         self.data["action"] = data["action"]
@@ -59,6 +61,7 @@ class GameHistory:
         ]
         self.data["latest_draw_tile_hand136_idx"] = data["latest_draw_tile_hand136_idx"]
         self.data["callable_tiles_list"] = data["callable_tiles_list"]
+        self.data["prev_player"] = data["prev_player"]
 
     def clear(self):
         self.data = None

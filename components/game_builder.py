@@ -95,13 +95,18 @@ class GameBuilder:
         player_list: list[Player] = []
 
         for i in range(0, 4):
-            print(self.deck.discard_tiles[i])
             call_list = self.deck.call_list[i]
             call_tiles_list = []
+            print(game_manager.game_history.data["is_reaches"])
             for call in call_list:
                 for called_tile in call.tiles:
                     call_tiles_list.append(called_tile)
-            can_call = []
+            is_riichi = game_manager.game_history.data["is_reaches"][i]
+            riichi_turn = None
+            if is_riichi:
+                riichi_turn = game_manager.game_history.data["reach_turn"][
+                    game_manager.game_history.data["reaches"].index(i)
+                ]
             new_player = Player(
                 screen=self.screen,
                 player_idx=i,
@@ -119,6 +124,8 @@ class GameBuilder:
                         game_manager.game_history.data["can_call"][i],
                     )
                 ),
+                is_riichi=is_riichi,
+                riichi_turn=riichi_turn,
                 draw_tile=self.deck.latest_draw_tile[i],
             )
             for tile in new_player.call_tiles_list:
@@ -170,6 +177,19 @@ class GameBuilder:
         ]
         game_manager.tsumi_number = game_manager.game_history.data["tsumi_number"]
         game_manager.kyoutaku_number = game_manager.game_history.data["kyoutaku_number"]
+        if game_manager.game_history.data.get("action"):
+            game_manager.action = ActionType(game_manager.game_history.data["action"])
+        if game_manager.game_history.data.get("prev_action"):
+            game_manager.prev_action = ActionType(
+                game_manager.game_history.data["prev_action"]
+            )
+        if game_manager.game_history.data.get("prev_called_player"):
+            game_manager.prev_called_player = player_list[
+                game_manager.game_history.data["prev_called_player"]
+            ]
+
+        if game_manager.game_history.data.get("prev_player"):
+            game_manager.prev_player = game_manager.game_history.data["prev_player"]
 
         # Center board field related
         game_manager.center_board_field = CenterBoardField(
@@ -426,7 +446,9 @@ class GameBuilder:
         calculator = HandCalculator()
 
         if is_nagashi_mangan:
-            result = calculator.estimate_hand_value(config=config)
+            result = calculator.estimate_hand_value(
+                tiles=player.player_deck, win_tile=None, config=config
+            )
         else:
             copy_player_deck = player.player_deck.copy()
 
