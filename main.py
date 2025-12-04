@@ -22,7 +22,7 @@ if len(files) > 0:
         json_data = json.load(file)
     if not json_data["end_game"]:
         game_history = GameHistory(json_data)
-        # os.remove(files[-1])
+        os.remove(files[-1])
     else:
         game_history = GameHistory()
 else:
