@@ -2,6 +2,7 @@ import pygame
 from components.game_scenes.game_manager import GameManager
 from utils.helper import get_data_from_file
 from utils.enums import GameScene
+from utils.constants import HISTORY_PATH
 import sys
 import json
 from components.game_scenes.scenes_controller import ScenesController
@@ -10,10 +11,10 @@ from components.game_scenes.main_menu import MainMenu
 import os
 from components.game_history import GameHistory
 
-# Init game history
+# Init game .history
 files = []
-for entry in os.listdir(".history/"):
-    file_path = os.path.join(".history/", entry)
+for entry in os.listdir(HISTORY_PATH):
+    file_path = os.path.join(HISTORY_PATH, entry)
     if os.path.isfile(file_path):
         # print(file_path)
         files.append(file_path)

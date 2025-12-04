@@ -1,6 +1,5 @@
 import numpy as np
-from dataclasses import dataclass, field
-from typing import List, Tuple, Optional
+from dataclasses import dataclass
 
 TILES = [
     *(f"{n}m" for n in range(1, 10)),
@@ -26,3 +25,12 @@ def fill_plane(plane: np.ndarray):
     """ Fill multiple rows of the plane with 1s."""
     for row in range(np.size(plane, 0)):
         fill_row(plane, row)
+
+
+@dataclass
+class HistoryLayer:
+    hands: list[list[str]]
+    discards: list[list[str]]
+    calls: list[list[str]]
+    riichi_declared: list[bool]
+    dora: list[str]

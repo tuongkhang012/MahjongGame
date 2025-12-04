@@ -1,14 +1,14 @@
 from __future__ import annotations
 
-import random
-
+import json
 import torch
 import typing
-
+import os
 from utils.enums import ActionType, CallType
 from components.entities.ai.model import MahjongCNN
 from components.entities.ai.encoder import Encoder
-from components.entities.ai.helper import TILE_IDX, AKA_DORA_TILES
+from components.entities.ai.helper import TILE_IDX, AKA_DORA_TILES, HistoryLayer
+from utils.constants import HISTORY_PATH
 from utils.enums import TileSource
 if typing.TYPE_CHECKING:
     from components.entities.player import Player
@@ -44,6 +44,12 @@ class MahjongAIAgent:
         self.riichi_model = MahjongCNN().to(device)
         self.riichi_model.load_state_dict(torch.load(riichi_path, map_location=device))
         self.riichi_model.eval()
+
+        # Load .history
+        # Read json files in HISTORY PATH, 0 being the oldest, then stores in an array to use later
+        self.history = []
+        files = self.load_files()
+        self.read_files(files)
 
     def make_move(self, player: Player) -> ActionType:
         gm = player.game_manager  # set in GameBuilder.new
@@ -81,6 +87,7 @@ class MahjongAIAgent:
         X = self.encoder.empty_plane()
         self.encoder.change_POV(player.player_idx)
         self.encoder.encode_now(X, game_state=gm)  # np.ndarray (86, 34, 4)
+        self.encoder.encode_history(X, self.history)  # np.ndarray (86, 34, 4)
         x = torch.from_numpy(X).unsqueeze(0).to(self.device)  # (1,86,34,4)
 
         if CallType.RIICHI in player.can_call:
@@ -154,3 +161,69 @@ class MahjongAIAgent:
         tile = player.player_deck[discard_index]
         tile.clicked()
         return ActionType.DISCARD
+
+    def load_files(self):
+        """
+        Load json files from HISTORY PATH (0 being the oldest)
+        """
+        files = []
+        for entry in os.listdir(HISTORY_PATH):
+            file_path = os.path.join(HISTORY_PATH, entry)
+            if os.path.isfile(file_path):
+                files.append(file_path)
+        files.sort(key=lambda x: int(os.path.basename(x).split(".")[0]))
+        print(files)
+        return files
+
+    def read_files(self, files: list[str]):
+        """
+        Read json files and store as HistoryLayer objects in self..history (0 being the oldest)
+        """
+        self.history = []
+        for file_path in files:
+            with open(file_path, "+r") as file:
+                json_data = json.load(file)
+
+                if not json_data["end_game"]:
+                    continue
+
+                # Load hands
+                hands = []
+                for hand in json_data["hands"]:
+                    temp = []
+                    for tile in hand:
+                        temp.append(tile["string"])
+                    hands.append(temp)
+                # Load discards
+                discards = []
+                for discard in json_data["discards"]:
+                    temp = []
+                    for tile in discard:
+                        temp.append(tile["string"])
+                    discards.append(temp)
+                # Load calls
+                calls = []
+                for call in json_data["melds"]:
+                    temp = []
+                    for meld in call:
+                        for tile in meld["tiles"]:
+                            temp.append(tile["string"])
+                    calls.append(temp)
+                # Load riichi declared
+                riichi_declared = [False] * 4
+                for i in json_data["reaches"]:
+                    riichi_declared[i] = True
+                # Load dora
+                dora = []
+                for tile in json_data["dora"]:
+                    dora.append(tile["string"])
+
+                history_layer = HistoryLayer(
+                    hands=hands,
+                    discards=discards,
+                    calls=calls,
+                    riichi_declared=riichi_declared,
+                    dora=dora,
+                )
+
+                self.history.append(history_layer)

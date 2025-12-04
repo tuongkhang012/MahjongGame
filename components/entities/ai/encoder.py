@@ -1,6 +1,13 @@
 import typing
 import numpy as np
-from components.entities.ai.helper import fill_row_by_count, fill_plane, fill_row, TILE_IDX, AKA_DORA_TILES
+from components.entities.ai.helper import (
+    fill_row_by_count,
+    fill_plane,
+    fill_row,
+    TILE_IDX,
+    AKA_DORA_TILES,
+    HistoryLayer
+)
 if typing.TYPE_CHECKING:
     from components.game_scenes.game_manager import GameManager
     from components.entities.buttons.tile import Tile
@@ -46,7 +53,7 @@ class Encoder:
         self.pov_order = self.pov_order[pov_seat:] + self.pov_order[:pov_seat]
 
     @staticmethod
-    def _from_arr_to_plane(X: list["Tile"]) -> np.ndarray:
+    def _from_arr_to_plane(X: list["Tile"] | list[str]) -> np.ndarray:
         plane = np.zeros((34, 4), dtype=np.float32)
         counts = {i: 0 for i in range(34)}
         for tile in X:
@@ -70,18 +77,14 @@ class Encoder:
         X[1, :, :] = plane
 
         # Planes 2-5: Every discards [self, right, across, left]
-        j = 0
-        for i in self.pov_order:
-            discards = player_list[i].discard_tiles
-            X[2 + j, :, :] = self._from_arr_to_plane(discards)
-            j += 1
+        for i in range(4):
+            discards = player_list[self.pov_order[i]].discard_tiles
+            X[2 + i, :, :] = self._from_arr_to_plane(discards)
 
         # Planes 6-9: Every melds [self, right, across, left]
-        j = 0
-        for i in self.pov_order:
-            meld_tiles = player_list[i].call_field.get_tiles_list()
-            X[6 + j, :, :] = self._from_arr_to_plane(meld_tiles)
-            j += 1
+        for i in range(4):
+            meld_tiles = player_list[self.pov_order[i]].call_field.get_tiles_list()
+            X[6 + i, :, :] = self._from_arr_to_plane(meld_tiles)
 
         # Plane 10: Dora indicators
         X[10, :, :] = self._from_arr_to_plane(game_state.deck.dora)
@@ -92,8 +95,8 @@ class Encoder:
                 fill_plane(X[10 + i, :, :])
 
         # Planes 14-17: Rank positions of POV
-        # TODO: NEED INITIAL WIND
-        rank = 2
+        sorted_player = sorted(player_list, key=lambda p: (-p.points, p.get_initial_direction().value))
+        rank = sorted_player.index(player_list[self.pov_seat])
         fill_plane(X[14 + rank, :, :])
 
         # Planes 18-25: Kyoku index (8 planes)
@@ -111,39 +114,41 @@ class Encoder:
         own_wind = str(player_list[self.pov_seat].direction)[0]
         fill_row(X[27, :, :], TILE_IDX[own_wind])
 
-    # def encode_history(self, X: np.ndarray, history: List[Tuple[List[PlayerView], GameState]]):
-    #     """ Encode past 6 steps of history into planes. 13 planes for first step, 9 planes for each subsequent step."""
-    #     # history[-1] is the most recent past step, each frame views store from 0~3, the self.pov_order store the order:
-    #     # [POV, right of POV, opposite of POV, left of POV]
-    #
-    #     FIRST_FRAME_FLAG = True
-    #     offset = 28
-    #     for frame in history[::-1]:
-    #
-    #         # Plane 0: Own hand tiles
-    #         past_views, past_game_state = frame
-    #         X[offset + 0, :, :] = self._from_arr_to_plane(past_views[self.pov_order[0]].hand_tiles)
-    #
-    #         # Plane 1-4: Every discards [self, right, across, left]
-    #         for i in range(4):
-    #             discards = past_views[self.pov_order[i]].discards
-    #             X[offset + 1 + i, :, :] = self._from_arr_to_plane(discards)
-    #
-    #         # Plane 5-8: Every melds [self, right, across, left]
-    #         for i in range(4):
-    #             meld_tiles = []
-    #             for meld_type, tiles in past_views[self.pov_order[i]].melds:
-    #                 meld_tiles += tiles
-    #             X[offset + 5 + i, :, :] = self._from_arr_to_plane(meld_tiles)
-    #
-    #         if FIRST_FRAME_FLAG:
-    #             # Plane 9: Dora indicators
-    #             X[offset + 9, :, :] = self._from_arr_to_plane(past_game_state.dora_indicators)
-    #             # Planes 10-12: Riichi status of players [right, across, left]
-    #             for i in range(1, 4):
-    #                 if past_views[self.pov_order[i]].riichi_declared:
-    #                     fill_plane(X[offset + 9 + i, :, :])
-    #             offset += 13
-    #             FIRST_FRAME_FLAG = False
-    #         else:
-    #             offset += 9
+    def encode_history(self, X: np.ndarray, history: list["HistoryLayer"]):
+        """ Encode past 6 steps of .history into planes. 13 planes for first step, 9 planes for each subsequent step."""
+        # .history[-1] is the most recent past step, each frame views store from 0~3, the self.pov_order store the order:
+        # [POV, right of POV, opposite of POV, left of POV]
+
+        FIRST_FRAME_FLAG = True
+        offset = 28
+        for frame in history[::-1]:
+            hands = frame.hands
+            discards = frame.discards
+            melds = frame.calls
+            riichi_declared = frame.riichi_declared
+            dora = frame.dora
+
+            # Plane 0: Own hand tiles
+            X[offset + 0, :, :] = self._from_arr_to_plane(hands[self.pov_seat])
+
+            # Plane 1-4: Every discards [self, right, across, left]
+            for i in range(4):
+                _discards = discards[self.pov_order[i]]
+                X[offset + 1 + i, :, :] = self._from_arr_to_plane(_discards)
+
+            # Plane 5-8: Every melds [self, right, across, left]
+            for i in range(4):
+                _melds = melds[self.pov_order[i]]
+                X[offset + 5 + i, :, :] = self._from_arr_to_plane(_melds)
+
+            if FIRST_FRAME_FLAG:
+                # Plane 9: Dora indicators
+                X[offset + 9, :, :] = self._from_arr_to_plane(dora)
+                # Planes 10-12: Riichi status of players [right, across, left]
+                for i in range(1, 4):
+                    if riichi_declared[self.pov_order[i]]:
+                        fill_plane(X[offset + 9 + i, :, :])
+                offset += 13
+                FIRST_FRAME_FLAG = False
+            else:
+                offset += 9

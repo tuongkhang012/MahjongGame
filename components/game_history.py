@@ -2,6 +2,7 @@ import typing
 
 from utils.enums import Direction
 from utils.game_history_data_dict import GameHistoryData
+from utils.constants import HISTORY_PATH
 import os
 import json
 from pathlib import Path
@@ -68,13 +69,15 @@ class GameHistory:
 
     def export(self):
         files = []
-        directory = ".history/"
+        directory = HISTORY_PATH
         for entry in os.listdir(directory):
             full_path = os.path.join(directory, entry)
             if os.path.isfile(full_path):
                 files.append(files)
 
-        file_path = Path(f".history/{len(files)}.json")
+        file_path = Path(
+            HISTORY_PATH + f"{len(files)}.json"
+        )
         file_path.parent.mkdir(parents=True, exist_ok=True)
 
         with open(file_path, "w+") as file:

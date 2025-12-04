@@ -1,5 +1,5 @@
 from utils.enums import GameScene, GamePopup, TileSource
-from utils.constants import GAME_TITLE, WINDOW_SIZE, FPS_LIMIT
+from utils.constants import GAME_TITLE, WINDOW_SIZE, FPS_LIMIT, HISTORY_PATH
 from utils.game_data_dict import AfterMatchData
 import pygame
 from pygame import Surface
@@ -173,8 +173,8 @@ class ScenesController:
                                 if self.history.data:
                                     end_game = self.history.data["end_game"]
                                 self.history.data = None
-                                for entry in os.listdir(".history"):
-                                    file_path = os.path.join(".history", entry)
+                                for entry in os.listdir(HISTORY_PATH):
+                                    file_path = os.path.join(HISTORY_PATH, entry)
                                     if os.path.isfile(file_path):
                                         os.remove(file_path)
                                 if log_name:

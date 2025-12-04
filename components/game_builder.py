@@ -449,7 +449,7 @@ class GameBuilder:
 
         if is_nagashi_mangan:
             result = calculator.estimate_hand_value(
-                tiles=player.player_deck, win_tile=None, config=config
+                tiles=[], win_tile=None, config=config
             )
         else:
             copy_player_deck = player.player_deck.copy()
