@@ -57,7 +57,7 @@ class GameEventLog:
             log_name = data["from_log_name"]
             with open(f"log/{log_name}.json", "r") as file:
                 json_data = json.load(file)
-            # os.remove(f"log/{log_name}.json")
+            os.remove(f"log/{log_name}.json")
             self.rounds = json_data["rounds"]
             self.round = json_data["rounds"][-1]
             self.events = json_data["rounds"][-1]["events"]

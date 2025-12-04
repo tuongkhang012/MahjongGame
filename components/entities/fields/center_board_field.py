@@ -449,8 +449,8 @@ class CenterBoardField(Field):
     def draw_turn_empty(self, is_riichi: int, furiten: bool = False) -> Surface:
         import sys
 
-        if (furiten and self.player_idx == 0) or (
-            len(sys.argv) > 1 and "debug" in sys.argv
+        if furiten and (
+            self.player_idx == 0 or (len(sys.argv) > 1 and "debug" in sys.argv)
         ):
             turn_bar_color = (255, 221, 0)
         elif is_riichi >= 0:
@@ -468,7 +468,11 @@ class CenterBoardField(Field):
         return turn_surface
 
     def draw_turn_full(self, is_riichi: int, furiten: bool = False) -> Surface:
-        if furiten:
+        import sys
+
+        if furiten and (
+            self.player_idx == 0 or (len(sys.argv) > 1 and "debug" in sys.argv)
+        ):
             turn_bar_color = (255, 221, 0)
         elif is_riichi >= 0:
             turn_bar_color = (255, 0, 0)
