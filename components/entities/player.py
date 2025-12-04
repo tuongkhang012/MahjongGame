@@ -70,6 +70,8 @@ class Player:
         draw_tile: Tile = None,
         can_call: list[Call] = [],
         callable_tiles_list: list[list[Tile]] = [],
+        is_riichi: bool = False,
+        riichi_turn: int = None,
         agent: any = None,
     ):
         self.player_idx = player_idx
@@ -118,6 +120,15 @@ class Player:
         self.game_manager = None
 
         self.__draw_tile = draw_tile
+
+        self.__is_riichi = is_riichi
+        if is_riichi:
+            self.__riichi_turn = riichi_turn
+            for tile in self.deck_field.get_tiles_list():
+                copy_deck = self.deck_field.get_tiles_list().copy()
+                copy_deck.remove(tile)
+                if count_shanten_points(copy_deck) > 0:
+                    tile.disabled()
 
     def draw(
         self,
@@ -673,7 +684,7 @@ class Player:
         self.turn = 0
         self.riichi_furiten: bool = False
         self.temporary_furiten: bool = False
-
+        self.discard_furiten: bool = False
         self.__skip_yao9 = False
 
     def get_initial_direction(self) -> Direction:

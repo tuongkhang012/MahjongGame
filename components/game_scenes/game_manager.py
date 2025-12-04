@@ -1043,8 +1043,8 @@ class GameManager:
             # Check nagashi mangan player
             is_nagashi_mangan = False
             nagashi_mangan_player = None
-            for direction_value in Direction.value:
-                player = self.find_player(Direction(direction_value))
+            for direction in Direction:
+                player = self.find_player(Direction(direction.value))
                 if len(player.get_all_discarded_tiles()) == len(player.discard_tiles):
                     for tile in player.discard_tiles:
                         if tile.type not in [TileType.DRAGON, TileType.WIND] and not (
@@ -1212,6 +1212,7 @@ class GameManager:
             "points": [],
             "can_call": [],
             "callable_tiles_list": [],
+            "prev_player": self.prev_player.player_idx if self.prev_player else None,
             "reaches": self.game_log.round["reaches"],
             "reach_turn": self.game_log.round["reach_turns"],
             "is_reaches": [],
@@ -1282,7 +1283,7 @@ class GameManager:
             data["melds"].append(melds)
             data["hands"].append(self.__map_tiles_data(player.player_deck))
             data["points"].append(player.points)
-            data["is_reaches"].append(True if player.is_riichi() > 0 else False)
+            data["is_reaches"].append(True if player.is_riichi() >= 0 else False)
             data["is_riichi_furiten"].append(player.riichi_furiten)
             data["is_temporary_furiten"].append(player.temporary_furiten)
             data["is_discard_furiten"].append(player.discard_furiten)

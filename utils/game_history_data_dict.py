@@ -34,6 +34,7 @@ class GameHistoryData(TypedDict):
     action: int
     prev_action: int
     prev_called_player: int
+    prev_player: int
     latest_discard_tile_hand136_idx: int
     latest_called_tile_hand136_idx: int
     calling_player: int
