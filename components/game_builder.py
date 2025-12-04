@@ -189,7 +189,9 @@ class GameBuilder:
             ]
 
         if game_manager.game_history.data.get("prev_player"):
-            game_manager.prev_player = game_manager.game_history.data["prev_player"]
+            game_manager.prev_player = player_list[
+                game_manager.game_history.data["prev_player"]
+            ]
 
         # Center board field related
         game_manager.center_board_field = CenterBoardField(
