@@ -15,7 +15,7 @@ files = []
 for entry in os.listdir(".history/"):
     file_path = os.path.join(".history/", entry)
     if os.path.isfile(file_path):
-        print(file_path)
+        # print(file_path)
         files.append(file_path)
 if len(files) > 0:
     with open(files[-1], "+r") as file:

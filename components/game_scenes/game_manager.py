@@ -1289,7 +1289,7 @@ class GameManager:
             data["is_discard_furiten"].append(player.discard_furiten)
             data["direction"].append(player.direction.value)
 
-        print(data)
+        # print(data)
         return data
 
     def __map_tiles_data(self, tiles_list: list[Tile]):
