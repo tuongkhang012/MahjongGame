@@ -1045,14 +1045,18 @@ class GameManager:
             for direction in Direction:
                 player = self.find_player(Direction(direction.value))
                 if len(player.get_all_discarded_tiles()) == len(player.discard_tiles):
+                    found_not_suitable_tile = False
                     for tile in player.discard_tiles:
                         if tile.type not in [TileType.DRAGON, TileType.WIND] and not (
                             tile.number == 1 or tile.number == 9
                         ):
+                            found_not_suitable_tile = True
                             break
-                    is_nagashi_mangan = True
-                    nagashi_mangan_player = player
-                    break
+
+                    if not found_not_suitable_tile:
+                        is_nagashi_mangan = True
+                        nagashi_mangan_player = player
+                        break
 
             # Handle nagashi mangan
             if is_nagashi_mangan:
