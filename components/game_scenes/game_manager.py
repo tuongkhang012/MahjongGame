@@ -637,7 +637,7 @@ class GameManager:
                     calling_player,
                     calling_player.call_list[-1],
                 )
-                self.__handle_switch_turn()
+                self.__handle_switch_turn(calling_player)
 
             case ActionType.PON:
                 calling_player = self.calling_player
@@ -657,7 +657,7 @@ class GameManager:
                     calling_player,
                     calling_player.call_list[-1],
                 )
-                self.__handle_switch_turn()
+                self.__handle_switch_turn(calling_player)
 
             case ActionType.KAN:
                 self.kan_count += 1
@@ -721,10 +721,10 @@ class GameManager:
                             ron_able = True
 
                     if not ron_able:
-                        self.__handle_switch_turn(True)
+                        self.__handle_switch_turn(calling_player, True)
 
                 else:
-                    self.__handle_switch_turn(True)
+                    self.__handle_switch_turn(calling_player, True)
 
             case ActionType.RIICHI:
                 calling_player = self.calling_player
@@ -736,7 +736,7 @@ class GameManager:
                     None,
                     calling_player,
                 )
-                self.__handle_switch_turn()
+                self.__handle_switch_turn(calling_player)
 
             case ActionType.RON:
                 calling_player = self.calling_player
@@ -853,8 +853,7 @@ class GameManager:
 
         print(f"########## DONE {self.prev_action.name.upper()} ACTION ##########")
 
-    def __handle_switch_turn(self, draw: bool = False):
-        calling_player = self.calling_player
+    def __handle_switch_turn(self, calling_player: Player, draw: bool = False):
 
         self.__reset_calling_state()
         if self.prev_action == ActionType.RIICHI:
@@ -1130,9 +1129,14 @@ class GameManager:
 
         game_history_data = self.__dict__()
         game_history_data["end_game"] = True
-        self.game_history.update(self.__dict__())
+        self.game_history.update(game_history_data)
         self.game_history.export()
         self.scenes_controller.popup(GamePopup.AFTER_MATCH, popup_data)
+
+        files = self.ai_agent_MID.load_files()
+        self.ai_agent_MID.read_files(files)
+        files = self.ai_agent_SMART.load_files()
+        self.ai_agent_SMART.read_files(files)
 
     def __create_new_round_log(self):
         hands = []

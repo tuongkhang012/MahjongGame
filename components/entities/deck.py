@@ -308,6 +308,7 @@ class Deck:
         for i in tenhou:
             tile = list(filter(lambda tile: tile.hand136_idx == i, self.__init_deck))[0]
             tile.undisabled()
+            tile.undiscard_riichi()
             if len(sys.argv) > 1 and "debug" in sys.argv:
                 tile.hidden = False
             else:

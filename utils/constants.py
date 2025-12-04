@@ -21,6 +21,7 @@ CHI_MODEL = "public/model/mahjong_cnn_chi_best.pth"
 PON_MODEL = "public/model/mahjong_cnn_pon_best.pth"
 RIICHI_MODEL = "public/model/mahjong_cnn_riichi_best.pth"
 COMBINED_MODEL = "public/model/mahjong_cnn_discard_chi_pon_riichi_best.pth"
+HISTORY_PATH = "..history/"
 
 MAIN_MENU_BACKGROUND = "public/images/main_menu_bg.png"
 
