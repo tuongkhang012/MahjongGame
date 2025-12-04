@@ -18,7 +18,7 @@ For now, the game supports one-player mode against AI opponents.
 
 ## Requirements
 
-- Python 3.7+
+- Python 3.13+
 - Pygame
 - NumPy
 - PyTorch (if using Deep CNN AI)

@@ -5,7 +5,7 @@
   "main": "main.py",
   "scripts": {
     "start": "python main.py",
-    "install": "pip install pygame; pip install mahjong; pip install torch"
+    "setup": "pip install pygame mahjong torch;"
   },
   "author": "Le Minh Chanh",
   "license": "ISC"
