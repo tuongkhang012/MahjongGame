@@ -6,11 +6,11 @@ For now, the game supports one-player mode against AI opponents.
 
 ## Features
 
-- AI uses either random or tile efficiency or Deep CNN to make decisions.
-- Basic game follows Mahjong Riichi rules strictly: Tonpuusen, 4 players, Akadora, Open tanyao.
+- AI uses either tile efficiency or Deep CNN to make decisions.
+- Basic game follows Mahjong Riichi rules strictly: Hanchan, 4 players, Akadora, Open tanyao (半荘喰断アリアリ赤).
 - Graphical User Interface (GUI) using Pygame.
 - Tile animations for discarding tiles.
-- Player interactions for calling tiles (Chi, Pon, Minkan/Ankan/Chakan, Ron, Tsumo).
+- Player interactions for calling tiles (Chi, Pon, Minkan/Ankan/Chakan, Ron, Tsumo, Ryuukyoku).
 
 ## Quick download
 
@@ -30,8 +30,7 @@ For now, the game supports one-player mode against AI opponents.
 ## Requirements
 
 - Python 3.13+
-- Pygame
-- NumPy
-- PyTorch (if using Deep CNN AI)
-- Torch (visualize)
-- Mahjong
+- ``pygame``
+- ``numpy``
+- ``torch``
+- ``mahjong``
