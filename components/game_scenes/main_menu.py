@@ -122,17 +122,17 @@ class MainMenu:
                 # Click continue button
                 if (
                     self.continue_button.check_collidepoint(local_mouse)
-                    and self.new_game_button.is_disabled == False
+                    and self.continue_button.is_disabled == False
                 ):
-                    self.scenes_controller.change_scene(scene=GameScene.GAME)
+                    return "Continue"
 
                 if self.instruction_button.check_collidepoint(local_mouse):
-                    return "Continue"
+                    return "Instruction"
 
                 # Click quit button
                 if (
                     self.quit_button.check_collidepoint(local_mouse)
-                    and self.new_game_button.is_disabled == False
+                    and self.quit_button.is_disabled == False
                 ):
                     return "Quit"
 

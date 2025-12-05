@@ -290,6 +290,9 @@ class Player:
         if self.is_riichi() < 0:
             for hand_tile in self.player_deck:
                 hand_tile.undisabled()
+        if self.is_riichi() >= 0:
+            for deck_tile in self.player_deck:
+                deck_tile.disabled()
 
         if game_manager.prev_action == ActionType.RIICHI or (
             self.__is_riichi
@@ -312,9 +315,7 @@ class Player:
         game_manager.start_discarded_animation(tile)
         self.turn += 1
         self.temporary_furiten = False
-        if self.is_riichi() > 0:
-            for deck_tile in self.player_deck:
-                deck_tile.disabled()
+
         return tile
 
     def rearrange_deck(self):

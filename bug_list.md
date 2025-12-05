@@ -22,7 +22,8 @@
 22. ~~Render lại call tile nằm ngang của màn hình thắng~~ (DONE)
 23. ~~Game history~~ (DONE)
 24. ~~Continue game mới là tiếp tục game, tiếp tục ván, start game là tạo~~ (DONE)
-25. Update history cho AI mỗi kết thúc trận đấu
+25. ~~Update history cho AI mỗi kết thúc trận đấu~~ (DONE)
+
 ### Màn hình
 
 1\*. ~~Start menu~~ (DONE)
