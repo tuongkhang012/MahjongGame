@@ -1,6 +1,7 @@
 from utils.enums import GameScene, GamePopup, TileSource
 from utils.constants import GAME_TITLE, WINDOW_SIZE, FPS_LIMIT, HISTORY_PATH
 from utils.game_data_dict import AfterMatchData
+from utils.instruction_data_dict import InstructionData
 import pygame
 from pygame import Surface
 import typing
@@ -14,6 +15,7 @@ from components.entities.deck import Deck
 from components.game_scenes.game_manager import GameManager
 import os
 import json
+from components.game_scenes.popup.instruction import Instruction
 
 if typing.TYPE_CHECKING:
     from components.game_scenes.main_menu import MainMenu
@@ -56,6 +58,8 @@ class ScenesController:
 
         self.deck = Deck(self.history.data["seed"] if self.history.data else None)
 
+        self.instruction_manager = Instruction(self.create_popup_surface(0.9))
+
     def change_scene(self, scene: GameScene):
         self.__scene = scene
 
@@ -76,6 +80,8 @@ class ScenesController:
         match game_popup:
             case GamePopup.AFTER_MATCH:
                 self.__popup_screen = self.__create_after_match_popup(data)
+            case GamePopup.INSTRUCTION:
+                self.__popup_screen = self.__create_instruction_popup(data)
 
     def close_popup(self):
         self.__popup_screen = None
@@ -137,7 +143,9 @@ class ScenesController:
                 case pygame.MOUSEBUTTONDOWN:
                     if self.__popup_screen:
                         button = self.__popup_screen.handle_event(event)
-                        if button:
+                        if button == "close":
+                            self.__popup_screen = None
+                        elif button:
                             match button.text:
                                 case "Main Menu":
                                     self.__popup_screen = None
@@ -193,11 +201,14 @@ class ScenesController:
                                         with open(f"log/{log_name}.json", "w") as file:
                                             json.dump(json_data, file)
 
-                            # Create game manager
-                            self.create_game_manager()
-
                             if action == "New Game" or action == "Continue":
+                                # Create game manager
+
+                                self.create_game_manager()
                                 self.change_scene(GameScene.GAME)
+
+                            elif action == "Instruction":
+                                self.popup(GamePopup.INSTRUCTION, None)
                             elif action == "Quit":
                                 return {"exit": True}
 
@@ -247,3 +258,6 @@ class ScenesController:
         surface = self.create_popup_surface(0.8)
         surface.fill(pygame.Color(0, 0, 0, int(255 * 0.8)))
         return AfterMatchPopup(surface, data)
+
+    def __create_instruction_popup(self, data: InstructionData) -> Surface:
+        return self.instruction_manager

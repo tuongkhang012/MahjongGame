@@ -95,3 +95,9 @@ class GameScene(Enum):
 
 class GamePopup(Enum):
     AFTER_MATCH = 0
+    INSTRUCTION = 1
+
+
+class InstructionSection(Enum):
+    TUTORIAL = 0
+    YAKU_OVERVIEW = 1

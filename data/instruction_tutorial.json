@@ -1,0 +1,318 @@
+{
+  "0": {
+    "title": "Beginner's Class: Tiles",
+    "cards": {
+      "man": {
+        "title": "Man",
+        "body": [{ "type": "image", "content": "man" }]
+      },
+      "sou": {
+        "title": "Sou",
+        "body": [{ "type": "image", "content": "sou" }]
+      },
+      "pin": {
+        "title": "Pin",
+        "body": [{ "type": "image", "content": "pin" }]
+      },
+      "wind": {
+        "title": "Wind",
+        "body": [{ "type": "image", "content": "wind" }]
+      },
+      "dragon": {
+        "title": "Dragon",
+        "body": [{ "type": "image", "content": "dragon" }]
+      }
+    }
+  },
+  "1": {
+    "title": "Beginner's Class: Winning",
+    "cards": {
+      "hand": {
+        "title": "Hand",
+        "body": [
+          { "type": "text", "content": "Each player starts with 13 tiles" },
+          { "type": "image", "content": "hand" }
+        ]
+      },
+      "houra": {
+        "title": "Winning",
+        "body": [
+          {
+            "type": "text",
+            "content": "To win, they need to form 4 melds (either a triplet or sequence) and a pair, with a Yaku"
+          },
+          { "type": "image", "content": "houra" },
+          { "type": "text", "content": "A meld can be a Sequence or a Triplet" }
+        ]
+      },
+      "sequence": {
+        "title": "Sequence",
+        "body": [
+          { "type": "text", "content": "A set of 3 consecutive tiles" },
+          { "type": "image", "content": "sequence" }
+        ]
+      },
+      "triplet": {
+        "title": "Triplet",
+        "body": [
+          { "type": "text", "content": "A set of 3 identical tiles" },
+          { "type": "image", "content": "triplet" }
+        ]
+      },
+      "pair": {
+        "title": "Pair",
+        "body": [
+          { "type": "text", "content": "A set of 2 identical tiles" },
+          { "type": "image", "content": "pair" }
+        ]
+      }
+    }
+  },
+  "2": {
+    "title": "Beginner's Class: Yaku",
+    "cards": {
+      "yaku": {
+        "title": "Yaku",
+        "body": [
+          {
+            "type": "text",
+            "content": "A winning hand must contain a Yaku. A Yaku will determine how big of a win you will get."
+          },
+          {
+            "type": "text",
+            "content": "There're a lot of Yakus to remember, but as a beginner,\nyou only need to know about All Simples (Tanyao), Riichi and Yakuhai."
+          }
+        ]
+      }
+    }
+  },
+  "3": {
+    "title": "Beginner's Class: Tanyao",
+    "cards": {
+      "tanyao": {
+        "title": "Tanyao",
+        "body": [
+          {
+            "type": "text",
+            "content": "Terminals (1/9) and Honor Tiles."
+          },
+          {
+            "type": "image",
+            "content": "terminal"
+          },
+
+          {
+            "type": "text",
+            "content": "Your winning hand must NOT contain any terminals or honor tiles."
+          },
+          {
+            "type": "image",
+            "content": "tanyao"
+          }
+        ]
+      }
+    }
+  },
+  "4": {
+    "title": "Beginner's Class: Calls",
+    "cards": {
+      "chii": {
+        "title": "Chii",
+        "body": [
+          {
+            "type": "text",
+            "content": "A call to complete a Sequence,\nChii can only be called on a discarded tile from the LEFT player."
+          },
+          {
+            "type": "image",
+            "content": "chii"
+          }
+        ]
+      },
+      "pon": {
+        "title": "Pon",
+        "body": [
+          {
+            "type": "text",
+            "content": "A call to complete a Triplet, Pon can be called on a discarded tile from ANY player."
+          },
+          {
+            "type": "image",
+            "content": "pon"
+          }
+        ]
+      }
+    }
+  },
+  "5": {
+    "title": "Beginner's Class: Calls",
+    "cards": {
+      "kan": {
+        "title": "Kan",
+        "body": [
+          {
+            "type": "text",
+            "content": "A set of 4 identical tiles, also regarded as a Triplet."
+          },
+          {
+            "type": "text",
+            "content": "Open Kan (Minkan): Call Kan on a discarded tile from another player."
+          },
+          {
+            "type": "image",
+            "content": "minkan"
+          },
+          {
+            "type": "text",
+            "content": "Kakan (Chakan): Add a self-drawn tile to an open meld of the same 3 tiles (Pon)."
+          },
+          {
+            "type": "image",
+            "content": "kakan"
+          },
+          {
+            "type": "text",
+            "content": "Closed Kan (Ankan): Call out using the same 4 tiles in player's own hand."
+          },
+          {
+            "type": "image",
+            "content": "ankan"
+          }
+        ]
+      }
+    }
+  },
+  "6": {
+    "title": "Beginner's Class: Riichi",
+    "cards": {
+      "tenpai": {
+        "title": "Tenpai",
+        "body": [
+          {
+            "type": "text",
+            "content": "When the player's hand needs only one more tile\nto declare a winning hand, they are in Tenpai."
+          },
+          {
+            "type": "image",
+            "content": "tenpai"
+          }
+        ]
+      }
+    }
+  },
+  "7": {
+    "title": "Beginner's Class: Riichi",
+    "cards": {
+      "riichi": {
+        "title": "Riichi",
+        "body": [
+          {
+            "type": "text",
+            "content": "A player has the option to declare Riichi if they have a closed hand\n(did NOT Chii, Pon, Kakan, Open Kan, which can also be called Menzenchin) and is in Tenpai."
+          },
+          {
+            "type": "image",
+            "content": "riichi"
+          },
+          {
+            "type": "text",
+            "content": "The player who declared riichi will lose 1000 points like a bet\nand will receive it back when they win.\nThose players will have their blinker turned to red."
+          },
+          {
+            "type": "image",
+            "content": "kyotaku",
+            "resize": false
+          }
+        ]
+      }
+    }
+  },
+  "8": {
+    "title": "Beginner's Class: Yakuhai",
+    "cards": {
+      "yakuhai": {
+        "title": "Yakuhai",
+        "body": [
+          {
+            "type": "text",
+            "content": "Your winning must contain at least one triplet of the wind\nindicated by your seat, or the wind of the round, or any dragons."
+          },
+          {
+            "type": "image",
+            "content": "kyotaku",
+            "resize": false
+          },
+          {
+            "type": "text",
+            "content": "This POV's seat wind is East, the round wind is indicated by \"East 1\"."
+          },
+          {
+            "type": "image",
+            "content": "yakuhai"
+          },
+          {
+            "type": "text",
+            "content": "East is both the seat wind and round wind, the red dragon doesn't count here."
+          }
+        ]
+      }
+    }
+  },
+  "9": {
+    "title": "Beginner's Class: Furiten",
+    "cards": {
+      "furiten": {
+        "title": "Furiten",
+        "body": [
+          {
+            "type": "text",
+            "content": "If a player is in Furiten, they cannot declare a winning hand\nfrom another player's discard (Call Ron).\nThey can only win by self-drawn tiles (Tsumo)."
+          },
+          {
+            "type": "text",
+            "content": "There are three ways to get into Furiten:\nDiscard Furiten, Temporary Furiten, and Riichi Furiten,\nindicated by the yellow blinker in our game."
+          }
+        ]
+      },
+      "discard_furiten": {
+        "title": "Discard Furiten",
+        "body": [
+          {
+            "type": "text",
+            "content": "Previously discarded any\npotential winning tile\nfor the current hand."
+          },
+          {
+            "type": "text",
+            "content": "It can be removed by\nchanging your hand's\nwinning tiles to \nnot include the\ndiscarded tiles."
+          }
+        ]
+      },
+      "temporary_furiten": {
+        "title": "Temporary Furiten",
+        "body": [
+          {
+            "type": "text",
+            "content": "If a potential winning tile\nwas discarded and the player\ndid not call it."
+          },
+          {
+            "type": "text",
+            "content": "Temporary Furiten is removed\nafter the player discards a tile."
+          }
+        ]
+      },
+      "riichi_furiten": {
+        "title": "Riichi Furiten",
+        "body": [
+          {
+            "type": "text",
+            "content": "If a potential winning tile\nwas discarded and the player\ndid not call it after\ndeclaring Riichi."
+          },
+          {
+            "type": "text",
+            "content": "Riichi Furiten\ncan NOT be removed."
+          }
+        ]
+      }
+    }
+  }
+}
