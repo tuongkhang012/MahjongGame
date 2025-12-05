@@ -5,7 +5,6 @@ from mahjong.hand_calculating.hand_response import HandResponse
 if typing.TYPE_CHECKING:
     from components.entities.buttons.tile import Tile
     from components.entities.player import Player
-    from utils.enums import Direction
 
 
 class AfterMatchData(TypedDict):

@@ -178,6 +178,7 @@ class ScenesController:
                                 )
 
                             if action == "New Game":
+                                self.deck.random_seed = None
                                 if self.history.data:
                                     end_game = self.history.data["end_game"]
                                 self.history.data = None

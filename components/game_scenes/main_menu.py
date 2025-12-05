@@ -47,7 +47,7 @@ class MainMenu:
             border_color=COLOR_WHITE,
         )
         self.instruction_button = UIButton(
-            text="How to play",
+            text="Guides",
             font=Font(MINTSODA_FONT, UI_FONT_SIZE),
             text_color=UI_TEXT_COLOR,
             bg_color=UI_BUTTON_COLOR,

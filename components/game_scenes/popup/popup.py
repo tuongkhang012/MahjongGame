@@ -9,6 +9,7 @@ class Popup:
     bg_color: Color = None
 
     def __init__(self):
+        self._absolute_position = Rect(0, 0, 0, 0)
         pass
 
     def render(self, screen: Surface):
@@ -38,6 +39,19 @@ class Popup:
         pygame.draw.rect(
             self._surface, border_color, self._surface.get_rect(), 2, border_radius=10
         )
+
+    def draw_surface_border_radius(
+        self,
+        surface: Surface,
+        border_color: Color = (255, 255, 255),
+    ):
+        pygame.draw.rect(
+            surface,
+            self.bg_color,
+            surface.get_rect(),
+            border_radius=10,
+        )
+        pygame.draw.rect(surface, border_color, surface.get_rect(), 2, border_radius=10)
 
     def build_local_mouse(self, pos: tuple[int, int]) -> tuple[int, int]:
         return (

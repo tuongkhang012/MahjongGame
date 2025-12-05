@@ -11,6 +11,7 @@ class Button:
     _highlight_surface: Surface = None
     _hidden_surface: Surface = None
     _disable_surface: Surface = None
+    _active_surface: Surface = None
 
     # Position of button
     _position: Rect
@@ -27,6 +28,7 @@ class Button:
     is_clicked: bool
     is_highlighted: bool
     is_disabled: bool
+    is_active: bool
 
     # Timer
     animation_timer: float
@@ -71,15 +73,17 @@ class Button:
     def render(self, screen: Surface):
         if self.surface:
             text_surface = self._build_text_surface()
-            text_pos = build_center_rect(self.surface, text_surface)
-            self.surface.blit(text_surface, (text_pos.x, text_pos.y))
+            if text_surface:
+                text_pos = build_center_rect(self.surface, text_surface)
+                self.surface.blit(text_surface, (text_pos.x, text_pos.y))
 
             screen.blit(self.surface, (self.get_position().x, self.get_position().y))
 
     def _build_text_surface(self) -> Surface:
-        text_surface, _ = self.font.render(self.text, self.text_color)
+        if self.font:
+            text_surface, _ = self.font.render(self.text, self.text_color)
 
-        return text_surface
+            return text_surface
 
     def update_position(
         self,
@@ -92,16 +96,24 @@ class Button:
         self._position.y = y
         if width is not None:
             self._position.width = width
+        else:
+            self._position.width = self.get_surface().get_width()
         if height is not None:
             self._position.height = height
+        else:
+            self._position.height = self.get_surface().get_height()
 
         # Store for base value, whenever bobbing effect
         self._base_position.x = x
         self._base_position.y = y
         if width is not None:
             self._base_position.width = width
+        else:
+            self._base_position.width = self.get_surface().get_width()
         if height is not None:
             self._base_position.height = height
+        else:
+            self._position.height = self.get_surface().get_height()
 
     def clicked(self):
         self.is_clicked = True
