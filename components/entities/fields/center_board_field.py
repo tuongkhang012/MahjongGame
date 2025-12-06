@@ -327,7 +327,7 @@ class CenterBoardField(Field):
                     or self.__player_list[idx].discard_furiten
                 )
                 turn_surface = self.draw_turn_full(
-                    self.__player_list[idx].is_riichi(), is_furiten
+                    idx, self.__player_list[idx].is_riichi(), is_furiten
                 )
             else:
                 is_furiten = (
@@ -336,7 +336,7 @@ class CenterBoardField(Field):
                     or self.__player_list[idx].discard_furiten
                 )
                 turn_surface = self.draw_turn_empty(
-                    self.__player_list[idx].is_riichi(), is_furiten
+                    idx, self.__player_list[idx].is_riichi(), is_furiten
                 )
             subsurface_size = subsurfaces_list[idx].get_size()
             half_surface = Surface(
@@ -446,12 +446,12 @@ class CenterBoardField(Field):
         )
         return center_field_surface
 
-    def draw_turn_empty(self, is_riichi: int, furiten: bool = False) -> Surface:
+    def draw_turn_empty(
+        self, player_idx: int, is_riichi: int, furiten: bool = False
+    ) -> Surface:
         import sys
 
-        if furiten and (
-            self.player_idx == 0 or (len(sys.argv) > 1 and "debug" in sys.argv)
-        ):
+        if furiten and (player_idx == 0 or (len(sys.argv) > 1 and "debug" in sys.argv)):
             turn_bar_color = (255, 221, 0)
         elif is_riichi >= 0:
             turn_bar_color = (255, 0, 0)
@@ -467,12 +467,12 @@ class CenterBoardField(Field):
         )
         return turn_surface
 
-    def draw_turn_full(self, is_riichi: int, furiten: bool = False) -> Surface:
+    def draw_turn_full(
+        self, player_idx: int, is_riichi: int, furiten: bool = False
+    ) -> Surface:
         import sys
 
-        if furiten and (
-            self.player_idx == 0 or (len(sys.argv) > 1 and "debug" in sys.argv)
-        ):
+        if furiten and (player_idx == 0 or (len(sys.argv) > 1 and "debug" in sys.argv)):
             turn_bar_color = (255, 221, 0)
         elif is_riichi >= 0:
             turn_bar_color = (255, 0, 0)

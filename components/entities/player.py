@@ -308,6 +308,7 @@ class Player:
 
         tile.reveal()
         tile.unclicked()
+        tile.undisabled()
         self.player_deck.remove(tile)
         self.discard_tiles.append(tile)
         self.__already_discard_tiles.append(tile)

@@ -721,7 +721,7 @@ class GameManager:
                             ron_able = True
 
                     if not ron_able:
-                        self.__handle_switch_turn(calling_player, True)
+                        self.__handle_switch_turn(calling_player, True, reset=False)
 
                 else:
                     self.__handle_switch_turn(calling_player, True)
@@ -853,9 +853,12 @@ class GameManager:
 
         print(f"########## DONE {self.prev_action.name.upper()} ACTION ##########")
 
-    def __handle_switch_turn(self, calling_player: Player, draw: bool = False):
+    def __handle_switch_turn(
+        self, calling_player: Player, draw: bool = False, reset: bool = True
+    ):
 
-        self.__reset_calling_state()
+        if reset:
+            self.__reset_calling_state()
         if self.prev_action == ActionType.RIICHI:
             calling_player.make_move()
         self.switch_turn(calling_player.direction, draw)

@@ -30,6 +30,7 @@ class DiscardField(TilesField):
     def render(self) -> Surface:
         self.build_field_surface()
         self.build_tiles_position()
+
         for tile in self.get_tiles_list():
             tile.render(self.surface)
 
@@ -45,18 +46,27 @@ class DiscardField(TilesField):
                 lambda tile: not tile.is_discard_from_riichi(), self.get_tiles_list()
             )
         )
+
+        tile_height = DISCARD_FIELD_SIZE[1] / 6
+        tile_width = DISCARD_FIELD_SIZE[0] / 6
+
         if len(check_riichi_tiles) == 0 or len(not_riichi_tiles) == 0:
             self.surface = Surface(DISCARD_FIELD_SIZE, pygame.SRCALPHA)
         else:
+            check_riichi_tiles[0].update_tile_surface((self.player_idx - 1) % 4)
+
             match self.player_idx:
                 case 0 | 2:
+                    self.__ratio_riichi = (
+                        tile_height / check_riichi_tiles[0].get_surface().get_height()
+                    )
                     self.surface = Surface(
                         (
                             DISCARD_FIELD_SIZE[0]
                             + abs(
                                 check_riichi_tiles[0].get_surface().get_width()
                                 * self.__ratio_riichi
-                                - not_riichi_tiles[0].get_surface().get_height()
+                                - not_riichi_tiles[0].get_surface().get_width()
                                 * self.__ratio_normal
                             ),
                             DISCARD_FIELD_SIZE[1],
@@ -65,6 +75,9 @@ class DiscardField(TilesField):
                     )
 
                 case 1 | 3:
+                    self.__ratio_riichi = (
+                        tile_width / check_riichi_tiles[0].get_surface().get_width()
+                    )
                     self.surface = Surface(
                         (
                             DISCARD_FIELD_SIZE[0],
@@ -94,18 +107,6 @@ class DiscardField(TilesField):
 
             tile_height = DISCARD_FIELD_SIZE[1] / 6
             tile_width = DISCARD_FIELD_SIZE[0] / 6
-
-            if tile.is_discard_from_riichi():
-                tile.update_tile_surface(player_idx=(self.player_idx - 1) % 4)
-                match self.player_idx:
-                    case 0 | 2:
-                        self.__ratio_riichi = (
-                            tile_height / tile.get_surface().get_height()
-                        )
-                    case 1 | 3:
-                        self.__ratio_riichi = (
-                            tile_width / tile.get_surface().get_width()
-                        )
 
             match self.player_idx:
                 case 0:
@@ -174,7 +175,7 @@ class DiscardField(TilesField):
                         tile.scale_surface(self.__ratio_riichi)
                         tile.update_position(
                             self.surface.get_width()
-                            - normal_tile_height * line
+                            - normal_tile_width * line
                             - tile.get_surface().get_width(),
                             start_height,
                             tile.get_surface().get_width(),
