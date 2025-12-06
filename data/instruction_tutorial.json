@@ -80,7 +80,7 @@
           },
           {
             "type": "text",
-            "content": "There're a lot of Yakus to remember, but as a beginner,\nyou only need to know about All Simples (Tanyao), Riichi and Yakuhai."
+            "content": "There're a lot of Yakus to remember (more details in Yaku Overview tab),\nbut as a beginner, you only need to know about three frequent yaku:\nAll Simples (Tanyao), Riichi and Yakuhai."
           }
         ]
       }
@@ -121,7 +121,7 @@
         "body": [
           {
             "type": "text",
-            "content": "A call to complete a Sequence,\nChii can only be called on a discarded tile from the LEFT player."
+            "content": "A call to complete a Sequence,\nChii can only be called on a discarded tile from the LEFT player.\nChii can NOT be called with Honor Tiles"
           },
           {
             "type": "image",
@@ -190,7 +190,7 @@
         "body": [
           {
             "type": "text",
-            "content": "When the player's hand needs only one more tile\nto declare a winning hand, they are in Tenpai."
+            "content": "When the player's hand needs only one more tile to declare a winning hand, they are in Tenpai.\nTenpai do NOT care about yaku."
           },
           {
             "type": "image",

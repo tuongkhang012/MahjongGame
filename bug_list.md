@@ -42,3 +42,4 @@
 4. Thêm trang hướng dẫn GUI, hướng dẫn kuikae, hướng dẫn flow của 1 trận đấu.
 5. Thêm hệ thống rank up cho có mục đích chơi.
 6. Thêm hệ thống chọn AI custom thay vì set sẵn.
+7. Nhấm từ bàn phím để chuyển trang bên instruction
