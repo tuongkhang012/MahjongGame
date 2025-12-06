@@ -10,6 +10,7 @@ from components.entities.ai.encoder import Encoder
 from components.entities.ai.helper import TILE_IDX, AKA_DORA_TILES, HistoryLayer
 from utils.constants import HISTORY_PATH
 from utils.enums import TileSource
+
 if typing.TYPE_CHECKING:
     from components.entities.player import Player
     from components.game_scenes.game_manager import GameManager
@@ -131,11 +132,19 @@ class MahjongAIAgent:
         tile_kind_idx = int(torch.argmax(logits_discard).item())
 
         if tile_kind_idx not in AKA_DORA_KIND_INDICES:
-            discard_index = -1
-            for i, tile in enumerate(player.player_deck):
-                if tile_kind_idx == TILE_IDX[str(tile)]:
-                    discard_index = i
-                    break
+            suitable_tile_found = False
+            rank_tile = 2
+            while not suitable_tile_found:
+                discard_index = -1
+                for i, tile in enumerate(player.player_deck):
+                    if tile_kind_idx == TILE_IDX[str(tile)]:
+                        discard_index = i
+                        break
+                if player.player_deck[discard_index].is_disabled:
+                    tile_kind_idx = int(torch.topk(logits_discard, rank_tile))
+                    rank_tile += 1
+                else:
+                    suitable_tile_found = True
 
         else:
             # This is a 5-tile kind (4, 13, or 22), so we must check for Akadora prioritization.
@@ -156,7 +165,9 @@ class MahjongAIAgent:
                 # Only discard the Akadora if no regular 5-tiles of that kind exist.
                 discard_index = akadora_index
             else:
-                raise ValueError(f"Consistency check failed for tile kind {tile_kind_idx}.")
+                raise ValueError(
+                    f"Consistency check failed for tile kind {tile_kind_idx}."
+                )
 
         tile = player.player_deck[discard_index]
         tile.clicked()
