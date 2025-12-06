@@ -16,11 +16,13 @@ from components.game_scenes.game_manager import GameManager
 import os
 import json
 from components.game_scenes.popup.instruction import Instruction
+from components.entities.buttons.button import Button
 
 if typing.TYPE_CHECKING:
     from components.game_scenes.main_menu import MainMenu
     from components.entities.buttons.tile import Tile
     from components.entities.buttons.button import Button
+
     from components.game_scenes.popup.popup import Popup
 
 
@@ -60,6 +62,26 @@ class ScenesController:
 
         self.instruction_manager = Instruction(self.create_popup_surface(0.9))
 
+        self.hints_button = Button()
+        hints_button_surface = pygame.transform.scale_by(
+            pygame.image.load("public/images/hints.png"), 0.06
+        )
+        hints_button_background = Surface(
+            (
+                hints_button_surface.get_width() + 10,
+                hints_button_surface.get_height() + 10,
+            ),
+            pygame.SRCALPHA,
+        )
+        pygame.draw.rect(
+            hints_button_background,
+            pygame.Color(255, 193, 7),
+            hints_button_background.get_rect(),
+            border_radius=10,
+        )
+        hints_button_background.blit(hints_button_surface, (5, 5))
+        self.hints_button.set_surface(hints_button_background)
+
     def change_scene(self, scene: GameScene):
         self.__scene = scene
 
@@ -85,6 +107,8 @@ class ScenesController:
 
     def close_popup(self):
         self.__popup_screen = None
+        if self.game_manager and self.game_manager.pause == True:
+            self.game_manager.pause = False
 
     def create_popup_surface(self, size_ratio: float):
         screen_size = self.__screen.get_size()
@@ -144,17 +168,18 @@ class ScenesController:
                     if self.__popup_screen:
                         button = self.__popup_screen.handle_event(event)
                         if button == "close":
-                            self.__popup_screen = None
+                            self.close_popup()
                         elif button:
                             match button.text:
                                 case "Main Menu":
-                                    self.__popup_screen = None
+                                    self.close_popup()
+
                                     self.change_scene(GameScene.START)
                                     self.mouse.default()
                                     self.game_manager.new_game()
 
                                 case "New Game":
-                                    self.__popup_screen = None
+                                    self.close_popup()
                                     self.change_scene(GameScene.GAME)
                                     self.mouse.default()
                                     self.game_manager.new_game()
@@ -243,6 +268,7 @@ class ScenesController:
                 self.get_render_surface(),
                 self,
                 init_deck=self.deck,
+                hints_button=self.hints_button,
                 game_history=self.history,
                 start_data=data,
             )
@@ -251,6 +277,7 @@ class ScenesController:
                 self.get_render_surface(),
                 self,
                 init_deck=self.deck,
+                hints_button=self.hints_button,
                 game_history=self.history,
             )
         self.handle_scene(GameScene.GAME, self.game_manager)
