@@ -33,3 +33,12 @@
 3\*. ~~Sau khi kết thúc, phải hiển thị kết quả trận đấu (Thắng, thua, hòa, chuyển điểm thế nào) (Còn phần hiển thị khi hòa)~~ (DONE)
 
 4\*. ~~Nút chuyển màn (Chuyển đổi giữa các màn hình (chuyển scene))~~ (DONE)
+
+### Trang trí
+
+1. Thêm tên thắng lớn vô màn hình result nếu có, e.g. Mangan, Haneman, Baiman...
+2. Thêm âm nhạc: lobby, riichi, màn hình chính.
+3. Thêm SFX: tiếng bấm chuột vào nút hoặc bấm chuột in general (sẽ phiền), tiếng tile, tiếng call, tiếng đọc yaku (optional).
+4. Thêm trang hướng dẫn GUI, hướng dẫn kuikae, hướng dẫn flow của 1 trận đấu.
+5. Thêm hệ thống rank up cho có mục đích chơi.
+6. Thêm hệ thống chọn AI custom thay vì set sẵn.
