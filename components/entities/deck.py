@@ -148,7 +148,6 @@ class Deck:
                 init_melds = []
                 for meld_data in melds:
                     call_tiles: list[Tile] = []
-                    print(meld_data)
                     for idx, tile_data in enumerate(meld_data["tiles"]):
                         suitable_tile = None
                         for each_tile in self.full_deck:
@@ -163,7 +162,6 @@ class Deck:
                             and idx == meld_data["called_tile"]
                         ):
                             suitable_tile.source = TileSource.PLAYER
-                            print("I AM IN HEREEEEE")
                         call_tiles.append(suitable_tile)
 
                     new_call = Call(

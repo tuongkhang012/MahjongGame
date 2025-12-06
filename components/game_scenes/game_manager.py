@@ -12,6 +12,8 @@ from utils.constants import (
     RIICHI_MODEL,
     COMBINED_MODEL,
 )
+
+from mahjong.agari import Agari
 from components.game_builder import GameBuilder
 from utils.enums import Direction, ActionType, CallType, GamePopup, TileType
 
@@ -952,7 +954,7 @@ class GameManager:
             is_daburu_riichi = True if riichi_turn == 0 else False
 
             # is_ippatsu
-            is_ippatsu = True if riichi_turn == win_player.turn else False
+            is_ippatsu = True if riichi_turn == win_player.turn - 1 else False
 
             is_rinshan = True if win_player.get_draw_tile().from_death_wall else False
             is_chankan = (

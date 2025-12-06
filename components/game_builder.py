@@ -451,6 +451,7 @@ class GameBuilder:
             result = calculator.estimate_hand_value(
                 tiles=[], win_tile=None, config=config
             )
+            print(result, result.yaku, result.cost)
         else:
             copy_player_deck = player.player_deck.copy()
 
@@ -465,6 +466,7 @@ class GameBuilder:
                 list(map(lambda tile: tile.hand136_idx, deck.dora)),
                 config=config,
             )
+            print(result, result.yaku, result.cost)
         print(
             f"FINAL RESULT: {result} {result.yaku} and player scores: {result.cost['total']}"
         )
