@@ -141,7 +141,9 @@ class MahjongAIAgent:
                         discard_index = i
                         break
                 if player.player_deck[discard_index].is_disabled:
-                    tile_kind_idx = int(torch.topk(logits_discard, rank_tile))
+                    tile_kind_idx = int(
+                        torch.topk(logits_discard, rank_tile).values.item()
+                    )
                     rank_tile += 1
                 else:
                     suitable_tile_found = True
