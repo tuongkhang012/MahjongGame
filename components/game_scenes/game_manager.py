@@ -40,10 +40,12 @@ from components.entities.fields.call_button_fields import CallButtonField
 
 if typing.TYPE_CHECKING:
     from components.game_scenes.scenes_controller import ScenesController
+    from components.entities.buttons.button import Button
 
 
 class GameManager:
     screen: Surface
+    hints_button: "Button"
     scenes_controller: "ScenesController"
     pause: bool = False
     popup: Popup = None
@@ -101,6 +103,7 @@ class GameManager:
         screen: Surface,
         scenes_controller: "ScenesController",
         init_deck: Deck,
+        hints_button: "Button",
         game_history: GameHistory,
         start_data=None,
     ):
@@ -145,6 +148,18 @@ class GameManager:
             self.builder.continue_game(self)
 
         self.call_button_field = CallButtonField(self.screen)
+
+        # Hints button init
+        PADDING_HINTS_BUTTON_Y = 20
+        PADDING_HINTS_BUTTON_X = 100
+        self.hints_button = hints_button
+
+        self.hints_button.update_position(
+            self.screen.get_width()
+            - PADDING_HINTS_BUTTON_X
+            - self.hints_button.get_surface().get_width(),
+            PADDING_HINTS_BUTTON_Y,
+        )
         self.scenes_controller = scenes_controller
 
     def render(self) -> tuple[Surface, Surface | None]:
@@ -173,6 +188,8 @@ class GameManager:
 
             if len(player.call_list) > 0:
                 player.call_field.render(self.screen)
+
+        self.hints_button.render(self.screen)
 
         if self.animation_tile:
             self.render_discarded_animation(self.animation_tile)
@@ -232,6 +249,10 @@ class GameManager:
             case pygame.MOUSEBUTTONDOWN:
                 player = self.player_list[0]
                 call_button_field = self.call_button_field
+
+                if self.hints_button.check_collidepoint(event.pos):
+                    self.scenes_controller.popup(GamePopup.INSTRUCTION, None)
+                    self.pause = True
 
                 if player == self.current_player and player.deck_field.check_collide(
                     event.pos
@@ -295,6 +316,10 @@ class GameManager:
     def detect_mouse_pos(self, mouse_pos: tuple[int, int]):
         player = self.player_list[0]
 
+        hover_hints = False
+        if self.hints_button.check_collidepoint(mouse_pos):
+            hover_hints = True
+
         hover_picking_chii = None
         if self.popup and self.popup.check_collide(mouse_pos):
             hover_picking_chii = self.popup.handle_event(mouse_pos)
@@ -353,7 +378,7 @@ class GameManager:
         else:
             self.call_button_field.unhover()
 
-        if hover_tiles or call_button_hover or hover_picking_chii:
+        if hover_tiles or call_button_hover or hover_picking_chii or hover_hints:
             self.scenes_controller.mouse.hover()
         else:
             self.scenes_controller.mouse.default()
