@@ -39,7 +39,7 @@ class DeckField(TilesField):
         match player.player_idx:
             case 0 | 2:
                 half_screen_surface = Surface(
-                    (self.screen.get_width(), self.screen.get_height() / 5),
+                    (self.screen.get_width(), self.screen.get_height() / 6),
                     pygame.SRCALPHA,
                 )
 
@@ -62,7 +62,7 @@ class DeckField(TilesField):
         )
         match player.player_idx:
             case 0:
-                half_screen_surface_position = (0, 4 * self.screen.get_height() / 5)
+                half_screen_surface_position = (0, 5 * self.screen.get_height() / 6)
 
             case 1:
                 half_screen_surface_position = (2 * self.screen.get_width() / 3, 0)

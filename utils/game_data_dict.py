@@ -10,6 +10,8 @@ if typing.TYPE_CHECKING:
 class AfterMatchData(TypedDict):
     player_deck: list["Tile"]
     win_tile: "Tile"
+    dora: list["Tile"]
+    ura_dora: list["Tile"]
     call_tiles_list: list["Tile"]
     result: HandResponse
     player_list: list["Player"]

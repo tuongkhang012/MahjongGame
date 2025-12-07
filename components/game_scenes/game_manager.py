@@ -18,7 +18,7 @@ from components.game_builder import GameBuilder
 from utils.enums import Direction, ActionType, CallType, GamePopup, TileType
 
 from utils.game_data_dict import AfterMatchData
-from utils.game_history_data_dict import GameHistoryData, MeldData
+from utils.game_history_data_dict import GameHistoryData, MeldData, TileData
 
 from pygame import Surface
 from pygame.event import Event
@@ -99,6 +99,7 @@ class GameManager:
 
     # Change direction when new game
     keep_direction: bool = False
+    end_game: bool = False
 
     def __init__(
         self,
@@ -146,8 +147,25 @@ class GameManager:
                 ActionType.DORA, self.deck.death_wall[self.deck.current_dora_idx]
             )
         else:
-            # Init continue game
-            self.builder.continue_game(self)
+            if self.game_history.data["end_game"] == True:
+                self.builder
+                for i in range(0, 4):
+                    self.builder.deck.random_seed = None
+                    self.builder.deck.create_new_deck()
+                    self.player_list.append(
+                        Player(
+                            self.screen,
+                            i,
+                            Direction(self.game_history.data["direction"][i]),
+                            full_deck=self.builder.deck.full_deck,
+                            points=self.game_history.data["points"][i],
+                        )
+                    )
+                self.keep_direction = self.game_history.data["keep_direction"]
+                self.new_game()
+                self.game_history.data = None
+            else:
+                self.builder.continue_game(self)
 
         self.call_button_field = CallButtonField(self.screen)
 
@@ -640,6 +658,9 @@ class GameManager:
                         tile.discard_riichi()
                     self.__reset_calling_state()
                     self.current_player.discard(tile, self)
+                    self.scenes_controller.mixer.add_sound_queue(
+                        self.current_player, ActionType.DISCARD
+                    )
                     self.game_log.append_event(
                         ActionType.DISCARD, tile, self.current_player
                     )
@@ -664,6 +685,9 @@ class GameManager:
                     calling_player,
                     calling_player.call_list[-1],
                 )
+                self.scenes_controller.mixer.add_sound_queue(
+                    calling_player.player_idx, ActionType.CHII
+                )
                 self.__handle_switch_turn(calling_player)
 
             case ActionType.PON:
@@ -683,6 +707,9 @@ class GameManager:
                     latest_discarded_tile,
                     calling_player,
                     calling_player.call_list[-1],
+                )
+                self.scenes_controller.mixer.add_sound_queue(
+                    calling_player.player_idx, ActionType.PON
                 )
                 self.__handle_switch_turn(calling_player)
 
@@ -710,11 +737,15 @@ class GameManager:
                         None if not is_kakan else self.player_list[from_who],
                         is_kakan,
                     )
+
                     self.game_log.append_event(
                         ActionType.KAN,
                         calling_player.get_draw_tile(),
                         calling_player,
                         calling_player.call_list[-1],
+                    )
+                    self.scenes_controller.mixer.add_sound_queue(
+                        calling_player.player_idx, ActionType.KAN
                     )
                 else:
                     calling_player.call(
@@ -728,6 +759,9 @@ class GameManager:
                         latest_discarded_tile,
                         calling_player,
                         calling_player.call_list[-1],
+                    )
+                    self.scenes_controller.mixer.add_sound_queue(
+                        calling_player.player_idx, ActionType.KAN
                     )
                 if calling_player.call_list[-1].is_kakan:
                     self.__reset_calling_state()
@@ -763,6 +797,13 @@ class GameManager:
                     None,
                     calling_player,
                 )
+                if calling_player.turn == 0:
+                    is_daburu_riichi = True
+                else:
+                    is_daburu_riichi = False
+                self.scenes_controller.mixer.add_sound_queue(
+                    calling_player.player_idx, ActionType.RIICHI, is_daburu_riichi
+                )
                 self.__handle_switch_turn(calling_player)
 
             case ActionType.RON:
@@ -772,6 +813,9 @@ class GameManager:
                         ActionType.RON,
                         self.prev_called_player.get_draw_tile(),
                         calling_player,
+                    )
+                    self.scenes_controller.mixer.add_sound_queue(
+                        calling_player.player_idx, ActionType.RON
                     )
                     if len(self.call_order) > 0:
                         for player in self.call_order:
@@ -802,6 +846,9 @@ class GameManager:
                         self.latest_discarded_tile,
                         calling_player,
                     )
+                    self.scenes_controller.mixer.add_sound_queue(
+                        calling_player.player_idx, ActionType.RON
+                    )
                     if len(self.call_order) > 0:
                         for player in self.call_order:
                             if CallType.RON in player.can_call:
@@ -830,6 +877,9 @@ class GameManager:
                     ActionType.TSUMO,
                     calling_player.get_draw_tile(),
                     calling_player,
+                )
+                self.scenes_controller.mixer.add_sound_queue(
+                    calling_player.player_idx, ActionType.TSUMO
                 )
                 return self.end_match(
                     calling_player,
@@ -915,9 +965,6 @@ class GameManager:
         win_tile: Tile = None,
         disable_reason: str = None,
     ):
-        import datetime
-
-        "Kyuushu kyuuhai"
         self.pause = True
         deltas = [0, 0, 0, 0]
         for player in self.player_list:
@@ -925,7 +972,6 @@ class GameManager:
                 player.reveal_hand()
         if self.is_disable_round:
             self.game_log.round = None
-            reason = None
 
             popup_data: AfterMatchData = {
                 "deltas": deltas,
@@ -938,6 +984,8 @@ class GameManager:
                 "tsumi_number": self.tsumi_number,
                 "ryuukyoku": True,
                 "ryuukyoku_reason": self.disable_reason,
+                "dora": [],
+                "ura_dora": [],
             }
             self.scenes_controller.popup(GamePopup.AFTER_MATCH, popup_data)
 
@@ -949,12 +997,22 @@ class GameManager:
             # is_riichi
             riichi_turn = win_player.is_riichi()
             is_riichi = True if riichi_turn >= 0 else False
+            ura_dora = []
+            if is_riichi:
+                start_ura_dora_idx = 4
+                for i in range(0, len(self.deck.dora)):
+                    ura_dora.append(self.deck.death_wall[start_ura_dora_idx])
+                    start_ura_dora_idx += 2
 
             # is_double_riichi
             is_daburu_riichi = True if riichi_turn == 0 else False
 
             # is_ippatsu
-            is_ippatsu = True if riichi_turn == win_player.turn - 1 else False
+            is_ippatsu = (
+                True
+                if win_player.is_riichi() >= 0 and riichi_turn == win_player.turn - 1
+                else False
+            )
 
             is_rinshan = True if win_player.get_draw_tile().from_death_wall else False
             is_chankan = (
@@ -1017,6 +1075,7 @@ class GameManager:
                 is_renhou=is_renhou,
                 tsumi_number=self.tsumi_number,
                 kyoutaku_number=self.kyoutaku_number,
+                ura_dora=ura_dora,
             )
             total_cost = int(result.cost["total"] / 100)
             if self.action == ActionType.TSUMO:
@@ -1067,6 +1126,8 @@ class GameManager:
                 "tsumi_number": self.tsumi_number,
                 "ryuukyoku": False,
                 "ryuukyoku_reason": None,
+                "ura_dora": ura_dora,
+                "dora": self.deck.dora,
             }
         else:
             # Check nagashi mangan player
@@ -1133,6 +1194,14 @@ class GameManager:
                             deltas[player.player_idx] -= int(
                                 max_deltas_points / (4 - len(tenpai_players))
                             )
+                if self.main_player in tenpai_players:
+                    self.scenes_controller.mixer.add_sound_queue(
+                        self.main_player.player_idx, ActionType.TENPAI
+                    )
+                else:
+                    self.scenes_controller.mixer.add_sound_queue(
+                        self.main_player.player_idx, ActionType.NO_TEN
+                    )
 
                 self.game_log.round["ryuukyoku_tenpai"] = (
                     None
@@ -1154,6 +1223,8 @@ class GameManager:
                 "tsumi_number": self.tsumi_number,
                 "ryuukyoku": True,
                 "ryuukyoku_reason": self.disable_reason,
+                "ura_dora": [],
+                "dora": [],
             }
 
         for idx, delta in enumerate(deltas):
@@ -1162,7 +1233,7 @@ class GameManager:
         self.game_log.end_round(self.player_list, deltas)
 
         game_history_data = self.__dict__()
-        game_history_data["end_game"] = True
+        self.end_game = True
         self.game_history.update(game_history_data)
         self.game_history.export()
         self.scenes_controller.popup(GamePopup.AFTER_MATCH, popup_data)
@@ -1197,7 +1268,6 @@ class GameManager:
         )
 
     def new_game(self):
-
         self.call_button_field = CallButtonField(self.screen)
         self.pause = False
         self.prev_player: Player = None
@@ -1233,9 +1303,9 @@ class GameManager:
         )
 
     def __dict__(self):
-
+        print(self.calling_player)
         data: GameHistoryData = {
-            "end_game": False,
+            "end_game": self.end_game,
             "seed": self.deck.random_seed,
             "death_wall": self.__map_tiles_data(self.deck.death_wall),
             "full_deck": self.__map_tiles_data(self.deck.full_deck),
@@ -1280,6 +1350,7 @@ class GameManager:
             "calling_player": (
                 self.calling_player.player_idx if self.calling_player else None
             ),
+            "keep_direction": self.keep_direction,
         }
 
         for player in self.player_list:
@@ -1330,8 +1401,7 @@ class GameManager:
         # print(data)
         return data
 
-    def __map_tiles_data(self, tiles_list: list[Tile]):
-        from utils.game_history_data_dict import TileData
+    def __map_tiles_data(self, tiles_list: list[Tile]) -> list[TileData]:
 
         return list(
             map(
@@ -1339,6 +1409,7 @@ class GameManager:
                     "hand136_idx": tile.hand136_idx,
                     "riichi_discard": tile.is_discard_from_riichi(),
                     "from_death_wall": tile.from_death_wall,
+                    "is_disabled": tile.is_disabled,
                     "string": str(tile),
                 },
                 tiles_list,

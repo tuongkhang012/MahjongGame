@@ -72,6 +72,7 @@ class Player:
         callable_tiles_list: list[list[Tile]] = [],
         is_riichi: bool = False,
         riichi_turn: int = None,
+        points: int = None,
         agent: any = None,
     ):
         self.player_idx = player_idx
@@ -103,9 +104,9 @@ class Player:
         )
 
         # Call init
-        self.can_call = [] if can_call is not None else can_call
+        self.can_call = can_call if can_call is not None else []
         self.callable_tiles_list = (
-            [] if callable_tiles_list is not None else callable_tiles_list
+            callable_tiles_list if callable_tiles_list is not None else []
         )
         self.melds = []
 
@@ -113,7 +114,7 @@ class Player:
         self.__winning_tiles = []
 
         # Player information
-        self.points = 25000
+        self.points = points if points is not None else 25000
         self.turn = 0
 
         self.agent = agent
@@ -702,4 +703,12 @@ class Player:
         return id(value) == id(self)
 
     def __str__(self):
-        return f"Player {self.player_idx}"
+        match self.player_idx:
+            case 0:
+                return "You"
+            case 1:
+                return "Righty"
+            case 2:
+                return "Middy"
+            case 3:
+                return "Lefty"

@@ -6,8 +6,9 @@ from components.entities.ai.helper import (
     fill_row,
     TILE_IDX,
     AKA_DORA_TILES,
-    HistoryLayer
+    HistoryLayer,
 )
+
 if typing.TYPE_CHECKING:
     from components.game_scenes.game_manager import GameManager
     from components.entities.buttons.tile import Tile
@@ -42,7 +43,7 @@ class Encoder:
         self.H = 34
         self.W = 4
         self.pov_seat = 0  # default POV seat
-        self.pov_order = list(range(4)) # default POV order
+        self.pov_order = list(range(4))  # default POV order
 
     def empty_plane(self) -> np.ndarray:
         return np.zeros((self.P, self.H, self.W), dtype=np.float32)
@@ -95,7 +96,9 @@ class Encoder:
                 fill_plane(X[10 + i, :, :])
 
         # Planes 14-17: Rank positions of POV
-        sorted_player = sorted(player_list, key=lambda p: (-p.points, p.get_initial_direction().value))
+        sorted_player = sorted(
+            player_list, key=lambda p: (-p.points, p.get_initial_direction().value)
+        )
         rank = sorted_player.index(player_list[self.pov_seat])
         fill_plane(X[14 + rank, :, :])
 
@@ -115,7 +118,7 @@ class Encoder:
         fill_row(X[27, :, :], TILE_IDX[own_wind])
 
     def encode_history(self, X: np.ndarray, history: list["HistoryLayer"]):
-        """ Encode past 6 steps of .history into planes. 13 planes for first step, 9 planes for each subsequent step."""
+        """Encode past 6 steps of .history into planes. 13 planes for first step, 9 planes for each subsequent step."""
         # .history[-1] is the most recent past step, each frame views store from 0~3, the self.pov_order store the order:
         # [POV, right of POV, opposite of POV, left of POV]
 

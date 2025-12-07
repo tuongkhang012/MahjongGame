@@ -3,7 +3,11 @@ from pygame import Surface
 from utils.enums import TileType, ActionType, Direction, CallType
 from components.entities.player import Player
 from components.entities.deck import Deck
-from utils.helper import find_suitable_tile_in_list, parse_string_tile
+from utils.helper import (
+    find_suitable_tile_in_list,
+    parse_string_tile,
+    count_shanten_points,
+)
 from typing import Any
 import typing
 from components.entities.fields.center_board_field import CenterBoardField
@@ -82,6 +86,7 @@ class GameBuilder:
         )
 
     def continue_game(self, game_manager: "GameManager"):
+        print("Continuing game...")
         self.deck.create_new_deck(
             random_seed=game_manager.game_history.data["seed"],
             data=game_manager.game_history.data,
@@ -97,7 +102,6 @@ class GameBuilder:
         for i in range(0, 4):
             call_list = self.deck.call_list[i]
             call_tiles_list = []
-            print(game_manager.game_history.data["is_reaches"])
             for call in call_list:
                 for called_tile in call.tiles:
                     call_tiles_list.append(called_tile)
@@ -127,6 +131,7 @@ class GameBuilder:
                 is_riichi=is_riichi,
                 riichi_turn=riichi_turn,
                 draw_tile=self.deck.latest_draw_tile[i],
+                points=game_manager.game_history.data["points"][i],
             )
             for tile in new_player.call_tiles_list:
                 tile.update_tile_surface(i)
@@ -136,6 +141,7 @@ class GameBuilder:
             for tile in new_player.discard_tiles:
                 tile.update_tile_surface(i)
                 tile.reveal()
+
             new_player.points = game_manager.game_history.data["points"][i]
             player_list.append(new_player)
 
@@ -177,21 +183,34 @@ class GameBuilder:
         ]
         game_manager.tsumi_number = game_manager.game_history.data["tsumi_number"]
         game_manager.kyoutaku_number = game_manager.game_history.data["kyoutaku_number"]
-        if game_manager.game_history.data.get("action"):
+        if game_manager.game_history.data.get("action") is not None:
             game_manager.action = ActionType(game_manager.game_history.data["action"])
-        if game_manager.game_history.data.get("prev_action"):
+        if game_manager.game_history.data.get("prev_action") is not None:
             game_manager.prev_action = ActionType(
                 game_manager.game_history.data["prev_action"]
             )
-        if game_manager.game_history.data.get("prev_called_player"):
+        if game_manager.game_history.data.get("prev_called_player") is not None:
             game_manager.prev_called_player = player_list[
                 game_manager.game_history.data["prev_called_player"]
             ]
 
-        if game_manager.game_history.data.get("prev_player"):
+        if game_manager.game_history.data.get("prev_player") is not None:
             game_manager.prev_player = player_list[
                 game_manager.game_history.data["prev_player"]
             ]
+
+        if game_manager.game_history.data.get("calling_player") is not None:
+            game_manager.calling_player = player_list[
+                game_manager.game_history.data["calling_player"]
+            ]
+
+        if game_manager.game_history.data.get("call_order"):
+            game_manager.call_order = list(
+                map(
+                    lambda player_idx: player_list[player_idx],
+                    game_manager.game_history.data["call_order"],
+                )
+            )
 
         # Center board field related
         game_manager.center_board_field = CenterBoardField(
@@ -422,6 +441,7 @@ class GameBuilder:
         is_nagashi_mangan: bool = False,
         tsumi_number: int = 0,
         kyoutaku_number: int = 0,
+        ura_dora: list[Tile] = [],
     ) -> HandResponse:
 
         # Init hand config for calculator
@@ -451,7 +471,6 @@ class GameBuilder:
             result = calculator.estimate_hand_value(
                 tiles=[], win_tile=None, config=config
             )
-            print(result, result.yaku, result.cost)
         else:
             copy_player_deck = player.player_deck.copy()
 
@@ -459,14 +478,18 @@ class GameBuilder:
                 copy_player_deck.append(win_tile)
 
             hands = copy_player_deck + player.call_tiles_list
+
+            copy_dora_list = deck.dora.copy()
+            if len(ura_dora) > 0:
+                copy_dora_list += ura_dora
             result = calculator.estimate_hand_value(
                 list(map(lambda tile: tile.hand136_idx, hands)),
                 win_tile.hand136_idx,
                 player.melds,
-                list(map(lambda tile: tile.hand136_idx, deck.dora)),
+                list(map(lambda tile: tile.hand136_idx, copy_dora_list)),
                 config=config,
             )
-            print(result, result.yaku, result.cost)
+        print(result, result.yaku, result.cost)
         print(
             f"FINAL RESULT: {result} {result.yaku} and player scores: {result.cost['total']}"
         )

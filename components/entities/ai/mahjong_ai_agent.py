@@ -141,8 +141,15 @@ class MahjongAIAgent:
                         discard_index = i
                         break
                 if player.player_deck[discard_index].is_disabled:
+                    print(
+                        "Chii kuikae: ",
+                        rank_tile,
+                        torch.topk(logits_discard, rank_tile).indices,
+                        discard_index,
+                        player.player_deck[discard_index],
+                    )
                     tile_kind_idx = int(
-                        torch.topk(logits_discard, rank_tile).values.item()
+                        torch.topk(logits_discard, rank_tile).indices[-1]
                     )
                     rank_tile += 1
                 else:
@@ -185,7 +192,6 @@ class MahjongAIAgent:
             if os.path.isfile(file_path):
                 files.append(file_path)
         files.sort(key=lambda x: int(os.path.basename(x).split(".")[0]))
-        print(files)
         return files
 
     def read_files(self, files: list[str]):

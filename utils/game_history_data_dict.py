@@ -6,6 +6,7 @@ class TileData(TypedDict):
     hand136_idx: int
     riichi_discard: bool
     from_death_wall: bool
+    is_disabled: bool
     string: str
 
 
@@ -39,7 +40,7 @@ class GameHistoryData(TypedDict):
     latest_called_tile_hand136_idx: int
     calling_player: int
     end_game: bool
-
+    keep_direction: bool
     # Wind
     round_direction: int
     round_direction_number: int

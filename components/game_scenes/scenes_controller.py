@@ -17,6 +17,7 @@ import os
 import json
 from components.game_scenes.popup.instruction import Instruction
 from components.entities.buttons.button import Button
+from components.mixer.mixer import Mixer
 
 if typing.TYPE_CHECKING:
     from components.game_scenes.main_menu import MainMenu
@@ -35,11 +36,12 @@ class ScenesController:
 
     def __init__(self, history: GameHistory):
         pygame.init()
-        # pygame.mixer.init()
+        pygame.mixer.pre_init(44100, -16, 2, 512)
+        pygame.mixer.init()
         # pygame.freetype.init()
 
         pygame.display.set_caption(GAME_TITLE)
-
+        pygame.display.set_icon(pygame.image.load("public/images/sob.ico"))
         # Display setting
         self.__default_screen = pygame.display.set_mode(WINDOW_SIZE)
         self.__screen = pygame.Surface(
@@ -64,23 +66,26 @@ class ScenesController:
 
         self.hints_button = Button()
         hints_button_surface = pygame.transform.scale_by(
-            pygame.image.load("public/images/hints.png"), 0.06
+            pygame.image.load("public/images/book.png"), 1.4
         )
+
         hints_button_background = Surface(
             (
-                hints_button_surface.get_width() + 10,
-                hints_button_surface.get_height() + 10,
+                hints_button_surface.get_width() + 5,
+                hints_button_surface.get_height() + 5,
             ),
             pygame.SRCALPHA,
         )
         pygame.draw.rect(
             hints_button_background,
-            pygame.Color(255, 193, 7),
+            pygame.Color(6, 118, 209),
             hints_button_background.get_rect(),
             border_radius=10,
         )
-        hints_button_background.blit(hints_button_surface, (5, 5))
+        hints_button_background.blit(hints_button_surface, (2.5, 2.5))
         self.hints_button.set_surface(hints_button_background)
+
+        self.mixer = Mixer()
 
     def change_scene(self, scene: GameScene):
         self.__scene = scene
@@ -130,6 +135,7 @@ class ScenesController:
         self.__screen = surface
 
     def render(self):
+        self.mixer.play_queue()
         match self.__scene:
             case GameScene.GAME:
                 self.__screen = self.game_manager.render()
@@ -183,6 +189,7 @@ class ScenesController:
                                     self.change_scene(GameScene.GAME)
                                     self.mouse.default()
                                     self.game_manager.new_game()
+                                    self.mixer.clear_queue()
                                 case "Quit":
                                     return {"exit": True}
 

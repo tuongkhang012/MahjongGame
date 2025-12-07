@@ -50,6 +50,7 @@ class GameHistory:
             data["from_log_name"] if data.get("from_log_name") else None
         )
         self.data["call_order"] = data["call_order"]
+        self.data["calling_player"] = data["calling_player"]
         self.data["can_call"] = data["can_call"]
         self.data["action"] = data["action"]
         self.data["prev_action"] = data["prev_action"]
@@ -63,6 +64,7 @@ class GameHistory:
         self.data["latest_draw_tile_hand136_idx"] = data["latest_draw_tile_hand136_idx"]
         self.data["callable_tiles_list"] = data["callable_tiles_list"]
         self.data["prev_player"] = data["prev_player"]
+        self.data["keep_direction"] = data["keep_direction"]
 
     def clear(self):
         self.data = None
@@ -75,9 +77,7 @@ class GameHistory:
             if os.path.isfile(full_path):
                 files.append(files)
 
-        file_path = Path(
-            HISTORY_PATH + f"{len(files)}.json"
-        )
+        file_path = Path(HISTORY_PATH + f"{len(files)}.json")
         file_path.parent.mkdir(parents=True, exist_ok=True)
 
         with open(file_path, "w+") as file:

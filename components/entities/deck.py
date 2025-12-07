@@ -109,6 +109,8 @@ class Deck:
                         if tmp_tile.hand136_idx == tile_data["hand136_idx"]:
                             if tile_data["from_death_wall"]:
                                 tmp_tile.from_death_wall = True
+                            if tile_data["is_disabled"]:
+                                tmp_tile.is_disabled = True
                             init_hand.append(tmp_tile)
                             break
 
@@ -191,6 +193,10 @@ class Deck:
                             break
                     callable_list.append(tmp_list)
                 self.callable_tiles_list.append(callable_list)
+            for each_tile in self.full_deck:
+                if each_tile.hand136_idx == data["latest_discard_tile_hand136_idx"]:
+                    self.latest_discard_tile = each_tile
+                    break
             return
         cutting_points = 34 * ((dices_score - 1) % 4 + 1) - 2 * dices_score
 

@@ -3,7 +3,7 @@ from pygame import Rect, Surface
 import pygame
 import typing
 from shared.image_cutter import ImageCutter
-from utils.constants import DISCARD_FIELD_SIZE
+from utils.constants import DISCARD_FIELD_SIZE, CENTER_BOARD_FIELD_BORDER_COLOR
 import math
 from utils.helper import draw_hitbox
 
@@ -60,7 +60,7 @@ class DiscardField(TilesField):
                         (
                             DISCARD_FIELD_SIZE[0]
                             + abs(
-                                check_riichi_tiles[0].get_surface().get_width()
+                                check_riichi_tiles[0].get_surface().get_height()
                                 * self.__ratio_riichi
                                 - normal_width * self.__ratio_normal
                             ),
@@ -70,15 +70,15 @@ class DiscardField(TilesField):
                     )
 
                 case 1 | 3:
-                    self.__ratio_riichi = (
-                        tile_width / check_riichi_tiles[0].get_surface().get_width()
+                    self.__ratio_riichi = tile_width / (
+                        check_riichi_tiles[0].get_surface().get_width() + 5
                     )
                     self.surface = Surface(
                         (
                             DISCARD_FIELD_SIZE[0],
                             DISCARD_FIELD_SIZE[1]
                             + abs(
-                                check_riichi_tiles[0].get_surface().get_height()
+                                check_riichi_tiles[0].get_surface().get_width()
                                 * self.__ratio_riichi
                                 - normal_height * self.__ratio_normal
                             ),

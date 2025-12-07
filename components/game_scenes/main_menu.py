@@ -46,6 +46,13 @@ class MainMenu:
             bg_color=UI_BUTTON_COLOR,
             border_color=COLOR_WHITE,
         )
+        self.setting_button = UIButton(
+            text="Setting",
+            font=Font(MINTSODA_FONT, UI_FONT_SIZE),
+            text_color=UI_TEXT_COLOR,
+            bg_color=UI_BUTTON_COLOR,
+            border_color=COLOR_WHITE,
+        )
         self.instruction_button = UIButton(
             text="Guides",
             font=Font(MINTSODA_FONT, UI_FONT_SIZE),
@@ -66,7 +73,7 @@ class MainMenu:
 
         # Render main menu elements here
         main_menu_buttons_surface = Surface(
-            (UI_BUTTON_SIZE[0], UI_BUTTON_SIZE[1] * 4), pygame.SRCALPHA
+            (UI_BUTTON_SIZE[0], UI_BUTTON_SIZE[1] * 5), pygame.SRCALPHA
         )
         self.draw_border(
             main_menu_buttons_surface,
@@ -89,18 +96,23 @@ class MainMenu:
         )
         self.instruction_button.render(main_menu_buttons_surface)
 
+        # Setting Button
+        self.setting_button.update_position(
+            0, UI_BUTTON_SIZE[1] * 3, UI_BUTTON_SIZE[0], UI_BUTTON_SIZE[1]
+        )
+        self.setting_button.render(main_menu_buttons_surface)
         # Quit Button
         self.quit_button.update_position(
-            0, UI_BUTTON_SIZE[1] * 3, UI_BUTTON_SIZE[0], UI_BUTTON_SIZE[1]
+            0, UI_BUTTON_SIZE[1] * 4, UI_BUTTON_SIZE[0], UI_BUTTON_SIZE[1]
         )
         self.quit_button.render(main_menu_buttons_surface)
 
         # self.new_game_button.render(self.screen)
         draw_hitbox(main_menu_buttons_surface)
         center_pos = build_center_rect(self.screen, main_menu_buttons_surface)
-        self.screen.blit(main_menu_buttons_surface, (center_pos.x, 380))
+        self.screen.blit(main_menu_buttons_surface, (center_pos.x, 350))
         self.__absolute_position = Rect(
-            center_pos.x, 380, self.screen.get_width(), self.screen.get_height()
+            center_pos.x, 350, self.screen.get_width(), self.screen.get_height()
         )
         self.main_screen.blit(self.screen, (0, 0))
         return self.main_screen
@@ -129,6 +141,9 @@ class MainMenu:
                 if self.instruction_button.check_collidepoint(local_mouse):
                     return "Instruction"
 
+                if self.setting_button.check_collidepoint(local_mouse):
+                    return "Setting"
+
                 # Click quit button
                 if (
                     self.quit_button.check_collidepoint(local_mouse)
@@ -141,7 +156,7 @@ class MainMenu:
                 self.continue_button.unhovered()
                 self.instruction_button.unhovered()
                 self.quit_button.unhovered()
-
+                self.setting_button.unhovered()
                 is_hovering = False
                 if self.new_game_button.check_collidepoint(local_mouse):
                     self.new_game_button.hovered()
@@ -157,6 +172,11 @@ class MainMenu:
                     self.instruction_button.hovered()
                     is_hovering = (
                         True if self.instruction_button.is_disabled == False else False
+                    )
+                if self.setting_button.check_collidepoint(local_mouse):
+                    self.setting_button.hovered()
+                    is_hovering = (
+                        True if self.setting_button.is_disabled == False else False
                     )
                 if self.quit_button.check_collidepoint(local_mouse):
                     self.quit_button.hovered()

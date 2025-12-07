@@ -28,6 +28,8 @@ MAIN_MENU_BACKGROUND = "public/images/main_menu_bg.png"
 TURN_BAR_HEIGHT = 10
 
 CENTER_BOARD_FIELD_SIZE = (540, 540)
+CENTER_BOARD_FIELD_BORDER_COLOR = (46, 77, 66)
+
 DIRECTION_TURN_SIZE = (180, 180)
 DISCARD_FIELD_SIZE = (180, 180)
 
@@ -75,6 +77,7 @@ INSTRUCTION_TITLE_COLOR = (237, 171, 64)
 HAND_CONFIG_OPTIONS = OptionalRules(
     has_aka_dora=True, has_open_tanyao=True, has_double_yakuman=True
 )
+
 
 # Instruction image assets
 INSTRUCTION_ASSETS = {
@@ -136,4 +139,53 @@ INSTRUCTION_ASSETS = {
     "INSTRUCTION_TSUUIISOU": "public\\images\\intro\\tsuuiisou.png",
     "INSTRUCTION_WIND": "public\\images\\intro\\wind.png",
     "INSTRUCTION_YAKUHAI": "public\\images\\intro\\yakuhai.png",
+}
+
+
+# ----- SOUND SFX VOICES CONSTANTS -----
+DISCARD_TILE_SFX = "public/sfx/discard_tile.mp3"
+
+PLAYER0_SFX = {
+    "chii": "public/voices/lelouch/action - chii.mp3",
+    "pon": "public/voices/lelouch/action - pon.mp3",
+    "kan": "public/voices/lelouch/action - kan.mp3",
+    "riichi": "public/voices/lelouch/action - riichi.mp3",
+    "ron": "public/voices/lelouch/action - ron.mp3",
+    "tsumo": "public/voices/lelouch/action - tsumo.mp3",
+    "double_riichi": "public/voices/lelouch/action - double riichi.mp3",
+    "no_ten": "public/voices/lelouch/game end - no-ten (no ready hand).mp3",
+    "tenpai": "public/voices/lelouch/game end - tenpai (ready hand).mp3",
+}
+PLAYER1_SFX = {
+    "chii": "public/voices/aru/action - chii.mp3",
+    "pon": "public/voices/aru/action - pon.mp3",
+    "kan": "public/voices/aru/action - kan.mp3",
+    "riichi": "public/voices/aru/action - riichi.mp3",
+    "ron": "public/voices/aru/action - ron.mp3",
+    "tsumo": "public/voices/aru/action - tsumo.mp3",
+    "double_riichi": "public/voices/aru/action - double riichi.mp3",
+    "no_ten": "public/voices/aru/game end - no-ten (no ready hand).mp3",
+    "tenpai": "public/voices/aru/game end - tenpai (ready hand).mp3",
+}
+PLAYER2_SFX = {
+    "chii": "public/voices/ojisama/action - chii.mp3",
+    "pon": "public/voices/ojisama/action - pon.mp3",
+    "kan": "public/voices/ojisama/action - kan.mp3",
+    "riichi": "public/voices/ojisama/action - riichi.mp3",
+    "ron": "public/voices/ojisama/action - ron.mp3",
+    "tsumo": "public/voices/ojisama/action - tsumo.mp3",
+    "double_riichi": "public/voices/ojisama/action - double riichi.mp3",
+    "no_ten": "public/voices/ojisama/game end - no-ten (no ready hand).mp3",
+    "tenpai": "public/voices/ojisama/game end - tenpai (ready hand).mp3",
+}
+PLAYER3_SFX = {
+    "chii": "public/voices/hoshino/action - chii.mp3",
+    "pon": "public/voices/hoshino/action - pon.mp3",
+    "kan": "public/voices/hoshino/action - kan.mp3",
+    "riichi": "public/voices/hoshino/action - riichi.mp3",
+    "ron": "public/voices/hoshino/action - ron.mp3",
+    "tsumo": "public/voices/hoshino/action - tsumo.mp3",
+    "double_riichi": "public/voices/hoshino/action - double riichi.mp3",
+    "no_ten": "public/voices/hoshino/game end - no-ten (no ready hand).mp3",
+    "tenpai": "public/voices/hoshino/game end - tenpai (ready hand).mp3",
 }

@@ -16,6 +16,7 @@ from utils.constants import (
     COLOR_BLUE,
     TILES_IMAGE_LINK,
     COLOR_BLACK,
+    CENTER_BOARD_FIELD_BORDER_COLOR,
 )
 from components.entities.player import Player
 from shared.image_cutter import ImageCutter
@@ -104,6 +105,9 @@ class CenterBoardField(Field):
 
     def build_center_surface(self, turn: Direction):
         surface = Surface(CENTER_BOARD_FIELD_SIZE, pygame.SRCALPHA)
+        pygame.draw.rect(
+            surface, CENTER_BOARD_FIELD_BORDER_COLOR, surface.get_rect(), 2
+        )
         draw_hitbox(surface)
 
         # --- THIS IS FOR INIT THE CENTER FIELD INCLUDE DIRECTION AND TURN BAR ---
@@ -116,6 +120,19 @@ class CenterBoardField(Field):
         )
 
         # Build discard surface
+        pygame.draw.rect(
+            surface, CENTER_BOARD_FIELD_BORDER_COLOR, Rect(180, 0, 180, 180), 1
+        )
+        pygame.draw.rect(
+            surface, CENTER_BOARD_FIELD_BORDER_COLOR, Rect(0, 180, 180, 180), 1
+        )
+        pygame.draw.rect(
+            surface, CENTER_BOARD_FIELD_BORDER_COLOR, Rect(360, 180, 180, 180), 1
+        )
+        pygame.draw.rect(
+            surface, CENTER_BOARD_FIELD_BORDER_COLOR, Rect(180, 360, 180, 180), 1
+        )
+
         for idx, discard_field in enumerate(self.__discards_fields):
             discard_surface = discard_field.render()
             relative_position = self.build_discard_surface_position(
