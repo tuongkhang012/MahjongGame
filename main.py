@@ -10,14 +10,20 @@ from components.entities.deck import Deck
 from components.game_scenes.main_menu import MainMenu
 import os
 from components.game_history import GameHistory
+from pathlib import Path
 
 # Init game .history
+history_path = Path(HISTORY_PATH)
+if not os.path.exists(history_path):
+    os.makedirs(history_path)
+os.system(f'attrib +h "{history_path}"')
+
 files = []
-for entry in os.listdir(HISTORY_PATH):
-    file_path = os.path.join(HISTORY_PATH, entry)
+for entry in os.listdir(history_path):
+    file_path = os.path.join(history_path, entry)
     if os.path.isfile(file_path):
-        # print(file_path)
         files.append(file_path)
+
 if len(files) > 0:
     with open(files[-1], "+r") as file:
         json_data = json.load(file)

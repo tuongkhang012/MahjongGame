@@ -380,10 +380,6 @@ class CallField(TilesField):
                     tile.update_tile_surface(
                         reveal_surface=reveal_surface, hidden_surface=hidden_surface
                     )
-                    print(
-                        tile.get_hidden_surface().get_height(),
-                        tile.get_surface().get_height(),
-                    )
                     if idx == 0 or idx == len(call.tiles) - 1:
                         tile.hidden = True
                     else:

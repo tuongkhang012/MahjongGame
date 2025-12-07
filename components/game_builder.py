@@ -97,7 +97,6 @@ class GameBuilder:
         for i in range(0, 4):
             call_list = self.deck.call_list[i]
             call_tiles_list = []
-            print(game_manager.game_history.data["is_reaches"])
             for call in call_list:
                 for called_tile in call.tiles:
                     call_tiles_list.append(called_tile)
@@ -451,7 +450,6 @@ class GameBuilder:
             result = calculator.estimate_hand_value(
                 tiles=[], win_tile=None, config=config
             )
-            print(result, result.yaku, result.cost)
         else:
             copy_player_deck = player.player_deck.copy()
 
@@ -466,7 +464,7 @@ class GameBuilder:
                 list(map(lambda tile: tile.hand136_idx, deck.dora)),
                 config=config,
             )
-            print(result, result.yaku, result.cost)
+        print(result, result.yaku, result.cost)
         print(
             f"FINAL RESULT: {result} {result.yaku} and player scores: {result.cost['total']}"
         )

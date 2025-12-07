@@ -185,7 +185,6 @@ class MahjongAIAgent:
             if os.path.isfile(file_path):
                 files.append(file_path)
         files.sort(key=lambda x: int(os.path.basename(x).split(".")[0]))
-        print(files)
         return files
 
     def read_files(self, files: list[str]):

@@ -17,6 +17,7 @@ import os
 import json
 from components.game_scenes.popup.instruction import Instruction
 from components.entities.buttons.button import Button
+from components.mixer.mixer import Mixer
 
 if typing.TYPE_CHECKING:
     from components.game_scenes.main_menu import MainMenu
@@ -35,11 +36,11 @@ class ScenesController:
 
     def __init__(self, history: GameHistory):
         pygame.init()
-        # pygame.mixer.init()
+        pygame.mixer.init()
         # pygame.freetype.init()
 
         pygame.display.set_caption(GAME_TITLE)
-
+        pygame.display.set_icon(pygame.image.load("public/images/sob.ico"))
         # Display setting
         self.__default_screen = pygame.display.set_mode(WINDOW_SIZE)
         self.__screen = pygame.Surface(
@@ -81,6 +82,8 @@ class ScenesController:
         )
         hints_button_background.blit(hints_button_surface, (5, 5))
         self.hints_button.set_surface(hints_button_background)
+
+        self.mixer = Mixer()
 
     def change_scene(self, scene: GameScene):
         self.__scene = scene
