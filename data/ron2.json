@@ -1,0 +1,11 @@
+{
+  "player_deck": [
+    "333m123p34567s99p",
+    "444m234p34567s88p",
+    "5589m2467p3r26s5z",
+    "222m234p34567s88p"
+  ],
+  "draw_deck": "2s",
+  "death_wall": "1z1z1z1z2z2z2z2z3z3z3z3z4z4z",
+  "direction": "ESWN"
+}

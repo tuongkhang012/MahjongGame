@@ -89,7 +89,6 @@ class GameManager:
     kan_count: int = 0
     is_disable_round: bool = False
     disable_reason: str = None
-    first_ron_player: Player = None
     ron_count: int = 0
     picked_chii: list[Tile] = None
 
@@ -516,11 +515,10 @@ class GameManager:
                     )
                 if len(player.can_call) > 0:
                     self.call_order.append(player)
-
             self.call_order.sort(
                 key=lambda player: (
                     player.can_call[0].value,
-                    (player.player_idx - self.prev_player.player_idx) % 4,
+                    -((self.prev_player.direction.value - player.direction.value) % 4),
                 ),
                 reverse=True,
             )
@@ -809,63 +807,81 @@ class GameManager:
             case ActionType.RON:
                 calling_player = self.calling_player
                 if self.prev_action == ActionType.KAN:
-                    self.game_log.append_event(
-                        ActionType.RON,
-                        self.prev_called_player.get_draw_tile(),
-                        calling_player,
-                    )
-                    self.scenes_controller.mixer.add_sound_queue(
-                        calling_player.player_idx, ActionType.RON
-                    )
+
                     if len(self.call_order) > 0:
                         for player in self.call_order:
                             if CallType.RON in player.can_call:
-                                self.calling_player = player
                                 self.ron_count += 1
-                                if self.first_ron_player is None:
-                                    self.first_ron_player = player
-                                break
-                            else:
-                                self.call_order.pop()
 
                         # Checking for Ron3
                         if self.ron_count >= 3:
                             self.action = ActionType.RYUUKYOKU
                             self.is_disable_round = True
                             self.disable_reason = "Sanchahou"
-                            return
+                            return self.end_match()
+                        else:
+                            self.game_log.append_event(
+                                ActionType.RON,
+                                self.prev_called_player.get_draw_tile(),
+                                calling_player,
+                            )
+                            self.scenes_controller.mixer.add_sound_queue(
+                                calling_player.player_idx, ActionType.RON
+                            )
+                            return self.end_match(
+                                calling_player,
+                                self.prev_called_player,
+                                self.prev_called_player.get_draw_tile(),
+                            )
                     else:
+                        self.game_log.append_event(
+                            ActionType.RON,
+                            self.prev_called_player.get_draw_tile(),
+                            calling_player,
+                        )
+                        self.scenes_controller.mixer.add_sound_queue(
+                            calling_player.player_idx, ActionType.RON
+                        )
                         return self.end_match(
                             calling_player,
                             self.prev_called_player,
                             self.prev_called_player.get_draw_tile(),
                         )
                 else:
-                    self.game_log.append_event(
-                        ActionType.RON,
-                        self.latest_discarded_tile,
-                        calling_player,
-                    )
-                    self.scenes_controller.mixer.add_sound_queue(
-                        calling_player.player_idx, ActionType.RON
-                    )
                     if len(self.call_order) > 0:
                         for player in self.call_order:
                             if CallType.RON in player.can_call:
-                                self.calling_player = player
                                 self.ron_count += 1
-                                if self.first_ron_player is None:
-                                    self.first_ron_player = player
-                                break
-                            else:
-                                self.call_order.pop()
+
                         # Checking for Ron3
                         if self.ron_count >= 3:
                             self.action = ActionType.RYUUKYOKU
                             self.is_disable_round = True
                             self.disable_reason = "Sanchahou"
-                            return
+                            return self.end_match()
+                        else:
+                            self.game_log.append_event(
+                                ActionType.RON,
+                                self.latest_discarded_tile,
+                                calling_player,
+                            )
+                            self.scenes_controller.mixer.add_sound_queue(
+                                calling_player.player_idx, ActionType.RON
+                            )
+                            return self.end_match(
+                                calling_player,
+                                self.prev_player,
+                                self.latest_discarded_tile,
+                            )
                     else:
+                        self.game_log.append_event(
+                            ActionType.RON,
+                            self.latest_discarded_tile,
+                            calling_player,
+                        )
+                        self.scenes_controller.mixer.add_sound_queue(
+                            calling_player.player_idx, ActionType.RON
+                        )
                         return self.end_match(
                             calling_player, self.prev_player, self.latest_discarded_tile
                         )
@@ -1105,12 +1121,6 @@ class GameManager:
                 deltas[win_player.player_idx] += total_cost
                 deltas[roned_player.player_idx] -= actual_cost
 
-            self.kyoutaku_number = 0
-            if win_player.direction == Direction.EAST:
-                self.tsumi_number += 1
-            else:
-                self.tsumi_number = 0
-
             self.game_log.append_event(self.action, win_tile, win_player, None)
             copy_player_deck = win_player.player_deck.copy()
             if win_tile not in copy_player_deck:
@@ -1129,6 +1139,11 @@ class GameManager:
                 "ura_dora": ura_dora,
                 "dora": self.deck.dora,
             }
+            self.kyoutaku_number = 0
+            if win_player.direction == Direction.EAST:
+                self.tsumi_number += 1
+            else:
+                self.tsumi_number = 0
         else:
             # Check nagashi mangan player
             is_nagashi_mangan = False
@@ -1288,7 +1303,6 @@ class GameManager:
         self.kan_count: int = 0
         self.is_disable_round: bool = False
         self.disable_reason: str = None
-        self.first_ron_player: Player = None
         self.ron_count: int = 0
 
         # Init game
@@ -1303,7 +1317,6 @@ class GameManager:
         )
 
     def __dict__(self):
-        print(self.calling_player)
         data: GameHistoryData = {
             "end_game": self.end_game,
             "seed": self.deck.random_seed,
