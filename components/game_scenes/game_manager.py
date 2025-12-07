@@ -814,7 +814,7 @@ class GameManager:
                                 self.ron_count += 1
 
                         # Checking for Ron3
-                        if self.ron_count >= 3:
+                        if self.ron_count >= 2:
                             self.action = ActionType.RYUUKYOKU
                             self.is_disable_round = True
                             self.disable_reason = "Sanchahou"
@@ -854,7 +854,7 @@ class GameManager:
                                 self.ron_count += 1
 
                         # Checking for Ron3
-                        if self.ron_count >= 3:
+                        if self.ron_count >= 2:
                             self.action = ActionType.RYUUKYOKU
                             self.is_disable_round = True
                             self.disable_reason = "Sanchahou"
