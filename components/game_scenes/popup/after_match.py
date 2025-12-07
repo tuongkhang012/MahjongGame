@@ -345,9 +345,18 @@ class AfterMatchPopup(Popup):
             key=lambda player: (-player.points, player.get_initial_direction().value)
         )
         for i in range(0, 4):
+            match i:
+                case 0:
+                    rank_str = "1st"
+                case 1:
+                    rank_str = "2nd"
+                case 2:
+                    rank_str = "3rd"
+                case 3:
+                    rank_str = "4th"
             table_data.append(
                 [
-                    i + 1,
+                    rank_str,
                     rearrange_player[i],
                     rearrange_player[i].direction,
                     rearrange_player[i].points,
@@ -357,17 +366,7 @@ class AfterMatchPopup(Popup):
 
         # render table
         for idx, data in enumerate(table_data):
-            rank = data[0]
-            match rank:
-                case 1:
-                    rank_str = "1st"
-                case 2:
-                    rank_str = "2nd"
-                case 3:
-                    rank_str = "3rd"
-                case 4:
-                    rank_str = "4th"
-            rank_data = self.__create_font_surface(rank_str)
+            rank_data = self.__create_font_surface(data[0])
             players_data = self.__create_font_surface(data[1])
             direction_data = self.__create_font_surface(data[2])
             points_data = self.__create_font_surface(data[3])

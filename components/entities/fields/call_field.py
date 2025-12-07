@@ -210,11 +210,17 @@ class CallField(TilesField):
             match self.player_idx:
                 case 0:
                     start_width += call_surface.get_width()
-                    surface_position = (self.surface.get_width() - start_width, 0)
+                    surface_position = (
+                        self.surface.get_width() - start_width,
+                        self.surface.get_height() - call_surface.get_height(),
+                    )
                     self.surface.blit(call_surface, surface_position)
 
                 case 1:
-                    surface_position = (0, start_height)
+                    surface_position = (
+                        self.surface.get_width() - call_surface.get_width(),
+                        start_height,
+                    )
                     self.surface.blit(call_surface, surface_position)
                     start_height += call_surface.get_height()
 

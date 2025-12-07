@@ -712,3 +712,14 @@ class Player:
                 return "Middy"
             case 3:
                 return "Lefty"
+
+    def __repr__(self):
+        match self.player_idx:
+            case 0:
+                return "You"
+            case 1:
+                return "Righty"
+            case 2:
+                return "Middy"
+            case 3:
+                return "Lefty"
