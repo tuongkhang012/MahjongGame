@@ -70,6 +70,9 @@ class AfterMatchPopup(Popup):
             deltas=self.deltas,
             tsumi_number=self.tsumi_number,
             kyoutaku_number=self.kyoutaku_number,
+            dora=self.dora,
+            ura_dora=self.ura_dora,
+            ryuukyoku=True,
             width_ratio=1 / 2,
             height_ratio=5 / 8,
         )
@@ -125,6 +128,9 @@ class AfterMatchPopup(Popup):
             deltas=self.deltas,
             tsumi_number=self.tsumi_number,
             kyoutaku_number=self.kyoutaku_number,
+            dora=self.dora,
+            ura_dora=self.ura_dora,
+            ryuukyoku=False,
             width_ratio=1 / 2,
             height_ratio=5 / 8,
         )
@@ -161,7 +167,8 @@ class AfterMatchPopup(Popup):
 
         self.tsumi_number = data["tsumi_number"]
         self.kyoutaku_number = data["kyoutaku_number"]
-
+        self.dora = data["dora"]
+        self.ura_dora = data["ura_dora"]
         self.ryuukyoku = data["ryuukyoku"]
         self.ryuukyoku_reason = data["ryuukyoku_reason"]
 
@@ -320,6 +327,9 @@ class AfterMatchPopup(Popup):
         deltas: list[int],
         tsumi_number: int,
         kyoutaku_number: int,
+        dora: list["Tile"],
+        ura_dora: list["Tile"],
+        ryuukyoku: bool,
         width_ratio: float = 1,
         height_ratio: float = 1,
     ):
@@ -331,11 +341,13 @@ class AfterMatchPopup(Popup):
         table_data = [["Rank", "Player", "Direction", "Points", ""]]
 
         rearrange_player = players.copy()
-        rearrange_player.sort(key=lambda player: player.points, reverse=True)
+        rearrange_player.sort(
+            key=lambda player: (-player.points, player.get_initial_direction().value)
+        )
         for i in range(0, 4):
             table_data.append(
                 [
-                    i,
+                    i + 1,
                     rearrange_player[i],
                     rearrange_player[i].direction,
                     rearrange_player[i].points,
@@ -345,7 +357,17 @@ class AfterMatchPopup(Popup):
 
         # render table
         for idx, data in enumerate(table_data):
-            rank_data = self.__create_font_surface(data[0])
+            rank = data[0]
+            match rank:
+                case 1:
+                    rank_str = "1st"
+                case 2:
+                    rank_str = "2nd"
+                case 3:
+                    rank_str = "3rd"
+                case 4:
+                    rank_str = "4th"
+            rank_data = self.__create_font_surface(rank_str)
             players_data = self.__create_font_surface(data[1])
             direction_data = self.__create_font_surface(data[2])
             points_data = self.__create_font_surface(data[3])
@@ -449,9 +471,111 @@ class AfterMatchPopup(Popup):
 
             start_height += table_data_height
 
+        # Dora indicators
+        if not ryuukyoku:
+            start_height += self.table_data_offset
+            dora_surface = self.build_dora_ura_dora_surface(full_surface, "Dora", dora)
+
+            if len(ura_dora) > 0:
+                ura_dora_surface = self.build_dora_ura_dora_surface(
+                    full_surface, "Ura Dora", ura_dora
+                )
+            full_surface.blit(dora_surface, (0, start_height))
+            if len(ura_dora) > 0:
+                full_surface.blit(
+                    ura_dora_surface, (full_surface.get_width() / 2, start_height)
+                )
+            if len(ura_dora) > 0:
+                start_height += (
+                    max(dora_surface.get_height(), ura_dora_surface.get_height())
+                    + self.table_data_offset
+                )
+            else:
+                start_height += dora_surface.get_height() + self.table_data_offset
+
+            tsumi_text_surface = self.__create_font_surface(
+                f"Honba: {self.tsumi_number}"
+            )
+            kyoutaku_text_surface = self.__create_font_surface(
+                f"Kyoutaku: {self.kyoutaku_number}"
+            )
+            tsumi_surface = Surface(
+                (full_surface.get_width() / 2, tsumi_text_surface.get_height()),
+                pygame.SRCALPHA,
+            )
+            kyoutaku_surface = Surface(
+                (full_surface.get_width() / 2, kyoutaku_text_surface.get_height()),
+                pygame.SRCALPHA,
+            )
+
+            center_pos = build_center_rect(tsumi_surface, tsumi_text_surface)
+            tsumi_surface.blit(tsumi_text_surface, (center_pos.x, 0))
+
+            center_pos = build_center_rect(kyoutaku_surface, kyoutaku_text_surface)
+            kyoutaku_surface.blit(kyoutaku_text_surface, (center_pos.x, 0))
+
+            full_surface.blit(tsumi_surface, (0, start_height))
+            full_surface.blit(
+                kyoutaku_surface, (full_surface.get_width() / 2, start_height)
+            )
+
         center_pos = build_center_rect(full_surface, players_surface)
         full_surface.blit(players_surface, (center_pos.x, center_pos.y))
+        draw_hitbox(full_surface, COLOR_WHITE)
         return full_surface
+
+    def build_dora_ura_dora_surface(
+        self, full_surface: Surface, text: str, tiles_list: list["Tile"]
+    ):
+        PADDING_TEXT_AND_TILE = 10
+        font_surface = self.__create_font_surface(text)
+        tiles_surface_list: list[Surface] = []
+        for tile in tiles_list:
+            tile_surface = tile.tiles_cutter.cut_tiles(
+                tile.type, tile.number, tile.aka, 0
+            )
+            tiles_surface_list.append(tile_surface)
+        tiles_text_list_surface = Surface(
+            (
+                full_surface.get_width() / 2,
+                font_surface.get_height()
+                + PADDING_TEXT_AND_TILE
+                + max(
+                    list(
+                        map(
+                            lambda surface: surface.get_height(),
+                            tiles_surface_list,
+                        )
+                    )
+                ),
+            ),
+            pygame.SRCALPHA,
+        )
+        center_pos = build_center_rect(tiles_text_list_surface, font_surface)
+        tiles_text_list_surface.blit(font_surface, (center_pos.x, 0))
+
+        PADDING_EACH_TILE = 10
+        tiles_list_full_surface = Surface(
+            (
+                sum(list(map(lambda surface: surface.get_width(), tiles_surface_list)))
+                + PADDING_EACH_TILE * (len(tiles_surface_list) - 1),
+                max(
+                    list(map(lambda surface: surface.get_height(), tiles_surface_list))
+                ),
+            ),
+            pygame.SRCALPHA,
+        )
+        start_width = 0
+        for tile_surface in tiles_surface_list:
+            tiles_list_full_surface.blit(tile_surface, (start_width, 0))
+            start_width += tile_surface.get_width() + PADDING_EACH_TILE
+
+        center_pos = build_center_rect(tiles_text_list_surface, tiles_list_full_surface)
+        tiles_text_list_surface.blit(
+            tiles_list_full_surface,
+            (center_pos.x, font_surface.get_height() + PADDING_TEXT_AND_TILE),
+        )
+        return tiles_text_list_surface
 
     def create_option_buttons_surface(self, height_ratio: float = 1):
         full_surface = self.__create_full_surface(height_ratio=height_ratio)

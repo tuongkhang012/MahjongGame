@@ -76,6 +76,8 @@ class ActionType(Enum):
     DRAW = 8
     DISCARD = 9
     DORA = 10
+    TENPAI = 11
+    NO_TEN = 12
 
 
 class BasePoints(Enum):
@@ -96,6 +98,7 @@ class GameScene(Enum):
 class GamePopup(Enum):
     AFTER_MATCH = 0
     INSTRUCTION = 1
+    SETTING = 2
 
 
 class InstructionSection(Enum):

@@ -60,7 +60,7 @@ class DiscardField(TilesField):
                         (
                             DISCARD_FIELD_SIZE[0]
                             + abs(
-                                check_riichi_tiles[0].get_surface().get_width()
+                                check_riichi_tiles[0].get_surface().get_height()
                                 * self.__ratio_riichi
                                 - normal_width * self.__ratio_normal
                             ),
@@ -70,15 +70,15 @@ class DiscardField(TilesField):
                     )
 
                 case 1 | 3:
-                    self.__ratio_riichi = (
-                        tile_width / check_riichi_tiles[0].get_surface().get_width()
+                    self.__ratio_riichi = tile_width / (
+                        check_riichi_tiles[0].get_surface().get_width() + 5
                     )
                     self.surface = Surface(
                         (
                             DISCARD_FIELD_SIZE[0],
                             DISCARD_FIELD_SIZE[1]
                             + abs(
-                                check_riichi_tiles[0].get_surface().get_height()
+                                check_riichi_tiles[0].get_surface().get_width()
                                 * self.__ratio_riichi
                                 - normal_height * self.__ratio_normal
                             ),
