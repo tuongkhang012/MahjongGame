@@ -174,25 +174,25 @@ class ScenesController:
                     if self.__popup_screen:
                         button = self.__popup_screen.handle_event(event)
                         if button == "close":
+                            self.mouse.default()
                             self.close_popup()
                         elif button:
                             match button.text:
                                 case "Main Menu":
                                     self.close_popup()
-
                                     self.change_scene(GameScene.START)
-                                    self.mouse.default()
                                     self.game_manager.new_game()
+                                    self.mouse.default()
 
                                 case "New Game":
                                     self.close_popup()
                                     self.change_scene(GameScene.GAME)
-                                    self.mouse.default()
                                     self.game_manager.new_game()
                                     self.mixer.clear_queue()
+                                    self.mouse.default()
+
                                 case "Quit":
                                     return {"exit": True}
-
                         return {"exit": False}
                     match self.__scene:
                         case GameScene.GAME:
@@ -236,11 +236,12 @@ class ScenesController:
 
                             if action == "New Game" or action == "Continue":
                                 # Create game manager
-
+                                self.mouse.default()
                                 self.create_game_manager()
                                 self.change_scene(GameScene.GAME)
 
                             elif action == "Instruction":
+                                self.mouse.default()
                                 self.popup(GamePopup.INSTRUCTION, None)
                             elif action == "Quit":
                                 return {"exit": True}
@@ -258,6 +259,14 @@ class ScenesController:
                             self.game_manager.handle_event(event)
                         case GameScene.START:
                             self.start_menu.handle_event(event)
+
+                case pygame.KEYDOWN:
+                    if self.__popup_screen and isinstance(
+                        self.__popup_screen, Instruction
+                    ):
+                        action = self.__popup_screen.handle_event(event)
+                        if action and action == "close":
+                            self.close_popup()
 
         return {"exit": False}
 

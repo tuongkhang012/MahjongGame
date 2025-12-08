@@ -271,6 +271,7 @@ class GameManager:
 
                 if self.hints_button.check_collidepoint(event.pos):
                     self.scenes_controller.popup(GamePopup.INSTRUCTION, None)
+                    self.scenes_controller.mouse.default()
                     self.pause = True
 
                 if player == self.current_player and player.deck_field.check_collide(

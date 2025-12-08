@@ -547,16 +547,16 @@ class Instruction(Popup):
     def handle_event(self, event: Event):
         if not self._absolute_position:
             return
-        mouse_pos = self.build_local_mouse(event.pos)
+
         match event.type:
             case pygame.MOUSEBUTTONDOWN:
+                mouse_pos = self.build_local_mouse(event.pos)
+
                 if self.section_tutorial_button.check_collidepoint(mouse_pos):
                     self.section = InstructionSection.TUTORIAL
                 if self.section_yaku_overview_button.check_collidepoint(mouse_pos):
                     self.section = InstructionSection.YAKU_OVERVIEW
-                match self.section:
-                    case InstructionSection.TUTORIAL:
-                        pass
+
                 if Rect(
                     0,
                     self.section_tab_surface.get_height(),
@@ -570,28 +570,16 @@ class Instruction(Popup):
                     if self.__prev_button_rect.collidepoint(
                         section_local_mouse[0], section_local_mouse[1]
                     ):
-                        if self.section == InstructionSection.TUTORIAL:
-                            self.page = (self.page - 1) % (
-                                self.max_instruction_tutorial_page
-                            )
-                        elif self.section == InstructionSection.YAKU_OVERVIEW:
-                            self.yaku_page = (self.yaku_page - 1) % (
-                                self.max_instruction_yaku_page
-                            )
+                        self.__turn_prev_page()
                     if self.__next_button_rect.collidepoint(
                         section_local_mouse[0], section_local_mouse[1]
                     ):
-                        if self.section == InstructionSection.TUTORIAL:
-                            self.page = (self.page + 1) % (
-                                self.max_instruction_tutorial_page
-                            )
-                        elif self.section == InstructionSection.YAKU_OVERVIEW:
-                            self.yaku_page = (self.yaku_page + 1) % (
-                                self.max_instruction_yaku_page
-                            )
+                        self.__turn_next_page()
                     if self.close_button.check_collidepoint(section_local_mouse):
                         return "close"
             case pygame.MOUSEMOTION:
+                mouse_pos = self.build_local_mouse(event.pos)
+
                 if self.section_tutorial_button.check_collidepoint(mouse_pos):
                     return self.section_tutorial_button
                 if self.section_yaku_overview_button.check_collidepoint(mouse_pos):
@@ -621,10 +609,38 @@ class Instruction(Popup):
                     if self.close_button.check_collidepoint(section_local_mouse):
                         return "close"
 
+            case pygame.KEYDOWN:
+                if event.key == pygame.K_LEFT:
+                    self.__turn_prev_page()
+                elif event.key == pygame.K_RIGHT:
+                    self.__turn_next_page()
+                elif event.key == pygame.K_UP:
+                    self.section = InstructionSection(
+                        (self.section.value + 1) % len(InstructionSection)
+                    )
+                elif event.key == pygame.K_DOWN:
+                    self.section = InstructionSection(
+                        (self.section.value - 1) % len(InstructionSection)
+                    )
+                elif event.key == pygame.K_ESCAPE:
+                    return "close"
+
     def create_rescale_surface(self, surface: Surface, scale_by: int):
         return Surface(
             pygame.transform.scale_by(surface, scale_by).get_size(), pygame.SRCALPHA
         )
+
+    def __turn_prev_page(self):
+        if self.section == InstructionSection.TUTORIAL:
+            self.page = (self.page - 1) % (self.max_instruction_tutorial_page)
+        elif self.section == InstructionSection.YAKU_OVERVIEW:
+            self.yaku_page = (self.yaku_page - 1) % (self.max_instruction_yaku_page)
+
+    def __turn_next_page(self):
+        if self.section == InstructionSection.TUTORIAL:
+            self.page = (self.page + 1) % (self.max_instruction_tutorial_page)
+        elif self.section == InstructionSection.YAKU_OVERVIEW:
+            self.yaku_page = (self.yaku_page + 1) % (self.max_instruction_yaku_page)
 
     def draw_button_surface(self, button: Button):
         pygame.draw.rect(
