@@ -218,6 +218,7 @@ class Player:
                         self.callable_tiles_list.append(callable_tiles_list)
                         is_kakan = True
                         from_player = call.from_who
+                        self.melds.remove(call.meld)
                         self.call_list.remove(call)
                         del call
 
@@ -282,7 +283,6 @@ class Player:
                 self.call_tiles_list.append(called_tile)
 
         self.melds.append(self.call_list[-1].meld)
-        print(self.melds)
         self.rearrange_deck()
         self.deck_field.build_field_surface(self)
         self.deck_field.build_tiles_position(self)

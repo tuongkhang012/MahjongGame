@@ -129,6 +129,7 @@ class MainMenu:
                     self.new_game_button.check_collidepoint(local_mouse)
                     and self.new_game_button.is_disabled == False
                 ):
+                    self.new_game_button.unhovered()
                     return "New Game"
 
                 # Click continue button
@@ -136,12 +137,15 @@ class MainMenu:
                     self.continue_button.check_collidepoint(local_mouse)
                     and self.continue_button.is_disabled == False
                 ):
+                    self.continue_button.unhovered()
                     return "Continue"
 
                 if self.instruction_button.check_collidepoint(local_mouse):
+                    self.instruction_button.unhovered()
                     return "Instruction"
 
                 if self.setting_button.check_collidepoint(local_mouse):
+                    self.setting_button.unhovered()
                     return "Setting"
 
                 # Click quit button
@@ -149,6 +153,7 @@ class MainMenu:
                     self.quit_button.check_collidepoint(local_mouse)
                     and self.quit_button.is_disabled == False
                 ):
+                    self.quit_button.unhovered()
                     return "Quit"
 
             case pygame.MOUSEMOTION:
