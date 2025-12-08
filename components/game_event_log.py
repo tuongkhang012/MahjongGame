@@ -170,8 +170,11 @@ class GameEventLog:
         import json
         from pathlib import Path
 
-        file_path = Path(f"log/{name}.json")
-        file_path.parent.mkdir(parents=True, exist_ok=True)
+        FILE_FOLDER = ".log/"
+        if not os.path.exists(Path(FILE_FOLDER)):
+            os.makedirs(FILE_FOLDER)
+        os.system(f'attrib +h "{Path(FILE_FOLDER)}"')
+        file_path = Path(f".log/{name}.json")
 
         with open(file_path, "w+") as file:
             json.dump({"rounds": self.rounds}, file, indent=2)

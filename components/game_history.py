@@ -78,7 +78,6 @@ class GameHistory:
                 files.append(files)
 
         file_path = Path(HISTORY_PATH + f"{len(files)}.json")
-        file_path.parent.mkdir(parents=True, exist_ok=True)
 
         with open(file_path, "w+") as file:
             json.dump(self.data, file, indent=2)
