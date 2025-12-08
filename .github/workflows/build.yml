@@ -1,0 +1,26 @@
+name: Kang
+on:
+    pull_request:
+        types: [closed]
+jobs:
+    build-on-merge:
+        runs-on: windows-latest
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v5
+            - name: Setup python
+              uses: actions/python@v6
+              with:
+                python-version: '3.13'
+
+            - name: Install req
+              run: >
+                python -m pip install pygame torch numpy mahjong
+            - name: Pyinstaller
+              run: >
+                pyinstaller Riichi_For_The_Win.spec
+            - name: Upload artifact
+              uses: actions/upload-artifact@v4
+              with:
+                name: Riichi For The Win
+                path: dist/Riichi_For_The_Win.exe
