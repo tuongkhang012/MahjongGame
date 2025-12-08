@@ -9,7 +9,6 @@ from typing import Any
 from utils.helper import build_center_rect, get_data_from_file
 from components.game_scenes.popup.after_match import AfterMatchPopup
 from components.entities.mouse import Mouse
-import datetime
 from components.game_history import GameHistory
 from components.entities.deck import Deck
 from components.game_scenes.game_manager import GameManager
@@ -162,11 +161,10 @@ class ScenesController:
                         self.game_manager.game_log.end_round(
                             self.game_manager.player_list
                         )
-                        log_name = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
-                        self.game_manager.game_log.export(log_name)
+                        self.game_manager.game_log.export()
 
                         data = self.game_manager.__dict__()
-                        data["from_log_name"] = f"{log_name}"
+                        data["from_log_name"] = f"{self.game_manager.game_log.name}"
                         self.history.update(data)
                         self.history.export()
                     return {"exit": True}
@@ -192,6 +190,7 @@ class ScenesController:
                                     self.mouse.default()
 
                                 case "Quit":
+                                    self.game_manager.game_log.export()
                                     return {"exit": True}
                         return {"exit": False}
                     match self.__scene:

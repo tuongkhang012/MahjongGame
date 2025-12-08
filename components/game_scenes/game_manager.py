@@ -1250,6 +1250,7 @@ class GameManager:
 
         game_history_data = self.__dict__()
         self.end_game = True
+        game_history_data["from_log_name"] = self.game_log.name
         self.game_history.update(game_history_data)
         self.game_history.export()
         self.scenes_controller.popup(GamePopup.AFTER_MATCH, popup_data)
