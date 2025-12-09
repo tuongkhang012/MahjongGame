@@ -106,6 +106,7 @@ class Setting(Popup):
                         )
 
                         self.config["sfx"] = self.handle_min_max_value(sfx)
+                        self.mixer.update_sfx_value(self.config["sfx"])
 
                 if self.bgm_surface_position.collidepoint(
                     local_mouse[0], local_mouse[1]
@@ -125,6 +126,7 @@ class Setting(Popup):
                             self.bgm_bar.get_surface().get_width() / 100
                         )
                         self.config["bgm"] = self.handle_min_max_value(bgm)
+                        self.mixer.update_bgm_value(self.config["bgm"])
 
             case pygame.MOUSEMOTION:
                 local_mouse = self.build_local_mouse(event.pos)

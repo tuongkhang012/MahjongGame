@@ -483,7 +483,6 @@ class GameBuilder:
             copy_dora_list = deck.dora.copy()
             if len(ura_dora) > 0:
                 copy_dora_list += ura_dora
-            print(config.is_rinshan)
             result = calculator.estimate_hand_value(
                 list(map(lambda tile: tile.hand136_idx, hands)),
                 win_tile.hand136_idx,

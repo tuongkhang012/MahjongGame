@@ -71,29 +71,15 @@ class ScenesController:
 
         self.instruction_manager = Instruction(self.create_popup_surface(0.9))
 
-        self.hints_button = Button()
-        hints_button_surface = pygame.transform.scale_by(
-            pygame.image.load("public/images/book.png"), 1.4
+        self.hints_button = self.__create_game_manager_button("public/images/book.png")
+        self.setting_button = self.__create_game_manager_button(
+            "public/images/setting.png"
         )
 
-        hints_button_background = Surface(
-            (
-                hints_button_surface.get_width() + 5,
-                hints_button_surface.get_height() + 5,
-            ),
-            pygame.SRCALPHA,
-        )
-        pygame.draw.rect(
-            hints_button_background,
-            pygame.Color(6, 118, 209),
-            hints_button_background.get_rect(),
-            border_radius=10,
-        )
-        hints_button_background.blit(hints_button_surface, (2.5, 2.5))
-        self.hints_button.set_surface(hints_button_background)
         with open(Path(SETTING_CONFIG_PATH)) as file:
             config = json.load(file)
         self.mixer = Mixer(config["bgm"], config["sfx"])
+        self.mixer.play_background_music("main_menu")
 
     def change_scene(self, scene: GameScene):
         self.__scene = scene
@@ -146,12 +132,21 @@ class ScenesController:
 
     def render(self):
         self.mixer.play_queue()
+
         match self.__scene:
             case GameScene.GAME:
+                if self.game_manager.is_main_riichi:
+                    self.mixer.play_background_music("riichi")
+                elif self.game_manager.is_oppo_riichi:
+                    self.mixer.play_background_music("oppo_riichi")
+                else:
+                    self.mixer.play_background_music("game")
                 self.__screen = self.game_manager.render()
+
             case GameScene.START:
                 if self.history.data is None:
                     self.start_menu.continue_button.disabled()
+
                 self.__screen = self.start_menu.render()
 
         self.render_popup()
@@ -312,6 +307,7 @@ class ScenesController:
                 self,
                 init_deck=self.deck,
                 hints_button=self.hints_button,
+                setting_button=self.setting_button,
                 game_history=self.history,
                 start_data=data,
             )
@@ -321,6 +317,7 @@ class ScenesController:
                 self,
                 init_deck=self.deck,
                 hints_button=self.hints_button,
+                setting_button=self.setting_button,
                 game_history=self.history,
             )
         self.handle_scene(GameScene.GAME, self.game_manager)
@@ -338,3 +335,24 @@ class ScenesController:
             config = json.load(file)
         surface = self.create_popup_surface(0.6)
         return Setting(surface, config, self.mixer)
+
+    def __create_game_manager_button(self, image_path: str) -> Button:
+        button = Button()
+        button_surface = pygame.transform.scale_by(pygame.image.load(image_path), 1.4)
+
+        button_background = Surface(
+            (
+                button_surface.get_width() + 5,
+                button_surface.get_height() + 5,
+            ),
+            pygame.SRCALPHA,
+        )
+        pygame.draw.rect(
+            button_background,
+            pygame.Color(6, 118, 209),
+            button_background.get_rect(),
+            border_radius=10,
+        )
+        button_background.blit(button_surface, (2.5, 2.5))
+        button.set_surface(button_background)
+        return button

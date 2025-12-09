@@ -91,8 +91,7 @@ class BasePoints(Enum):
 
 class GameScene(Enum):
     START = 0
-    INSTRUCTION = 1
-    GAME = 2
+    GAME = 1
 
 
 class GamePopup(Enum):

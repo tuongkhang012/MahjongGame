@@ -96,6 +96,10 @@ class GameManager:
     tsumi_number: int = 0
     kyoutaku_number: int = 0
 
+    # riichi
+    is_main_riichi: bool = False
+    is_oppo_riichi: bool = False
+
     # Change direction when new game
     keep_direction: bool = False
     end_game: bool = False
@@ -106,6 +110,7 @@ class GameManager:
         scenes_controller: "ScenesController",
         init_deck: Deck,
         hints_button: "Button",
+        setting_button: "Button",
         game_history: GameHistory,
         start_data=None,
     ):
@@ -172,13 +177,21 @@ class GameManager:
         PADDING_HINTS_BUTTON_Y = 20
         PADDING_HINTS_BUTTON_X = 100
         self.hints_button = hints_button
-
         self.hints_button.update_position(
             self.screen.get_width()
             - PADDING_HINTS_BUTTON_X
             - self.hints_button.get_surface().get_width(),
             PADDING_HINTS_BUTTON_Y,
         )
+
+        self.setting_button = setting_button
+        self.setting_button.update_position(
+            self.screen.get_width()
+            - PADDING_HINTS_BUTTON_X
+            - self.setting_button.get_surface().get_width(),
+            PADDING_HINTS_BUTTON_Y * 2 + self.hints_button.get_surface().get_height(),
+        )
+
         self.scenes_controller = scenes_controller
 
     def render(self) -> Surface:
@@ -209,7 +222,7 @@ class GameManager:
                 player.call_field.render(self.screen)
 
         self.hints_button.render(self.screen)
-
+        self.setting_button.render(self.screen)
         if self.animation_tile:
             self.render_discarded_animation(self.animation_tile)
 
@@ -271,6 +284,11 @@ class GameManager:
 
                 if self.hints_button.check_collidepoint(event.pos):
                     self.scenes_controller.popup(GamePopup.INSTRUCTION, None)
+                    self.scenes_controller.mouse.default()
+                    self.pause = True
+
+                if self.setting_button.check_collidepoint(event.pos):
+                    self.scenes_controller.popup(GamePopup.SETTING, None)
                     self.scenes_controller.mouse.default()
                     self.pause = True
 
@@ -337,13 +355,14 @@ class GameManager:
                     pygame.image.save(self.render(), "game_scene_screenshot.png")
                     print("Game scene screenshot saved!")
 
-
     def detect_mouse_pos(self, mouse_pos: tuple[int, int]):
         player = self.player_list[0]
 
-        hover_hints = False
-        if self.hints_button.check_collidepoint(mouse_pos):
-            hover_hints = True
+        hover_button = False
+        if self.hints_button.check_collidepoint(
+            mouse_pos
+        ) or self.setting_button.check_collidepoint(mouse_pos):
+            hover_button = True
 
         hover_picking_chii = None
         if self.popup and self.popup.check_collide(mouse_pos):
@@ -403,7 +422,7 @@ class GameManager:
         else:
             self.call_button_field.unhover()
 
-        if hover_tiles or call_button_hover or hover_picking_chii or hover_hints:
+        if hover_tiles or call_button_hover or hover_picking_chii or hover_button:
             self.scenes_controller.mouse.hover()
         else:
             self.scenes_controller.mouse.default()
@@ -581,7 +600,6 @@ class GameManager:
             f"Current deck size: {len(self.deck.draw_deck)}, current death field size: {len(self.deck.death_wall)}"
         )
         latest_discarded_tile: Tile = self.latest_discarded_tile
-        print(list(map(lambda tile: tile.from_death_wall, self.deck.death_wall)))
         if self.action:
             if self.calling_player:
                 print(f"{self.action} from {self.calling_player}")
@@ -808,6 +826,10 @@ class GameManager:
                 self.scenes_controller.mixer.add_sound_queue(
                     calling_player.player_idx, ActionType.RIICHI, is_daburu_riichi
                 )
+                if calling_player == self.main_player:
+                    self.is_main_riichi = True
+                else:
+                    self.is_oppo_riichi = True
                 self.__handle_switch_turn(calling_player)
 
             case ActionType.RON:
@@ -1315,6 +1337,9 @@ class GameManager:
         self.disable_reason: str = None
         self.ron_count: int = 0
 
+        self.is_main_riichi = False
+        self.is_oppo_riichi = False
+
         # Init game
         self.builder.new(self, self.keep_direction)
 
@@ -1322,6 +1347,7 @@ class GameManager:
         self.keep_direction: bool = False
         self.__create_new_round_log()
         self.deck.add_new_dora()
+        self.scenes_controller.mixer.play_background_music("game")
         self.game_log.append_event(
             ActionType.DORA, self.deck.death_wall[self.deck.current_dora_idx]
         )
