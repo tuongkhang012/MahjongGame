@@ -62,6 +62,9 @@ class Mixer:
             and self.current_bgm_channel.get_busy()
         ):
             self.current_bgm_sound.fadeout(1000)
+        if state is None:
+            return
+
         match state:
             case "main_menu":
                 sound = self.get_random_sound(self.bgm_main_menu)
@@ -70,7 +73,6 @@ class Mixer:
             case "oppo_riichi":
                 sound = self.get_random_sound(self.bgm_opponent_riichi)
             case "riichi":
-
                 sound = self.get_random_sound(self.bgm_riichi)
 
         if (

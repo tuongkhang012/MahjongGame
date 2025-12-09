@@ -65,19 +65,18 @@ class MahjongAIAgent:
 
         if CallType.KAN in player.can_call:
             ANKAN_FLAG = False
-            player.build_kan(player.get_draw_tile())
-            for call in player.callable_tiles_list:
-                if len(call) == 4:
-                    IS_ANKAN = True
+            draw_tile = player.get_draw_tile()
+            tiles_list = list(
+                filter(
+                    lambda tile: tile.number == draw_tile.number
+                    and tile.type == draw_tile.type
+                    and tile.source == TileSource.DRAW,
+                    player.player_deck,
+                )
+            )
+            if len(tiles_list) == 4:
+                ANKAN_FLAG = True
 
-                    for tile in call:
-                        if tile.source == TileSource.PLAYER:
-                            IS_ANKAN = False
-                            break
-
-                    if IS_ANKAN:
-                        ANKAN_FLAG = True
-                        break
             if ANKAN_FLAG:
                 print("Choosing ANKAN")
                 return ActionType.KAN

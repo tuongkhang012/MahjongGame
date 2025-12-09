@@ -135,19 +135,28 @@ class ScenesController:
 
         match self.__scene:
             case GameScene.GAME:
-                if self.game_manager.is_main_riichi:
-                    self.mixer.play_background_music("riichi")
-                elif self.game_manager.is_oppo_riichi:
-                    self.mixer.play_background_music("oppo_riichi")
-                else:
-                    self.mixer.play_background_music("game")
+
                 self.__screen = self.game_manager.render()
 
             case GameScene.START:
                 if self.history.data is None:
                     self.start_menu.continue_button.disabled()
-
                 self.__screen = self.start_menu.render()
+
+        # Mixer controller
+        if self.__popup_screen and isinstance(self.__popup_screen, AfterMatchPopup):
+            self.mixer.play_background_music(None)
+        else:
+            match self.__scene:
+                case GameScene.GAME:
+                    if self.game_manager.is_main_riichi:
+                        self.mixer.play_background_music("riichi")
+                    elif self.game_manager.is_oppo_riichi:
+                        self.mixer.play_background_music("oppo_riichi")
+                    else:
+                        self.mixer.play_background_music("game")
+                case GameScene.START:
+                    self.mixer.play_background_music("main_menu")
 
         self.render_popup()
         self.__default_screen.blit(self.__screen, (0, 0))
@@ -356,4 +365,3 @@ class ScenesController:
         button_background.blit(button_surface, (2.5, 2.5))
         button.set_surface(button_background)
         return button
-

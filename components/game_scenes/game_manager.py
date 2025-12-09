@@ -154,7 +154,7 @@ class GameManager:
             if self.game_history.data["end_game"] == True:
                 self.builder
                 for i in range(0, 4):
-                    self.builder.deck.random_seed = None
+                    self.builder.deck.clear_seed()
                     self.builder.deck.create_new_deck()
                     self.player_list.append(
                         Player(
@@ -1277,12 +1277,13 @@ class GameManager:
             self.player_list[idx].points += delta * 100
 
         self.game_log.end_round(self.player_list, deltas)
-
+        self.game_log.export()
         game_history_data = self.__dict__()
         self.end_game = True
         game_history_data["from_log_name"] = self.game_log.name
         self.game_history.update(game_history_data)
         self.game_history.export()
+
         self.scenes_controller.popup(GamePopup.AFTER_MATCH, popup_data)
 
         files = self.ai_agent_MID.load_files()

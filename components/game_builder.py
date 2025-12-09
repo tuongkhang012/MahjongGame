@@ -86,7 +86,6 @@ class GameBuilder:
         )
 
     def continue_game(self, game_manager: "GameManager"):
-        print("Continuing game...")
         self.deck.create_new_deck(
             random_seed=game_manager.game_history.data["seed"],
             data=game_manager.game_history.data,
@@ -244,7 +243,7 @@ class GameBuilder:
             game_manager.round_direction_number += 1
 
     def init_game(self, players: list[Player] = None, keep_direction: bool = False):
-        self.deck.random_seed = None
+        self.deck.clear_seed()
         self.deck.create_new_deck(start_data=self.start_data)
 
         # Create player
