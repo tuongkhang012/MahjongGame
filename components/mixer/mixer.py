@@ -15,8 +15,7 @@ import pygame
 
 class Mixer:
     __queue: list[Sound] = []
-    __channel: list[Channel] = []
-
+      
     bgm: int
     sfx: int
 
@@ -37,6 +36,7 @@ class Mixer:
 
         self.discard_tile_sound = Sound(DISCARD_TILE_SFX)
         self.state = "main_menu"
+
         self.bgm = bgm
         self.sfx = sfx
 
@@ -80,11 +80,12 @@ class Mixer:
 
         return sound_list[random.randint(0, len(sound_list) - 1)]
 
+
     def play_queue(self):
         while len(self.__queue) > 0:
             sfx = self.__queue.pop()
             sfx.set_volume(self.sfx / 100)
-            sfx.play()
+
 
     def clear_queue(self):
         self.__queue = []
@@ -110,6 +111,7 @@ class Mixer:
             sound["oppo_riichi_1"],
             sound["oppo_riichi_2"],
         ]
+
 
     def add_sound_queue(
         self, player_idx: int, action: ActionType, is_double_riichi: bool = False
