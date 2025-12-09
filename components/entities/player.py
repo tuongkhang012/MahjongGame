@@ -266,7 +266,7 @@ class Player:
         for tmp_tile in call_list:
             if tmp_tile in self.player_deck:
                 self.player_deck.remove(tmp_tile)
-                tmp_tile.undisabled()
+                tmp_tile.enabled()
 
         self.call_list.append(
             Call(
@@ -290,7 +290,7 @@ class Player:
     def discard(self, tile: Tile, game_manager: "GameManager" = None):
         if self.is_riichi() < 0:
             for hand_tile in self.player_deck:
-                hand_tile.undisabled()
+                hand_tile.enabled()
         if self.is_riichi() >= 0:
             for deck_tile in self.player_deck:
                 deck_tile.disabled()
@@ -309,7 +309,7 @@ class Player:
 
         tile.reveal()
         tile.unclicked()
-        tile.undisabled()
+        tile.enabled()
         self.player_deck.remove(tile)
         self.discard_tiles.append(tile)
         self.__already_discard_tiles.append(tile)

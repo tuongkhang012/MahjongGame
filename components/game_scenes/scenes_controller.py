@@ -62,9 +62,6 @@ class ScenesController:
         self.mouse: Mouse = Mouse
         self.__scene = GameScene.START
 
-        self.hoverable_buttons: list["Button"] = []
-        self.clickable_buttons: list["Button"] = []
-
         self.history = history
 
         self.deck = Deck(self.history.data["seed"] if self.history.data else None)
@@ -135,7 +132,6 @@ class ScenesController:
 
         match self.__scene:
             case GameScene.GAME:
-
                 self.__screen = self.game_manager.render()
 
             case GameScene.START:
@@ -199,6 +195,7 @@ class ScenesController:
                             match button.text:
                                 case "Main Menu":
                                     self.close_popup()
+                                    self.start_menu.continue_button.enabled()
                                     self.change_scene(GameScene.START)
                                     self.game_manager.new_game()
                                     self.mouse.default()

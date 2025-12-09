@@ -1277,12 +1277,12 @@ class GameManager:
             self.player_list[idx].points += delta * 100
 
         self.game_log.end_round(self.player_list, deltas)
-        self.game_log.export()
-        game_history_data = self.__dict__()
         self.end_game = True
+        game_history_data = self.__dict__()
         game_history_data["from_log_name"] = self.game_log.name
         self.game_history.update(game_history_data)
         self.game_history.export()
+        self.game_log.export()
 
         self.scenes_controller.popup(GamePopup.AFTER_MATCH, popup_data)
 
@@ -1348,7 +1348,6 @@ class GameManager:
         self.keep_direction: bool = False
         self.__create_new_round_log()
         self.deck.add_new_dora()
-        self.scenes_controller.mixer.play_background_music("game")
         self.game_log.append_event(
             ActionType.DORA, self.deck.death_wall[self.deck.current_dora_idx]
         )
