@@ -118,12 +118,12 @@ class MainMenu:
         return self.main_screen
 
     def handle_event(self, event: Event):
-        local_mouse = (
-            event.pos[0] - self.__absolute_position.x,
-            event.pos[1] - self.__absolute_position.y,
-        )
         match event.type:
             case pygame.MOUSEBUTTONDOWN:
+                local_mouse = (
+                    event.pos[0] - self.__absolute_position.x,
+                    event.pos[1] - self.__absolute_position.y,
+                )
                 # Click start button
                 if (
                     self.new_game_button.check_collidepoint(local_mouse)
@@ -157,6 +157,10 @@ class MainMenu:
                     return "Quit"
 
             case pygame.MOUSEMOTION:
+                local_mouse = (
+                    event.pos[0] - self.__absolute_position.x,
+                    event.pos[1] - self.__absolute_position.y,
+                )
                 self.new_game_button.unhovered()
                 self.continue_button.unhovered()
                 self.instruction_button.unhovered()
@@ -192,6 +196,10 @@ class MainMenu:
                     self.scenes_controller.mouse.hover()
                 else:
                     self.scenes_controller.mouse.default()
+            case pygame.KEYDOWN:
+                if event.key == pygame.K_F9:
+                    pygame.image.save(self.render(), "main_menu_screenshot.png")
+                    print("Main menu screenshot saved!")
 
     def draw_border(self, surface: Surface, bg_color: Color, border_color: Color):
         pygame.draw.rect(

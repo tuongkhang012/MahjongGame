@@ -181,7 +181,7 @@ class GameManager:
         )
         self.scenes_controller = scenes_controller
 
-    def render(self) -> tuple[Surface, Surface | None]:
+    def render(self) -> Surface:
         # --- Calculate Delta Time ---
         current_time = pygame.time.get_ticks()
         delta_time = (current_time - self.last_time) / 1000.0  # Time in seconds
@@ -332,6 +332,11 @@ class GameManager:
 
             case pygame.MOUSEMOTION:
                 self.detect_mouse_pos(event.pos)
+            case pygame.KEYDOWN:
+                if event.key == pygame.K_F9:
+                    pygame.image.save(self.render(), "game_scene_screenshot.png")
+                    print("Game scene screenshot saved!")
+
 
     def detect_mouse_pos(self, mouse_pos: tuple[int, int]):
         player = self.player_list[0]
