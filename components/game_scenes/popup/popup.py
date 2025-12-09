@@ -63,5 +63,13 @@ class Popup:
         self._absolute_position.x = x
         self._absolute_position.y = y
 
+    def check_collide(self, mouse_pos: tuple[int, int]):
+        return (
+            True
+            if self._absolute_position
+            and self._absolute_position.collidepoint(mouse_pos[0], mouse_pos[1])
+            else False
+        )
+
     def update_absolute_position_rect(self, rect: Rect):
         self._absolute_position = rect

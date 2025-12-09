@@ -2,7 +2,7 @@ import pygame
 from components.game_scenes.game_manager import GameManager
 from utils.helper import get_data_from_file
 from utils.enums import GameScene
-from utils.constants import HISTORY_PATH
+from utils.constants import HISTORY_PATH, SETTING_CONFIG_PATH, CONSTANT_SETTING_CONFIG
 import sys
 import json
 from components.game_scenes.scenes_controller import ScenesController
@@ -33,6 +33,12 @@ if len(files) > 0:
         os.remove(files[-1])
 else:
     game_history = GameHistory()
+
+# Check if config file exist
+config_path = Path(SETTING_CONFIG_PATH)
+if not os.path.exists(config_path):
+    with open(config_path, "w") as file:
+        json.dump(CONSTANT_SETTING_CONFIG, file)
 
 
 # Init Scene controller

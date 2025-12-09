@@ -5,8 +5,9 @@ from utils.constants import (
     BETTER_VCR_FONT,
     COLOR_BLUE,
     COLOR_BLACK,
-    ANCIENT_MODERN_FONT,
-    INSTRUCTION_TITLE_COLOR,
+    INSTRUCTION_CARD_TITLE_COLOR,
+    INSTRUCTION_CARD_BODY_COLOR,
+    POPUP_BACKGROUND_COLOR,
 )
 from pygame import Surface, Color, Rect
 from pygame.event import Event
@@ -206,7 +207,7 @@ class Instruction(Popup):
     def build_surface(self, section: InstructionSection, page: int):
         PADDING_X = 20
         PADDING_Y = 20
-        self.set_bg_color(pygame.Color(203, 64, 40))
+        self.set_bg_color(POPUP_BACKGROUND_COLOR)
         self.section_surface = Surface(
             (self.screen.get_size()[0], self.screen.get_size()[1] * 0.95),
             pygame.SRCALPHA,
@@ -230,9 +231,9 @@ class Instruction(Popup):
             font=Font(BETTER_VCR_FONT, 15),
             text_color=COLOR_BLACK,
             bg_color=(
-                pygame.Color(COLOR_WHITE)
+                COLOR_WHITE
                 if self.section == InstructionSection.TUTORIAL
-                else pygame.Color(203, 64, 40)
+                else POPUP_BACKGROUND_COLOR
             ),
         )
 
@@ -257,9 +258,9 @@ class Instruction(Popup):
             font=Font(BETTER_VCR_FONT, 15),
             text_color=COLOR_BLACK,
             bg_color=(
-                pygame.Color(COLOR_WHITE)
+                COLOR_WHITE
                 if self.section == InstructionSection.YAKU_OVERVIEW
-                else pygame.Color(203, 64, 40)
+                else POPUP_BACKGROUND_COLOR
             ),
         )
 
@@ -454,7 +455,7 @@ class Instruction(Popup):
             pygame.SRCALPHA,
         )
 
-        title_surface.fill((188, 179, 178))
+        title_surface.fill(INSTRUCTION_CARD_TITLE_COLOR)
         title_surface.blit(font_surface, (PADDING_X, PADDING_Y))
 
         context_surfaces: list[Surface] = []
@@ -495,7 +496,7 @@ class Instruction(Popup):
             ),
             pygame.SRCALPHA,
         )
-        information_surface.fill((244, 198, 173))
+        information_surface.fill(INSTRUCTION_CARD_BODY_COLOR)
 
         start_height = PADDING_Y
         for idx, surface in enumerate(context_surfaces):
@@ -548,6 +549,9 @@ class Instruction(Popup):
     def handle_event(self, event: Event):
         match event.type:
             case pygame.MOUSEBUTTONDOWN:
+                if not self.check_collide(event.pos):
+                    return "close"
+
                 mouse_pos = self.build_local_mouse(event.pos)
 
                 if self.section_tutorial_button.check_collidepoint(mouse_pos):

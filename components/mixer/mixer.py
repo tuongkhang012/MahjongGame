@@ -15,17 +15,33 @@ class Mixer:
     __queue: list[Sound] = []
     __channel: list[Channel] = []
 
-    def __init__(self):
+    bgm: int
+    sfx: int
+
+    def __init__(self, bgm: int, sfx: int):
         self.player0 = self.load_sfx_player(PLAYER0_SFX)
         self.player1 = self.load_sfx_player(PLAYER1_SFX)
         self.player2 = self.load_sfx_player(PLAYER2_SFX)
         self.player3 = self.load_sfx_player(PLAYER3_SFX)
         self.discard_tile_sound = Sound(DISCARD_TILE_SFX)
+        self.bgm = bgm
+        self.sfx = sfx
+
+    def update_bgm_value(self, value: int):
+        self.bgm = value
+
+    def update_sfx_value(self, value: int):
+        self.sfx = value
+
+    def play_background_music(self):
+        bgm_music = Sound("")
+        bgm_music.set_volume(self.bgm / 100)
+        bgm_music.play
 
     def play_queue(self):
         while len(self.__queue) > 0:
             sfx = self.__queue.pop()
-            sfx.set_volume(0.7)
+            sfx.set_volume(self.sfx / 100)
             sfx_channel = sfx.play()
             self.__channel.append(sfx_channel)
 
@@ -46,6 +62,9 @@ class Mixer:
             "tenpai": Sound(sound["tenpai"]),
             "no_ten": Sound(sound["no_ten"]),
         }
+
+    def load_bgm(self, sound: dict) -> dict[str, Sound]:
+        return
 
     def add_sound_queue(
         self, player_idx: int, action: ActionType, is_double_riichi: bool = False
