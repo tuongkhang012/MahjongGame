@@ -47,6 +47,10 @@ class Deck:
         self.__init_deck = self.__init_full_deck()
         self.__init_seed = seed
 
+    def clear_seed(self):
+        self.random_seed = None
+        self.__init_seed = None
+
     def create_new_deck(
         self,
         random_seed: str = None,
@@ -55,9 +59,9 @@ class Deck:
     ) -> dict[str, list[Tile]]:
         # Create a random seed
         if random_seed:
-            self.__init_seed = random_seed
+            self.random_seed = random_seed
 
-        if self.__init_seed:
+        elif self.__init_seed:
             self.random_seed = self.__init_seed
             self.__init_seed = None
         else:
