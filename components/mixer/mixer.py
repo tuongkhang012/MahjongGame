@@ -15,7 +15,7 @@ import pygame
 
 class Mixer:
     __queue: list[Sound] = []
-      
+
     bgm: int
     sfx: int
 
@@ -42,7 +42,7 @@ class Mixer:
 
     def update_bgm_value(self, value: int):
         self.bgm = value
-        pygame.mixer.music.set_volume(self.bgm / 100)
+        self.current_bgm_sound.set_volume(self.bgm / 100)
 
     def update_sfx_value(self, value: int):
         self.sfx = value
@@ -56,8 +56,12 @@ class Mixer:
         if self.bgm_state == state:
             return
 
-        if self.bgm_state != state and pygame.mixer.music.get_busy():
-            pygame.mixer.music.fadeout(1000)
+        if (
+            self.bgm_state != state
+            and self.current_bgm_channel
+            and self.current_bgm_channel.get_busy()
+        ):
+            self.current_bgm_sound.fadeout(1000)
         match state:
             case "main_menu":
                 sound = self.get_random_sound(self.bgm_main_menu)
@@ -69,10 +73,14 @@ class Mixer:
 
                 sound = self.get_random_sound(self.bgm_riichi)
 
-        if not pygame.mixer.music.get_busy():
-            pygame.mixer.music.load(sound)
-            pygame.mixer.music.set_volume(self.bgm)
-            pygame.mixer.music.play(-1)
+        if (
+            (self.current_bgm_channel and not self.current_bgm_channel.get_busy())
+            or self.current_bgm_sound is None
+            or self.current_bgm_channel is None
+        ):
+            self.current_bgm_sound = sound
+            self.current_bgm_sound.set_volume(self.bgm / 100)
+            self.current_bgm_channel = self.current_bgm_sound.play(-1)
             self.bgm_state = state
 
     def get_random_sound(self, sound_list: list[str]) -> str:
@@ -80,12 +88,11 @@ class Mixer:
 
         return sound_list[random.randint(0, len(sound_list) - 1)]
 
-
     def play_queue(self):
         while len(self.__queue) > 0:
             sfx = self.__queue.pop()
             sfx.set_volume(self.sfx / 100)
-
+            sfx.play()
 
     def clear_queue(self):
         self.__queue = []
@@ -104,14 +111,13 @@ class Mixer:
         }
 
     def load_bgm(self, sound: dict):
-        self.bgm_main_menu = [sound["main_menu"]]
-        self.bgm_game = [sound["game"]]
-        self.bgm_riichi = [sound["main_riichi"]]
+        self.bgm_main_menu = [Sound(sound["main_menu"])]
+        self.bgm_game = [Sound(sound["game"])]
+        self.bgm_riichi = [Sound(sound["main_riichi"])]
         self.bgm_opponent_riichi = [
-            sound["oppo_riichi_1"],
-            sound["oppo_riichi_2"],
+            Sound(sound["oppo_riichi_1"]),
+            Sound(sound["oppo_riichi_2"]),
         ]
-
 
     def add_sound_queue(
         self, player_idx: int, action: ActionType, is_double_riichi: bool = False
