@@ -289,6 +289,11 @@ class ScenesController:
                         action = self.__popup_screen.handle_event(event)
                         if action and action == "close":
                             self.close_popup()
+                    match self.__scene:
+                        case GameScene.GAME:
+                            self.game_manager.handle_event(event)
+                        case GameScene.START:
+                            action = self.start_menu.handle_event(event)
 
         return {"exit": False}
 

@@ -1,5 +1,5 @@
-# game log relative
-log/*.json
+# game .log relative
+.log/*.json
 .history/
 
 # test file

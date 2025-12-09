@@ -1,11 +1,11 @@
 {
   "player_deck": [
-    "13m113r7p27s1124z",
     "222347m4p2468s23z",
+    "13m113r7p27s1124z",
     "5589m2468p3r56s2z",
     "146678m1369s345z"
   ],
-  "draw_deck": "1z2m2z",
+  "draw_deck": "1z2z2m",
   "death_wall": "4z3m7z3z8m3p9s7s9s5z9m7m6z5p",
   "direction": "ESWN"
 }
