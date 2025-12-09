@@ -1,5 +1,11 @@
 from utils.enums import GameScene, GamePopup, TileSource
-from utils.constants import GAME_TITLE, WINDOW_SIZE, FPS_LIMIT, HISTORY_PATH
+from utils.constants import (
+    GAME_TITLE,
+    WINDOW_SIZE,
+    FPS_LIMIT,
+    HISTORY_PATH,
+    SETTING_CONFIG_PATH,
+)
 from utils.game_data_dict import AfterMatchData
 from utils.instruction_data_dict import InstructionData
 import pygame
@@ -17,6 +23,9 @@ import json
 from components.game_scenes.popup.instruction import Instruction
 from components.entities.buttons.button import Button
 from components.mixer.mixer import Mixer
+from components.game_scenes.popup.setting import Setting
+from utils.setting_config import SettingConfig
+from pathlib import Path
 
 if typing.TYPE_CHECKING:
     from components.game_scenes.main_menu import MainMenu
@@ -35,7 +44,6 @@ class ScenesController:
 
     def __init__(self, history: GameHistory):
         pygame.init()
-        pygame.mixer.pre_init(44100, -16, 2, 512)
         pygame.mixer.init()
         # pygame.freetype.init()
 
@@ -83,8 +91,9 @@ class ScenesController:
         )
         hints_button_background.blit(hints_button_surface, (2.5, 2.5))
         self.hints_button.set_surface(hints_button_background)
-
-        self.mixer = Mixer()
+        with open(Path(SETTING_CONFIG_PATH)) as file:
+            config = json.load(file)
+        self.mixer = Mixer(config["bgm"], config["sfx"])
 
     def change_scene(self, scene: GameScene):
         self.__scene = scene
@@ -159,17 +168,23 @@ class ScenesController:
         for event in pygame.event.get():
             match event.type:
                 case pygame.QUIT:
-                    if self.game_manager:
-                        self.game_manager.game_log.end_round(
-                            self.game_manager.player_list
-                        )
-                        self.game_manager.game_log.export()
+                    while (
+                        self.game_manager
+                        and self.game_manager.animation_tile is not None
+                    ):
+                        self.game_manager.render()
+                    else:
+                        if self.game_manager:
+                            self.game_manager.game_log.end_round(
+                                self.game_manager.player_list
+                            )
+                            self.game_manager.game_log.export()
 
-                        data = self.game_manager.__dict__()
-                        data["from_log_name"] = f"{self.game_manager.game_log.name}"
-                        self.history.update(data)
-                        self.history.export()
-                    return {"exit": True}
+                            data = self.game_manager.__dict__()
+                            data["from_log_name"] = f"{self.game_manager.game_log.name}"
+                            self.history.update(data)
+                            self.history.export()
+                        return {"exit": True}
                 case pygame.MOUSEBUTTONDOWN:
                     if self.__popup_screen:
                         button = self.__popup_screen.handle_event(event)
@@ -240,12 +255,18 @@ class ScenesController:
                                 self.mouse.default()
                                 self.create_game_manager()
                                 self.change_scene(GameScene.GAME)
-
+                            elif action == "Setting":
+                                self.mouse.default()
+                                self.popup(GamePopup.SETTING, None)
                             elif action == "Instruction":
                                 self.mouse.default()
                                 self.popup(GamePopup.INSTRUCTION, None)
                             elif action == "Quit":
                                 return {"exit": True}
+
+                case pygame.MOUSEBUTTONUP:
+                    if self.__popup_screen:
+                        self.__popup_screen.handle_event(event)
 
                 case pygame.MOUSEMOTION:
                     if self.__popup_screen:
@@ -308,4 +329,7 @@ class ScenesController:
         return self.instruction_manager
 
     def __create_setting_popup(self) -> Surface:
-        return
+        with open(Path(SETTING_CONFIG_PATH)) as file:
+            config = json.load(file)
+        surface = self.create_popup_surface(0.6)
+        return Setting(surface, config, self.mixer)

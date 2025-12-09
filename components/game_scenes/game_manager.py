@@ -181,7 +181,7 @@ class GameManager:
         )
         self.scenes_controller = scenes_controller
 
-    def render(self) -> tuple[Surface, Surface | None]:
+    def render(self) -> Surface:
         # --- Calculate Delta Time ---
         current_time = pygame.time.get_ticks()
         delta_time = (current_time - self.last_time) / 1000.0  # Time in seconds
@@ -576,7 +576,7 @@ class GameManager:
             f"Current deck size: {len(self.deck.draw_deck)}, current death field size: {len(self.deck.death_wall)}"
         )
         latest_discarded_tile: Tile = self.latest_discarded_tile
-
+        print(list(map(lambda tile: tile.from_death_wall, self.deck.death_wall)))
         if self.action:
             if self.calling_player:
                 print(f"{self.action} from {self.calling_player}")
@@ -897,6 +897,9 @@ class GameManager:
                 )
                 self.scenes_controller.mixer.add_sound_queue(
                     calling_player.player_idx, ActionType.TSUMO
+                )
+                print(
+                    "I am checking here", calling_player.get_draw_tile().from_death_wall
                 )
                 return self.end_match(
                     calling_player,

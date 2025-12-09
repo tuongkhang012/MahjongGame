@@ -173,14 +173,14 @@ class GameBuilder:
             game_manager.current_turn
         )
         game_manager.main_player = player_list[0]
-        game_manager.switch_turn(game_manager.current_turn, False)
-
         game_manager.round_direction = Direction(
             game_manager.game_history.data["round_direction"]
         )
         game_manager.round_direction_number = game_manager.game_history.data[
             "round_direction_number"
         ]
+        game_manager.switch_turn(game_manager.current_turn, False)
+
         game_manager.tsumi_number = game_manager.game_history.data["tsumi_number"]
         game_manager.kyoutaku_number = game_manager.game_history.data["kyoutaku_number"]
         if game_manager.game_history.data.get("action") is not None:
@@ -244,6 +244,7 @@ class GameBuilder:
             game_manager.round_direction_number += 1
 
     def init_game(self, players: list[Player] = None, keep_direction: bool = False):
+        self.deck.random_seed = None
         self.deck.create_new_deck(start_data=self.start_data)
 
         # Create player
@@ -482,6 +483,7 @@ class GameBuilder:
             copy_dora_list = deck.dora.copy()
             if len(ura_dora) > 0:
                 copy_dora_list += ura_dora
+            print(config.is_rinshan)
             result = calculator.estimate_hand_value(
                 list(map(lambda tile: tile.hand136_idx, hands)),
                 win_tile.hand136_idx,

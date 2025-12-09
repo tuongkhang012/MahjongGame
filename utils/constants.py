@@ -1,5 +1,8 @@
 from mahjong.hand_calculating.hand_config import OptionalRules
+import typing
 
+if typing.TYPE_CHECKING:
+    from utils.setting_config import SettingConfig
 FPS_LIMIT = 60
 WINDOW_SIZE = (1280, 720)
 GAME_TITLE = "Riichi for the Win"
@@ -72,7 +75,27 @@ UI_TEXT_COLOR = COLOR_WHITE
 UI_BUTTON_COLOR = (0, 0, 0, int(255 * 0))
 UI_FONT_SIZE = 25
 
+# INSTRUCTION CONFIG RELATVIE
+INSTRUCTION_CARD_TITLE_COLOR = (188, 179, 178)
+INSTRUCTION_CARD_BODY_COLOR = (244, 198, 173)
 INSTRUCTION_TITLE_COLOR = (237, 171, 64)
+
+# SETTING CONFIG RELATIVE
+ROUND_BUTTON_SIZE = (20, 20)
+ROUND_BUTTON_COLOR = (252, 177, 124)
+BAR_SIZE = (200, 5)
+SETTING_CONFIG_PATH = "data/config.json"
+CONSTANT_SETTING_CONFIG: "SettingConfig" = {
+    "bgm": 70,
+    "sfx": 70,
+    "name": "",
+    "player_1": "agressive",
+    "player_2": "shanten",
+    "player_3": "passive",
+}
+
+# POPUP BACKGROUND COLOR
+POPUP_BACKGROUND_COLOR = (203, 64, 40)
 
 HAND_CONFIG_OPTIONS = OptionalRules(
     has_aka_dora=True, has_open_tanyao=True, has_double_yakuman=True
