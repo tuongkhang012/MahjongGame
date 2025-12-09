@@ -192,7 +192,7 @@ class MahjongAIAgent:
             if os.path.isfile(file_path):
                 files.append(file_path)
         files.sort(key=lambda x: int(os.path.basename(x).split(".")[0]))
-        return files
+        return files[-6:]
 
     def read_files(self, files: list[str]):
         """
