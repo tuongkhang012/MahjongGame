@@ -1,7 +1,7 @@
 # game .log relative
 .log/*.json
 .history/
-
+config.json
 # test file
 test.py
 
