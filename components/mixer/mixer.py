@@ -4,51 +4,91 @@ from utils.constants import (
     PLAYER2_SFX,
     PLAYER3_SFX,
     DISCARD_TILE_SFX,
+    BGM_PATH,
 )
 
 from utils.enums import ActionType
 from pygame.mixer import Sound, Channel
+from typing import Literal
 import pygame
 
 
 class Mixer:
     __queue: list[Sound] = []
-    __channel: list[Channel] = []
-
+      
     bgm: int
     sfx: int
+
+    bgm_state: Literal["main_menu", "game", "riichi", "oppo_riichi"] = None
+    bgm_opponent_riichi: list[Sound]
+    bgm_game: list[Sound]
+    bgm_main_menu: list[Sound]
+    bgm_riichi: list[Sound]
+    current_bgm_sound: Sound = None
+    current_bgm_channel: Channel = None
 
     def __init__(self, bgm: int, sfx: int):
         self.player0 = self.load_sfx_player(PLAYER0_SFX)
         self.player1 = self.load_sfx_player(PLAYER1_SFX)
         self.player2 = self.load_sfx_player(PLAYER2_SFX)
         self.player3 = self.load_sfx_player(PLAYER3_SFX)
+        self.load_bgm(BGM_PATH)
+
         self.discard_tile_sound = Sound(DISCARD_TILE_SFX)
+        self.state = "main_menu"
+
         self.bgm = bgm
         self.sfx = sfx
 
     def update_bgm_value(self, value: int):
         self.bgm = value
+        pygame.mixer.music.set_volume(self.bgm / 100)
 
     def update_sfx_value(self, value: int):
         self.sfx = value
+        for sound in self.__queue:
+            sound.set_volume(self.sfx / 100)
 
-    def play_background_music(self):
-        bgm_music = Sound("")
-        bgm_music.set_volume(self.bgm / 100)
-        bgm_music.play
+    def play_background_music(
+        self, state: Literal["main_menu", "game", "riichi", "oppo_riichi"]
+    ):
+
+        if self.bgm_state == state:
+            return
+
+        if self.bgm_state != state and pygame.mixer.music.get_busy():
+            pygame.mixer.music.fadeout(1000)
+        match state:
+            case "main_menu":
+                sound = self.get_random_sound(self.bgm_main_menu)
+            case "game":
+                sound = self.get_random_sound(self.bgm_game)
+            case "oppo_riichi":
+                sound = self.get_random_sound(self.bgm_opponent_riichi)
+            case "riichi":
+
+                sound = self.get_random_sound(self.bgm_riichi)
+
+        if not pygame.mixer.music.get_busy():
+            pygame.mixer.music.load(sound)
+            pygame.mixer.music.set_volume(self.bgm)
+            pygame.mixer.music.play(-1)
+            self.bgm_state = state
+
+    def get_random_sound(self, sound_list: list[str]) -> str:
+        import random
+
+        return sound_list[random.randint(0, len(sound_list) - 1)]
+
 
     def play_queue(self):
         while len(self.__queue) > 0:
             sfx = self.__queue.pop()
             sfx.set_volume(self.sfx / 100)
-            sfx_channel = sfx.play()
-            self.__channel.append(sfx_channel)
+
 
     def clear_queue(self):
         self.__queue = []
-        for channel in self.__channel:
-            channel.stop()
 
     def load_sfx_player(self, sound: dict) -> dict[str, Sound]:
         return {
@@ -63,8 +103,15 @@ class Mixer:
             "no_ten": Sound(sound["no_ten"]),
         }
 
-    def load_bgm(self, sound: dict) -> dict[str, Sound]:
-        return
+    def load_bgm(self, sound: dict):
+        self.bgm_main_menu = [sound["main_menu"]]
+        self.bgm_game = [sound["game"]]
+        self.bgm_riichi = [sound["main_riichi"]]
+        self.bgm_opponent_riichi = [
+            sound["oppo_riichi_1"],
+            sound["oppo_riichi_2"],
+        ]
+
 
     def add_sound_queue(
         self, player_idx: int, action: ActionType, is_double_riichi: bool = False

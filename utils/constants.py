@@ -168,6 +168,14 @@ INSTRUCTION_ASSETS = {
 # ----- SOUND SFX VOICES CONSTANTS -----
 DISCARD_TILE_SFX = "public/sfx/discard_tile.mp3"
 
+BGM_PATH = {
+    "main_menu": "public/bgm/main_menu.mp3",
+    "game": "public/bgm/lobby.mp3",
+    "main_riichi": "public/bgm/riichi.mp3",
+    "oppo_riichi_1": "public/bgm/oppo_riichi.mp3",
+    "oppo_riichi_2": "public/bgm/oppo_riichi2.mp3",
+}
+
 PLAYER0_SFX = {
     "chii": "public/voices/lelouch/action - chii.mp3",
     "pon": "public/voices/lelouch/action - pon.mp3",
