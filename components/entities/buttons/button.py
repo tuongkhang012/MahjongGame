@@ -136,7 +136,7 @@ class Button:
     def disabled(self):
         self.is_disabled = True
 
-    def undisabled(self):
+    def enabled(self):
         self.is_disabled = False
 
     def check_collidepoint(self, position: tuple[int, int]) -> bool:

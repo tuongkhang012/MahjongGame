@@ -315,7 +315,7 @@ class Deck:
 
         for i in tenhou:
             tile = list(filter(lambda tile: tile.hand136_idx == i, self.__init_deck))[0]
-            tile.undisabled()
+            tile.enabled()
             tile.undiscard_riichi()
             tile.from_death_wall = False
             if len(sys.argv) > 1 and "debug" in sys.argv:
