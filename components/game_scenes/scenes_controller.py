@@ -9,7 +9,6 @@ from typing import Any
 from utils.helper import build_center_rect, get_data_from_file
 from components.game_scenes.popup.after_match import AfterMatchPopup
 from components.entities.mouse import Mouse
-import datetime
 from components.game_history import GameHistory
 from components.entities.deck import Deck
 from components.game_scenes.game_manager import GameManager
@@ -108,7 +107,9 @@ class ScenesController:
             case GamePopup.AFTER_MATCH:
                 self.__popup_screen = self.__create_after_match_popup(data)
             case GamePopup.INSTRUCTION:
-                self.__popup_screen = self.__create_instruction_popup(data)
+                self.__popup_screen = self.__create_instruction_popup()
+            case GamePopup.SETTING:
+                self.__popup_screen = self.__create_setting_popup()
 
     def close_popup(self):
         self.__popup_screen = None
@@ -162,11 +163,10 @@ class ScenesController:
                         self.game_manager.game_log.end_round(
                             self.game_manager.player_list
                         )
-                        log_name = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
-                        self.game_manager.game_log.export(log_name)
+                        self.game_manager.game_log.export()
 
                         data = self.game_manager.__dict__()
-                        data["from_log_name"] = f"{log_name}"
+                        data["from_log_name"] = f"{self.game_manager.game_log.name}"
                         self.history.update(data)
                         self.history.export()
                     return {"exit": True}
@@ -192,6 +192,7 @@ class ScenesController:
                                     self.mouse.default()
 
                                 case "Quit":
+                                    self.game_manager.game_log.export()
                                     return {"exit": True}
                         return {"exit": False}
                     match self.__scene:
@@ -219,7 +220,7 @@ class ScenesController:
                                     if os.path.isfile(file_path):
                                         os.remove(file_path)
                                 if log_name:
-                                    with open(f"log/{log_name}.json", "r") as file:
+                                    with open(f".log/{log_name}.json", "r") as file:
                                         json_data = json.load(file)
                                         if (
                                             len(json_data["rounds"]) > 0
@@ -229,9 +230,9 @@ class ScenesController:
                                                 json_data["rounds"][-1]
                                             )
                                     if len(json_data["rounds"]) == 0:
-                                        os.remove(f"log/{log_name}.json")
+                                        os.remove(f".log/{log_name}.json")
                                     else:
-                                        with open(f"log/{log_name}.json", "w") as file:
+                                        with open(f".log/{log_name}.json", "w") as file:
                                             json.dump(json_data, file)
 
                             if action == "New Game" or action == "Continue":
@@ -303,5 +304,8 @@ class ScenesController:
         surface.fill(pygame.Color(0, 0, 0, int(255 * 0.8)))
         return AfterMatchPopup(surface, data)
 
-    def __create_instruction_popup(self, data: InstructionData) -> Surface:
+    def __create_instruction_popup(self) -> Surface:
         return self.instruction_manager
+
+    def __create_setting_popup(self) -> Surface:
+        return

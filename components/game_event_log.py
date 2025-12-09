@@ -6,6 +6,8 @@ import typing
 from mahjong.tile import TilesConverter
 from utils.game_history_data_dict import GameHistoryData
 import os
+import datetime
+import json
 
 if typing.TYPE_CHECKING:
     from components.entities.buttons.tile import Tile
@@ -49,18 +51,19 @@ class GameRoundLog(TypedDict):
 
 class GameEventLog:
     rounds: list[GameRoundLog]
+    name: str
 
     def __init__(self, data: GameHistoryData):
-        import json
 
         if data:
-            log_name = data["from_log_name"]
-            with open(f"log/{log_name}.json", "r") as file:
+            self.name = data["from_log_name"]
+            with open(f".log/{self.name}.json", "r") as file:
                 json_data = json.load(file)
             self.rounds = json_data["rounds"]
             self.round = json_data["rounds"][-1]
             self.events = json_data["rounds"][-1]["events"]
             return
+        self.name = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
         self.rounds = []
         self.round = None
         self.events = []
@@ -166,12 +169,15 @@ class GameEventLog:
 
         self.round["events"].append(new_event)
 
-    def export(self, name: str):
+    def export(self):
         import json
         from pathlib import Path
 
-        file_path = Path(f"log/{name}.json")
-        file_path.parent.mkdir(parents=True, exist_ok=True)
+        FILE_FOLDER = ".log/"
+        if not os.path.exists(Path(FILE_FOLDER)):
+            os.makedirs(FILE_FOLDER)
+        os.system(f'attrib +h "{Path(FILE_FOLDER)}"')
+        file_path = Path(f".log/{self.name}.json")
 
         with open(file_path, "w+") as file:
             json.dump({"rounds": self.rounds}, file, indent=2)
