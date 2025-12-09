@@ -80,6 +80,7 @@ class Instruction(Popup):
     wind: Surface
 
     def __init__(self, screen: Surface):
+        super().__init__()
         self.screen = screen
         self.akadora = pygame.image.load(INSTRUCTION_ASSETS["INSTRUCTION_AKADORA"])
         self.ankan = pygame.image.load(INSTRUCTION_ASSETS["INSTRUCTION_ANKAN"])
@@ -545,9 +546,6 @@ class Instruction(Popup):
         return font_surface
 
     def handle_event(self, event: Event):
-        if not self._absolute_position:
-            return
-
         match event.type:
             case pygame.MOUSEBUTTONDOWN:
                 mouse_pos = self.build_local_mouse(event.pos)

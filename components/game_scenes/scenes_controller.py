@@ -107,7 +107,9 @@ class ScenesController:
             case GamePopup.AFTER_MATCH:
                 self.__popup_screen = self.__create_after_match_popup(data)
             case GamePopup.INSTRUCTION:
-                self.__popup_screen = self.__create_instruction_popup(data)
+                self.__popup_screen = self.__create_instruction_popup()
+            case GamePopup.SETTING:
+                self.__popup_screen = self.__create_setting_popup()
 
     def close_popup(self):
         self.__popup_screen = None
@@ -218,7 +220,7 @@ class ScenesController:
                                     if os.path.isfile(file_path):
                                         os.remove(file_path)
                                 if log_name:
-                                    with open(f"log/{log_name}.json", "r") as file:
+                                    with open(f".log/{log_name}.json", "r") as file:
                                         json_data = json.load(file)
                                         if (
                                             len(json_data["rounds"]) > 0
@@ -228,9 +230,9 @@ class ScenesController:
                                                 json_data["rounds"][-1]
                                             )
                                     if len(json_data["rounds"]) == 0:
-                                        os.remove(f"log/{log_name}.json")
+                                        os.remove(f".log/{log_name}.json")
                                     else:
-                                        with open(f"log/{log_name}.json", "w") as file:
+                                        with open(f".log/{log_name}.json", "w") as file:
                                             json.dump(json_data, file)
 
                             if action == "New Game" or action == "Continue":
@@ -302,5 +304,8 @@ class ScenesController:
         surface.fill(pygame.Color(0, 0, 0, int(255 * 0.8)))
         return AfterMatchPopup(surface, data)
 
-    def __create_instruction_popup(self, data: InstructionData) -> Surface:
+    def __create_instruction_popup(self) -> Surface:
         return self.instruction_manager
+
+    def __create_setting_popup(self) -> Surface:
+        return
