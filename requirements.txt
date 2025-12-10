@@ -1,0 +1,4 @@
+pygame~=2.6.1
+mahjong~=1.4.0
+torch~=2.9.0+cu126
+numpy~=2.1.2
