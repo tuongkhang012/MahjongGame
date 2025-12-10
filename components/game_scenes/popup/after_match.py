@@ -107,21 +107,21 @@ class AfterMatchPopup(Popup):
         # Build render hands surface
         self.hands_surface_position = (0, 0)
         self.__hands_surface = self.create_hands_surface(
-            self.player_deck, self.win_tile, self.call_tiles_list, height_ratio=2 / 8
+            self.player_deck, self.win_tile, self.call_tiles_list, height_ratio=1 / 8
         )
         self._surface.blit(self.__hands_surface, self.hands_surface_position)
 
         # Build Yaku, Fu, Han and total points
-        self.result_surface_position = (0, self._surface.get_height() / 4)
+        self.result_surface_position = (0, self._surface.get_height() / 8)
         self.__result_surface = self.create_result_surface(
-            self.match_result, width_ratio=1 / 2, height_ratio=5 / 8
+            self.match_result, width_ratio=1 / 2, height_ratio=3 / 4
         )
         self._surface.blit(self.__result_surface, self.result_surface_position)
 
         # Build player current position
         self.players_surface_position = (
             self._surface.get_width() / 2,
-            self._surface.get_height() / 4,
+            self._surface.get_height() / 8,
         )
         self.__players_surface = self.create_players_surface(
             players=self.player_list,
@@ -132,7 +132,7 @@ class AfterMatchPopup(Popup):
             ura_dora=self.ura_dora,
             ryuukyoku=False,
             width_ratio=1 / 2,
-            height_ratio=5 / 8,
+            height_ratio=3 / 4,
         )
 
         self._surface.blit(self.__players_surface, self.players_surface_position)
@@ -294,26 +294,47 @@ class AfterMatchPopup(Popup):
         result_surface = self.__create_rescale_surface(
             full_surface, width_scale_by=0.5, height_scale_by=1
         )
+        seperator_surface = self.__create_seperator_surface(result_surface)
+
+        total_surface_height = (
+            sum(
+                list(
+                    map(
+                        lambda surfaces: max(
+                            surfaces[0].get_height(), surfaces[1].get_height()
+                        ),
+                        yaku_surface_list,
+                    )
+                )
+            )
+            + seperator_surface.get_height()
+            + max(total_cost_surface.get_height(), total_han_surface.get_height())
+            + +(len(yaku_surface_list) + 1) * self.yaku_height_offset
+        )
+        wrap_surface = Surface(
+            (result_surface.get_width(), total_surface_height), pygame.SRCALPHA
+        )
         start_height = 0
         for yaku_surface, han_surface in yaku_surface_list:
-            result_surface.blit(yaku_surface, (0, start_height))
-            result_surface.blit(
+            wrap_surface.blit(yaku_surface, (0, start_height))
+            wrap_surface.blit(
                 han_surface,
-                (result_surface.get_width() - han_surface.get_width(), start_height),
+                (wrap_surface.get_width() - han_surface.get_width(), start_height),
             )
             start_height += yaku_surface.get_height() + self.yaku_height_offset
 
-        seperator_surface = self.__create_seperator_surface(result_surface)
-        result_surface.blit(seperator_surface, (0, start_height))
+        wrap_surface.blit(seperator_surface, (0, start_height))
         start_height += seperator_surface.get_height() + self.yaku_height_offset
 
-        result_surface.blit(total_han_surface, (0, start_height))
+        wrap_surface.blit(total_han_surface, (0, start_height))
 
-        start_height += total_han_surface.get_height() + self.yaku_height_offset
-        # result_surface.blit(total_fu_surface, (0, start_height))
+        wrap_surface.blit(
+            total_cost_surface,
+            (result_surface.get_width() - total_cost_surface.get_width(), start_height),
+        )
 
-        # start_height += total_fu_surface.get_height() + self.yaku_height_offset
-        result_surface.blit(total_cost_surface, (0, start_height))
+        center_pos = build_center_rect(result_surface, wrap_surface)
+        result_surface.blit(wrap_surface, (center_pos.x, center_pos.y))
 
         draw_hitbox(result_surface)
         center_pos = build_center_rect(full_surface, result_surface)
@@ -472,7 +493,8 @@ class AfterMatchPopup(Popup):
 
         # Dora indicators
         if not ryuukyoku:
-            start_height += self.table_data_offset
+            PADDING_DORA_URA_DORA = 60
+            start_height += PADDING_DORA_URA_DORA
             dora_surface = self.build_dora_ura_dora_surface(full_surface, "Dora", dora)
 
             if len(ura_dora) > 0:
@@ -492,11 +514,9 @@ class AfterMatchPopup(Popup):
             else:
                 start_height += dora_surface.get_height() + self.table_data_offset
 
-            tsumi_text_surface = self.__create_font_surface(
-                f"Honba: {self.tsumi_number}"
-            )
+            tsumi_text_surface = self.__create_font_surface(f"Honba: {tsumi_number}")
             kyoutaku_text_surface = self.__create_font_surface(
-                f"Kyoutaku: {self.kyoutaku_number}"
+                f"Kyoutaku: {kyoutaku_number}"
             )
             tsumi_surface = Surface(
                 (full_surface.get_width() / 2, tsumi_text_surface.get_height()),

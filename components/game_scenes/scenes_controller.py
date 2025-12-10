@@ -407,7 +407,7 @@ class ScenesController:
         self.handle_scene(GameScene.GAME, self.game_manager)
 
     def __create_after_match_popup(self, data: AfterMatchData) -> Surface:
-        surface = self.create_popup_surface(0.8)
+        surface = self.create_popup_surface(0.9)
         surface.fill(pygame.Color(0, 0, 0, int(255 * 0.8)))
         return AfterMatchPopup(surface, data)
 
