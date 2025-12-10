@@ -35,8 +35,8 @@ BotModelType = Literal["shanten", "aggressive", "passive"]
 class Setting(Popup):
     config: SettingConfig
 
-    sfx_surface_position: Rect
-    bgm_surface_position: Rect
+    sfx_surface_position: Rect = Rect(0, 0, 0, 0)
+    bgm_surface_position: Rect = Rect(0, 0, 0, 0)
     bar_and_button_relative_position: tuple[int, int]
 
     def __init__(self, screen: Surface, config: SettingConfig, mixer: "Mixer"):
