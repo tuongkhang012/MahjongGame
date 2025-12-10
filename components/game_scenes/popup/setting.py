@@ -37,9 +37,9 @@ class Setting(Popup):
 
     sfx_surface_position: Rect = Rect(0, 0, 0, 0)
     bgm_surface_position: Rect = Rect(0, 0, 0, 0)
-    bot_1_surface_position: tuple[int, int] = [0, 0]
-    bot_2_surface_position: tuple[int, int] = [0, 0]
-    bot_3_surface_position: tuple[int, int] = [0, 0]
+    bot_1_surface_position: Rect = Rect(0, 0, 0, 0)
+    bot_2_surface_position: Rect = Rect(0, 0, 0, 0)
+    bot_3_surface_position: Rect = Rect(0, 0, 0, 0)
     bar_and_button_relative_position: tuple[int, int]
 
     def __init__(self, screen: Surface, config: SettingConfig, mixer: "Mixer"):
