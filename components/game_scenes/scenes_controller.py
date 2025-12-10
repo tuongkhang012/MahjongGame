@@ -6,18 +6,14 @@ from utils.constants import (
     HISTORY_PATH,
     SETTING_CONFIG_PATH,
     ICON_LINK,
-    COLOR_WHITE
+    COLOR_WHITE,
 )
 from utils.game_data_dict import AfterMatchData
 import pygame
 from pygame import Surface
 import typing
 from typing import Any
-<<<<<<< Updated upstream
 from utils.helper import build_center_rect, get_data_from_file, get_config
-=======
-from utils.helper import get_data_from_file
->>>>>>> Stashed changes
 from components.game_scenes.popup.after_match import AfterMatchPopup
 from components.entities.mouse import Mouse
 from components.game_history import GameHistory
@@ -71,12 +67,13 @@ class ScenesController:
     :type mixer: Mixer
 
     """
+
     __scene: GameScene
     __screen: Surface
-    __popup_screen: ("Popup" | None) = None
+    __popup_screen: "Popup" = None
 
-    game_manager: ("GameManager" | None) = None
-    start_menu: ("MainMenu" | None) = None
+    game_manager: "GameManager" = None
+    start_menu: "MainMenu" = None
 
     def __init__(self, history: GameHistory) -> None:
         """
@@ -93,7 +90,10 @@ class ScenesController:
         # Display setting
         self.__default_screen = pygame.display.set_mode(WINDOW_SIZE)
         self.__screen = pygame.Surface(
-            size=(self.__default_screen.get_width(), self.__default_screen.get_height()),
+            size=(
+                self.__default_screen.get_width(),
+                self.__default_screen.get_height(),
+            ),
             flags=pygame.SRCALPHA,  # Allow transparency
         )
 
@@ -182,7 +182,7 @@ class ScenesController:
         screen_size = self.__screen.get_size()
         return Surface(
             size=(screen_size[0] * size_ratio, screen_size[1] * size_ratio),
-            flags=pygame.SRCALPHA
+            flags=pygame.SRCALPHA,
         )
 
     def render_popup(self):
@@ -240,8 +240,8 @@ class ScenesController:
             match event.type:
                 case pygame.QUIT:
                     while (
-                            self.game_manager
-                            and self.game_manager.animation_tile is not None
+                        self.game_manager
+                        and self.game_manager.animation_tile is not None
                     ):
                         self.game_manager.render()
                     else:
@@ -315,8 +315,8 @@ class ScenesController:
                                     with open(f".log/{log_name}.json", "r") as file:
                                         json_data = json.load(file)
                                         if (
-                                                len(json_data["rounds"]) > 0
-                                                and not end_game
+                                            len(json_data["rounds"]) > 0
+                                            and not end_game
                                         ):
                                             json_data["rounds"].remove(
                                                 json_data["rounds"][-1]
@@ -361,7 +361,7 @@ class ScenesController:
 
                 case pygame.KEYDOWN:
                     if self.__popup_screen and isinstance(
-                            self.__popup_screen, Instruction
+                        self.__popup_screen, Instruction
                     ):
                         action = self.__popup_screen.handle_event(event)
                         if action and action == "close":
@@ -442,7 +442,7 @@ class ScenesController:
             COLOR_WHITE,
             button_background.get_rect(),
             width=2,
-            border_radius=10
+            border_radius=10,
         )
 
         button_background.blit(button_surface, (2.5, 2.5))
