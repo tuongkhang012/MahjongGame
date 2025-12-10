@@ -6,7 +6,7 @@
   "scripts": {
     "start": "python main.py",
     "setup": "pip install pygame numpy mahjong torch;",
-    "build": "pyinstaller -w main.py --name \"Riichi For The Win\" --icon \"public/images/sob.ico\" --noconfirm && xcopy \".\\data\\instruction_tutorial.json\" \".\\dist\\Riichi For The Win\\data\" /E /I && xcopy \".\\data\\instruction_yaku.json\" \".\\dist\\Riichi For The Win\\data\" /E /I && xcopy \".\\public\" \".\\dist\\Riichi For The Win\\public\" /E /I"
+    "build": "pyinstaller -w main.py --name \"Riichi For The Win\" --icon \"public/images/icon/icon.ico\" --noconfirm && xcopy \".\\data\\instruction_tutorial.json\" \".\\dist\\Riichi For The Win\\data\" /E /I && xcopy \".\\data\\instruction_yaku.json\" \".\\dist\\Riichi For The Win\\data\" /E /I && xcopy \".\\public\" \".\\dist\\Riichi For The Win\\public\" /E /I"
   },
   "author": "Nguyen Tuong Khang - 2152112",
   "license": "ISC"
