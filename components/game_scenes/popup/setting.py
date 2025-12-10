@@ -47,6 +47,10 @@ class Setting(Popup):
         self.is_holding_sfx_button = False
         self.is_holding_bgm_button = False
         self.mixer = mixer
+        self.close_button = Button()
+        self.close_button.set_surface(
+            pygame.image.load("public/images/buttons/close_button.png")
+        )
 
     def render(self, screen: Surface):
         self.update()
@@ -60,6 +64,17 @@ class Setting(Popup):
                 self._surface.get_height(),
             )
         )
+        # Close Button
+        PADDING_X = 20
+        PADDING_Y = 20
+        self.close_button.update_position(
+            self._surface.get_width()
+            - PADDING_X
+            - self.close_button.get_surface().get_width(),
+            PADDING_Y,
+        )
+
+        self.close_button.render(self._surface)
         screen.blit(self._surface, (center_pos.x, center_pos.y))
 
     def update(self):
@@ -100,7 +115,11 @@ class Setting(Popup):
                 if not self.check_collide(event.pos):
                     self.export()
                     return "close"
+
                 local_mouse = self.build_local_mouse(event.pos)
+                if self.close_button.check_collidepoint(local_mouse):
+                    self.export()
+                    return "close"
                 if self.sfx_surface_position.collidepoint(
                     local_mouse[0], local_mouse[1]
                 ):
@@ -179,6 +198,8 @@ class Setting(Popup):
 
             case pygame.MOUSEMOTION:
                 local_mouse = self.build_local_mouse(event.pos)
+                if self.close_button.check_collidepoint(local_mouse):
+                    return self.close_button
                 if self.sfx_surface_position.collidepoint(
                     local_mouse[0], local_mouse[1]
                 ):

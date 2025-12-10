@@ -201,6 +201,10 @@ class GameManager:
             PADDING_HINTS_BUTTON_Y * 2 + self.hints_button.get_surface().get_height(),
         )
 
+        self.after_match_data = None
+        self.after_match_timer = None
+        self.after_match_delay_time = 2  # In seconds
+
         self.scenes_controller = scenes_controller
 
     def render(self) -> Surface:
@@ -212,6 +216,17 @@ class GameManager:
         # --- Update logic game ---
         if not self.pause:
             self.update(delta_time)
+
+        if self.end_game == True and self.after_match_data is not None:
+            if self.after_match_timer is None:
+                self.after_match_timer = pygame.time.get_ticks()
+            if (
+                current_time - self.after_match_timer
+            ) / 1000.0 > self.after_match_delay_time:
+                self.scenes_controller.popup(
+                    GamePopup.AFTER_MATCH, self.after_match_data
+                )
+                self.after_match_data = None
 
         # --- Rendering ---
         self.screen.fill("aquamarine4")
@@ -334,6 +349,8 @@ class GameManager:
                     event.pos
                 ):
                     call_button_click = call_button_field.click(event.pos, self)
+                    if call_button_click:
+                        self.scenes_controller.mouse.default()
 
                     if isinstance(call_button_click, Chii):
                         if (
@@ -1043,9 +1060,9 @@ class GameManager:
                 "dora": [],
                 "ura_dora": [],
             }
-            self.scenes_controller.popup(GamePopup.AFTER_MATCH, popup_data)
-
+            self.after_match_data = popup_data
             return
+
         if win_player:
             # is_tsumo
             is_tsumo = True if self.action == ActionType.TSUMO else False
@@ -1292,8 +1309,7 @@ class GameManager:
         self.game_history.update(game_history_data)
         self.game_history.export()
         self.game_log.export()
-
-        self.scenes_controller.popup(GamePopup.AFTER_MATCH, popup_data)
+        self.after_match_data = popup_data
 
         files = self.ai_agent_MID.load_files()
         self.ai_agent_MID.read_files(files)
@@ -1349,6 +1365,8 @@ class GameManager:
 
         self.is_main_riichi = False
         self.is_oppo_riichi = False
+        self.after_match_timer = None
+        self.after_match_data = None
 
         # Init game
         self.builder.new(self, self.keep_direction)

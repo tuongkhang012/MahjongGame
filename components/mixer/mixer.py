@@ -63,6 +63,7 @@ class Mixer:
         ):
             self.current_bgm_sound.fadeout(1000)
         if state is None:
+            self.bgm_state = state
             return
 
         match state:
