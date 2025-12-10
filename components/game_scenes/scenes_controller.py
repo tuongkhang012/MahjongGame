@@ -13,11 +13,7 @@ import pygame
 from pygame import Surface
 import typing
 from typing import Any
-<<<<<<< Updated upstream
-from utils.helper import build_center_rect, get_data_from_file, get_config
-=======
-from utils.helper import get_data_from_file
->>>>>>> Stashed changes
+from utils.helper import get_config, get_data_from_file
 from components.game_scenes.popup.after_match import AfterMatchPopup
 from components.entities.mouse import Mouse
 from components.game_history import GameHistory
@@ -73,10 +69,10 @@ class ScenesController:
     """
     __scene: GameScene
     __screen: Surface
-    __popup_screen: ("Popup" | None) = None
+    __popup_screen: "Popup" = None
 
-    game_manager: ("GameManager" | None) = None
-    start_menu: ("MainMenu" | None) = None
+    game_manager: "GameManager" = None
+    start_menu: "MainMenu" = None
 
     def __init__(self, history: GameHistory) -> None:
         """
@@ -186,10 +182,16 @@ class ScenesController:
         )
 
     def render_popup(self):
+        """
+        Renders the current popup screen on top of the main screen with a semi-transparent overlay.
+        :return:
+        """
         if self.__popup_screen:
             overlay = self.__screen.copy().convert_alpha()
             overlay.fill(
-                pygame.Color(0, 0, 0, int(255 / 2)), None, pygame.BLEND_RGBA_MULT
+                color=pygame.Color(0, 0, 0, int(255 / 2)),
+                rect=None,
+                special_flags=pygame.BLEND_RGBA_MULT
             )
 
             self.__screen.blit(overlay, (0, 0))
