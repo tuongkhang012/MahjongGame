@@ -51,17 +51,21 @@ class GameBuilder:
         for player in player_list:
             player.game_manager = game_manager
 
-            if (
-                hasattr(game_manager, "ai_seat_idx")
-                and player.player_idx in game_manager.ai_seat_idx
-            ):
-                print(f"Assigning AI agent to player {player.player_idx}")
-                if player.player_idx == 1:
-                    player.agent = game_manager.ai_agent_MID
-                else:
-                    player.agent = game_manager.ai_agent_SMART
-            else:
+            if player.player_idx == 0:
+                continue
+
+            # Assign bot model
+            if getattr(game_manager, f"bot_{player.player_idx}_model") == "shanten":
                 player.agent = None
+                print(f"Assigning bot {player.player_idx} with no agent")
+            elif (
+                getattr(game_manager, f"bot_{player.player_idx}_model") == "aggressive"
+            ):
+                player.agent = game_manager.ai_agent_SMART
+                print(f"Assigning bot {player.player_idx} with agent MID")
+            elif getattr(game_manager, f"bot_{player.player_idx}_model") == "passive":
+                player.agent = game_manager.ai_agent_MID
+                print(f"Assigning bot {player.player_idx} with agent SMART")
 
         # Assign Turn and player to game manager
         start_turn = Direction(0)

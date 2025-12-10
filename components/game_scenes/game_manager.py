@@ -24,7 +24,12 @@ from pygame import Surface
 from pygame.event import Event
 from components.entities.player import Player
 from components.entities.deck import Deck
-from utils.helper import build_center_rect, map_action_to_call, count_shanten_points
+from utils.helper import (
+    build_center_rect,
+    map_action_to_call,
+    count_shanten_points,
+    get_config,
+)
 from components.entities.fields.center_board_field import CenterBoardField
 from components.entities.mouse import Mouse
 import typing
@@ -43,6 +48,7 @@ from components.entities.fields.call_button_fields import CallButtonField
 if typing.TYPE_CHECKING:
     from components.game_scenes.scenes_controller import ScenesController
     from components.entities.buttons.button import Button
+    from components.game_scenes.popup.setting import PickerDataType, BotModelType
 
 
 class GameManager:
@@ -130,7 +136,10 @@ class GameManager:
         self.builder = GameBuilder(self.screen, self.clock, init_deck, start_data)
 
         # AI designated seat
-        self.ai_seat_idx = {1, 3}
+        config = get_config()
+        self.bot_1_model: BotModelType = config["player_1"]
+        self.bot_2_model: BotModelType = config["player_2"]
+        self.bot_3_model: BotModelType = config["player_3"]
 
         self.ai_agent_SMART = MahjongAIAgent(
             DISCARD_MODEL, CHI_MODEL, PON_MODEL, RIICHI_MODEL

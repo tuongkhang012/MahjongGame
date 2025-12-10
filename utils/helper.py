@@ -4,6 +4,7 @@ import sys
 from utils.enums import CallType, ActionType, TileType
 import typing
 from mahjong.meld import Meld
+from utils.setting_config import SettingConfig
 
 if typing.TYPE_CHECKING:
     from components.entities.buttons.tile import Tile
@@ -159,6 +160,16 @@ def parse_string_tile(tile: str) -> "Tile":
         case "m":
             tile_type = TileType.MAN
     return (tile_type, tile_number, tile_aka)
+
+
+def get_config() -> SettingConfig:
+    import json
+    from pathlib import Path
+    from utils.constants import SETTING_CONFIG_PATH
+
+    with open(Path(SETTING_CONFIG_PATH)) as file:
+        config = json.load(file)
+    return config
 
 
 def get_data_from_file(file_name: str):

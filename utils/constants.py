@@ -89,7 +89,7 @@ CONSTANT_SETTING_CONFIG: "SettingConfig" = {
     "bgm": 70,
     "sfx": 70,
     "name": "",
-    "player_1": "agressive",
+    "player_1": "aggressive",
     "player_2": "shanten",
     "player_3": "passive",
 }
