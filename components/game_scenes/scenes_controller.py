@@ -12,7 +12,7 @@ import pygame
 from pygame import Surface
 import typing
 from typing import Any
-from utils.helper import build_center_rect, get_data_from_file
+from utils.helper import build_center_rect, get_data_from_file, get_config
 from components.game_scenes.popup.after_match import AfterMatchPopup
 from components.entities.mouse import Mouse
 from components.game_history import GameHistory
@@ -73,8 +73,7 @@ class ScenesController:
             "public/images/setting.png"
         )
 
-        with open(Path(SETTING_CONFIG_PATH)) as file:
-            config = json.load(file)
+        config = get_config()
         self.mixer = Mixer(config["bgm"], config["sfx"])
         self.mixer.play_background_music("main_menu")
 
@@ -184,6 +183,11 @@ class ScenesController:
                             data["from_log_name"] = f"{self.game_manager.game_log.name}"
                             self.history.update(data)
                             self.history.export()
+
+                        if self.__popup_screen and isinstance(
+                            self.__popup_screen, Setting
+                        ):
+                            self.__popup_screen.export()
                         return {"exit": True}
                 case pygame.MOUSEBUTTONDOWN:
                     if self.__popup_screen:
@@ -337,10 +341,8 @@ class ScenesController:
         return self.instruction_manager
 
     def __create_setting_popup(self) -> Surface:
-        with open(Path(SETTING_CONFIG_PATH)) as file:
-            config = json.load(file)
         surface = self.create_popup_surface(0.6)
-        return Setting(surface, config, self.mixer)
+        return Setting(surface, get_config(), self.mixer)
 
     def __create_game_manager_button(self, image_path: str) -> Button:
         button = Button()
