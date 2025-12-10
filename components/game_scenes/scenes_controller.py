@@ -4,7 +4,6 @@ from utils.constants import (
     WINDOW_SIZE,
     FPS_LIMIT,
     HISTORY_PATH,
-    SETTING_CONFIG_PATH,
     ICON_LINK,
     COLOR_WHITE
 )
@@ -25,7 +24,6 @@ from components.game_scenes.popup.instruction import Instruction
 from components.entities.buttons.button import Button
 from components.mixer.mixer import Mixer
 from components.game_scenes.popup.setting import Setting
-from pathlib import Path
 
 if typing.TYPE_CHECKING:
     from components.game_scenes.main_menu import MainMenu
