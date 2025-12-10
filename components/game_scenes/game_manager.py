@@ -1,8 +1,6 @@
 import pygame
 from utils.constants import (
-    WINDOW_SIZE,
     FPS_LIMIT,
-    GAME_TITLE,
     TILE_ANIMATION_DURATION,
     TILE_POPUP_DURATION,
     TILE_SCALE_BY,
@@ -13,7 +11,6 @@ from utils.constants import (
     COMBINED_MODEL,
 )
 
-from mahjong.agari import Agari
 from components.game_builder import GameBuilder
 from utils.enums import Direction, ActionType, CallType, GamePopup, TileType
 
@@ -31,7 +28,6 @@ from utils.helper import (
     get_config,
 )
 from components.entities.fields.center_board_field import CenterBoardField
-from components.entities.mouse import Mouse
 import typing
 import random
 from components.game_event_log import GameEventLog

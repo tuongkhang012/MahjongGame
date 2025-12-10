@@ -52,7 +52,6 @@ class Mixer:
     def play_background_music(
         self, state: Literal["main_menu", "game", "riichi", "oppo_riichi"]
     ):
-
         if self.bgm_state == state:
             return
 
@@ -63,6 +62,7 @@ class Mixer:
         ):
             self.current_bgm_sound.fadeout(1000)
         if state is None:
+            self.bgm_state = state
             return
 
         match state:
@@ -85,7 +85,7 @@ class Mixer:
             self.current_bgm_channel = self.current_bgm_sound.play(-1)
             self.bgm_state = state
 
-    def get_random_sound(self, sound_list: list[str]) -> str:
+    def get_random_sound(self, sound_list: list[Sound]) -> Sound:
         import random
 
         return sound_list[random.randint(0, len(sound_list) - 1)]
@@ -114,11 +114,19 @@ class Mixer:
 
     def load_bgm(self, sound: dict):
         self.bgm_main_menu = [Sound(sound["main_menu"])]
-        self.bgm_game = [Sound(sound["game"])]
-        self.bgm_riichi = [Sound(sound["main_riichi"])]
+        self.bgm_game = [
+            Sound(sound["game_1"]),
+            Sound(sound["game_2"]),
+        ]
+        self.bgm_riichi = [
+            Sound(sound["main_riichi_1"]),
+            Sound(sound["main_riichi_2"]),
+            Sound(sound["main_riichi_3"]),
+        ]
         self.bgm_opponent_riichi = [
             Sound(sound["oppo_riichi_1"]),
             Sound(sound["oppo_riichi_2"]),
+            Sound(sound["oppo_riichi_3"]),
         ]
 
     def add_sound_queue(

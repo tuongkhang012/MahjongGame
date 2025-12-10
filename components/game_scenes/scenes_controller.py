@@ -1,18 +1,23 @@
-from utils.enums import GameScene, GamePopup, TileSource
+from utils.enums import GameScene, GamePopup
 from utils.constants import (
     GAME_TITLE,
     WINDOW_SIZE,
     FPS_LIMIT,
     HISTORY_PATH,
     SETTING_CONFIG_PATH,
+    ICON_LINK,
+    COLOR_WHITE
 )
 from utils.game_data_dict import AfterMatchData
-from utils.instruction_data_dict import InstructionData
 import pygame
 from pygame import Surface
 import typing
 from typing import Any
+<<<<<<< Updated upstream
 from utils.helper import build_center_rect, get_data_from_file, get_config
+=======
+from utils.helper import get_data_from_file
+>>>>>>> Stashed changes
 from components.game_scenes.popup.after_match import AfterMatchPopup
 from components.entities.mouse import Mouse
 from components.game_history import GameHistory
@@ -24,76 +29,131 @@ from components.game_scenes.popup.instruction import Instruction
 from components.entities.buttons.button import Button
 from components.mixer.mixer import Mixer
 from components.game_scenes.popup.setting import Setting
-from utils.setting_config import SettingConfig
 from pathlib import Path
 
 if typing.TYPE_CHECKING:
     from components.game_scenes.main_menu import MainMenu
-    from components.entities.buttons.tile import Tile
     from components.entities.buttons.button import Button
-
     from components.game_scenes.popup.popup import Popup
 
 
 class ScenesController:
+    """
+    Scenes Controller to manage different game scenes.
+
+    :cvar __scene: Current game scene.
+    :type __scene: GameScene
+    :cvar __screen: Current surface to draw on.
+    :type __screen: Surface
+    :cvar __popup_screen: Current popup screen, if any.
+    :type __popup_screen: Popup | None
+
+    :cvar game_manager: GameManager instance for the game scene.
+    :type game_manager: GameManager | None
+
+    :ivar __default_screen: The main display surface to draw ``__screen`` on.
+    :type __default_screen: Surface
+    :ivar clock: Pygame clock to manage frame rate.
+    :type clock: pygame.time.Clock
+    :ivar mouse: Mouse entity for cursor management.
+    :type mouse: Mouse
+    :ivar history: GameHistory object containing previous game data.
+    :type history: GameHistory
+    :ivar deck: Deck instance for managing the game deck.
+    :type deck: Deck
+    :ivar instruction_manager: Instruction popup manager.
+    :type instruction_manager: Instruction
+    :ivar hints_button: The button for hints in the game manager.
+    :type hints_button: Button
+    :ivar setting_button: The button for open up settings in the game manager.
+    :type setting_button: Button
+    :ivar mixer: Mixer instance for audio management.
+    :type mixer: Mixer
+
+    """
     __scene: GameScene
     __screen: Surface
-    __popup_screen: "Popup" = None
+    __popup_screen: ("Popup" | None) = None
 
-    game_manager: "GameManager" = None
+    game_manager: ("GameManager" | None) = None
+    start_menu: ("MainMenu" | None) = None
 
-    def __init__(self, history: GameHistory):
+    def __init__(self, history: GameHistory) -> None:
+        """
+        Initializes the ScenesController with the given game history.
+
+        :param history: GameHistory object containing previous game data.
+        :type history: GameHistory
+        """
         pygame.init()
         pygame.mixer.init()
-        # pygame.freetype.init()
 
         pygame.display.set_caption(GAME_TITLE)
-        pygame.display.set_icon(pygame.image.load("public/images/sob.ico"))
+        pygame.display.set_icon(pygame.image.load(os.path.join(ICON_LINK, "icon.png")))
         # Display setting
         self.__default_screen = pygame.display.set_mode(WINDOW_SIZE)
         self.__screen = pygame.Surface(
-            (self.__default_screen.get_width(), self.__default_screen.get_height()),
-            pygame.SRCALPHA,
+            size=(self.__default_screen.get_width(), self.__default_screen.get_height()),
+            flags=pygame.SRCALPHA,  # Allow transparency
         )
 
         self.clock = pygame.time.Clock()
         self.clock.tick(FPS_LIMIT)  # limits FPS to 60
 
-        self.mouse: Mouse = Mouse
+        self.mouse: type[Mouse] = Mouse  # Mouse entity (static methods only)
         self.__scene = GameScene.START
 
         self.history = history
 
+        # Retain the seed if there is previous game history that is not ended
         self.deck = Deck(self.history.data["seed"] if self.history.data else None)
 
         self.instruction_manager = Instruction(self.create_popup_surface(0.9))
 
-        self.hints_button = self.__create_game_manager_button("public/images/book.png")
+        self.hints_button = self.__create_game_manager_button(
+            os.path.join(ICON_LINK, "book.png")
+        )
         self.setting_button = self.__create_game_manager_button(
-            "public/images/setting.png"
+            os.path.join(ICON_LINK, "setting.png")
         )
 
         config = get_config()
         self.mixer = Mixer(config["bgm"], config["sfx"])
         self.mixer.play_background_music("main_menu")
 
-    def change_scene(self, scene: GameScene):
+    def change_scene(self, scene: GameScene) -> None:
         self.__scene = scene
 
-    def get_current_scene(self):
+    def get_current_scene(self) -> GameScene:
         return self.__scene
 
-    def handle_scene(self, scene: GameScene, handler: Any):
+    def handle_scene(self, scene: GameScene, handler: Any) -> None:
+        """
+        Assigns the handler to the appropriate scene based on the scene type.
+        :param scene: The game scene type.
+        :type scene: GameScene
+        :param handler: The handler object for the scene.
+        :type handler: Any
+        :return: None
+        """
         match scene:
             case GameScene.GAME:
                 self.game_manager: "GameManager" = handler
             case GameScene.START:
                 self.start_menu: "MainMenu" = handler
 
-    def get_render_surface(self):
+    def get_render_surface(self) -> Surface:
         return self.__screen
 
-    def popup(self, game_popup: GamePopup, data: AfterMatchData):
+    def popup(self, game_popup: GamePopup, data: AfterMatchData) -> None:
+        """
+        Creates and displays a popup screen based on the specified game popup type.
+        :param game_popup: The type of game popup to display.
+        :type game_popup: GamePopup
+        :param data: Data required for certain popup types.
+        :type data: AfterMatchData
+        :return: None
+        """
         match game_popup:
             case GamePopup.AFTER_MATCH:
                 self.__popup_screen = self.__create_after_match_popup(data)
@@ -102,15 +162,27 @@ class ScenesController:
             case GamePopup.SETTING:
                 self.__popup_screen = self.__create_setting_popup()
 
-    def close_popup(self):
+    def close_popup(self) -> None:
+        """
+        Closes the current popup screen and resumes the game if it was paused.
+        :return: None
+        """
         self.__popup_screen = None
-        if self.game_manager and self.game_manager.pause == True:
+        if self.game_manager and (self.game_manager.pause is True):
             self.game_manager.pause = False
 
-    def create_popup_surface(self, size_ratio: float):
+    def create_popup_surface(self, size_ratio: float) -> Surface:
+        """
+        Creates a popup surface with the specified size ratio relative to the screen size.
+        :param size_ratio: The size ratio for the popup surface.
+        :type size_ratio: float
+        :return: Popup surface.
+        :rtype: Surface
+        """
         screen_size = self.__screen.get_size()
         return Surface(
-            (screen_size[0] * size_ratio, screen_size[1] * size_ratio), pygame.SRCALPHA
+            size=(screen_size[0] * size_ratio, screen_size[1] * size_ratio),
+            flags=pygame.SRCALPHA
         )
 
     def render_popup(self):
@@ -168,8 +240,8 @@ class ScenesController:
             match event.type:
                 case pygame.QUIT:
                     while (
-                        self.game_manager
-                        and self.game_manager.animation_tile is not None
+                            self.game_manager
+                            and self.game_manager.animation_tile is not None
                     ):
                         self.game_manager.render()
                     else:
@@ -243,8 +315,8 @@ class ScenesController:
                                     with open(f".log/{log_name}.json", "r") as file:
                                         json_data = json.load(file)
                                         if (
-                                            len(json_data["rounds"]) > 0
-                                            and not end_game
+                                                len(json_data["rounds"]) > 0
+                                                and not end_game
                                         ):
                                             json_data["rounds"].remove(
                                                 json_data["rounds"][-1]
@@ -289,7 +361,7 @@ class ScenesController:
 
                 case pygame.KEYDOWN:
                     if self.__popup_screen and isinstance(
-                        self.__popup_screen, Instruction
+                            self.__popup_screen, Instruction
                     ):
                         action = self.__popup_screen.handle_event(event)
                         if action and action == "close":
@@ -355,12 +427,24 @@ class ScenesController:
             ),
             pygame.SRCALPHA,
         )
+
+        # Draw background
         pygame.draw.rect(
             button_background,
             pygame.Color(6, 118, 209),
             button_background.get_rect(),
             border_radius=10,
         )
+
+        # Draw border
+        pygame.draw.rect(
+            button_background,
+            COLOR_WHITE,
+            button_background.get_rect(),
+            width=2,
+            border_radius=10
+        )
+
         button_background.blit(button_surface, (2.5, 2.5))
         button.set_surface(button_background)
         return button

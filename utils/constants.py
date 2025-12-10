@@ -19,12 +19,14 @@ DIRECTION_WIDTH = 32
 DIRECTION_HEIGHT = 32
 
 SMOKE_PARTICLE_IMAGE_LINK = "public/images/particles/smoke/"
+ICON_LINK = "public/images/icon/"
 DISCARD_MODEL = "public/model/mahjong_cnn_discard_best.pth"
 CHI_MODEL = "public/model/mahjong_cnn_chi_best.pth"
 PON_MODEL = "public/model/mahjong_cnn_pon_best.pth"
 RIICHI_MODEL = "public/model/mahjong_cnn_riichi_best.pth"
 COMBINED_MODEL = "public/model/mahjong_cnn_discard_chi_pon_riichi_best.pth"
 HISTORY_PATH = ".history/"
+LOG_PATH = ".log/"
 
 MAIN_MENU_BACKGROUND = "public/images/main_menu_bg.png"
 
@@ -170,10 +172,14 @@ DISCARD_TILE_SFX = "public/sfx/discard_tile.mp3"
 
 BGM_PATH = {
     "main_menu": "public/bgm/main_menu.mp3",
-    "game": "public/bgm/lobby.mp3",
-    "main_riichi": "public/bgm/riichi.mp3",
+    "game_1": "public/bgm/lobby.mp3",
+    "game_2": "public/bgm/lobby2.mp3",
+    "main_riichi_1": "public/bgm/riichi.mp3",
+    "main_riichi_2": "public/bgm/riichi2.mp3",
+    "main_riichi_3": "public/bgm/riichi3.mp3",
     "oppo_riichi_1": "public/bgm/oppo_riichi.mp3",
     "oppo_riichi_2": "public/bgm/oppo_riichi2.mp3",
+    "oppo_riichi_3": "public/bgm/oppo_riichi3.mp3",
 }
 
 PLAYER0_SFX = {

@@ -81,6 +81,10 @@ class Instruction(Popup):
     wind: Surface
 
     def __init__(self, screen: Surface):
+        """
+        Initialize Instruction Popup
+        :param screen: The popup render surface
+        """
         super().__init__()
         self.screen = screen
         self.akadora = pygame.image.load(INSTRUCTION_ASSETS["INSTRUCTION_AKADORA"])
