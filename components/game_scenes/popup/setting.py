@@ -1,3 +1,4 @@
+import os
 from components.game_scenes.popup.popup import Popup
 from pygame import Surface, Color, Rect
 import pygame
@@ -10,13 +11,14 @@ from utils.constants import (
     COLOR_WHITE,
     POPUP_BACKGROUND_COLOR,
     SETTING_CONFIG_PATH,
+    ICON_LINK,
 )
 from components.entities.buttons.button import Button
 from utils.setting_config import SettingConfig
 from utils.helper import build_center_rect, draw_hitbox
 from pygame.freetype import Font
 import typing
-from typing import TypedDict, Literal, Type
+from typing import TypedDict, Literal
 
 if typing.TYPE_CHECKING:
 
@@ -52,7 +54,7 @@ class Setting(Popup):
         self.mixer = mixer
         self.close_button = Button()
         self.close_button.set_surface(
-            pygame.image.load("public/images/buttons/close_button.png")
+            pygame.image.load(os.path.join(ICON_LINK, "close_button.png"))
         )
 
     def render(self, screen: Surface):
@@ -349,7 +351,7 @@ class Setting(Popup):
         )
         self.bot_1_button = bot_1_surface_data
         bot_2_picker_surface, bot_2_surface_data = self.build_bot_model_picker_surface(
-            "Mid   ", self.config["player_2"]
+            "Middy ", self.config["player_2"]
         )
         self.bot_2_button = bot_2_surface_data
 

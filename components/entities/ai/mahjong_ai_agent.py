@@ -95,6 +95,7 @@ class MahjongAIAgent:
             probs_riichi = torch.softmax(out_riichi, dim=-1)[0]
             print("Riichi probs:", probs_riichi)
             if probs_riichi[1].item() > 0.5:
+                self.target_to_discard(player, x)
                 return ActionType.RIICHI
             else:
                 return ActionType.SKIP
@@ -122,62 +123,7 @@ class MahjongAIAgent:
             else:
                 return ActionType.CHII
 
-        AKA_DORA_KIND_INDICES = [4, 13, 22]
-
-        with torch.no_grad():
-            out_discard, _, _, _ = self.discard_model(x)
-        logits_discard = out_discard[0]  # (34,)
-        tile_kind_idx = int(torch.argmax(logits_discard).item())
-
-        if tile_kind_idx not in AKA_DORA_KIND_INDICES:
-            suitable_tile_found = False
-            rank_tile = 2
-            while not suitable_tile_found:
-                discard_index = -1
-                for i, tile in enumerate(player.player_deck):
-                    if tile_kind_idx == TILE_IDX[str(tile)]:
-                        discard_index = i
-                        break
-                if player.player_deck[discard_index].is_disabled:
-                    print(
-                        "Chii kuikae: ",
-                        rank_tile,
-                        torch.topk(logits_discard, rank_tile).indices,
-                        discard_index,
-                        player.player_deck[discard_index],
-                    )
-                    tile_kind_idx = int(
-                        torch.topk(logits_discard, rank_tile).indices[-1]
-                    )
-                    rank_tile += 1
-                else:
-                    suitable_tile_found = True
-
-        else:
-            # This is a 5-tile kind (4, 13, or 22), so we must check for Akadora prioritization.
-            non_akadora_indices = []
-            akadora_index = -1
-
-            for i, tile in enumerate(player.player_deck):
-                if tile_kind_idx == TILE_IDX[str(tile)]:
-                    if str(tile) in AKA_DORA_TILES:
-                        akadora_index = i
-                    else:
-                        non_akadora_indices.append(i)
-
-            if non_akadora_indices:
-                # Discard a regular 5-tile first.
-                discard_index = non_akadora_indices[0]
-            elif akadora_index != -1:
-                # Only discard the Akadora if no regular 5-tiles of that kind exist.
-                discard_index = akadora_index
-            else:
-                raise ValueError(
-                    f"Consistency check failed for tile kind {tile_kind_idx}."
-                )
-
-        tile = player.player_deck[discard_index]
-        tile.clicked()
+        self.target_to_discard(player, x)
         return ActionType.DISCARD
 
     def load_files(self):
@@ -244,3 +190,71 @@ class MahjongAIAgent:
                 )
 
                 self.history.append(history_layer)
+
+    def target_to_discard(
+        self,
+        player: Player,
+        x: torch.Tensor,
+    ) -> None:
+        """
+        Decide which tile to discard based on the model's output.
+        :param player: Who is discarding the tile.
+        :param x: The encoded game state tensor.
+        :return: None
+        """
+        AKA_DORA_KIND_INDICES = [4, 13, 22]
+
+        with torch.no_grad():
+            out_discard, _, _, _ = self.discard_model(x)
+        logits_discard = out_discard[0]  # (34,)
+        tile_kind_idx = int(torch.argmax(logits_discard).item())
+
+        if tile_kind_idx not in AKA_DORA_KIND_INDICES:
+            suitable_tile_found = False
+            rank_tile = 2
+            while not suitable_tile_found:
+                discard_index = -1
+                for i, tile in enumerate(player.player_deck):
+                    if tile_kind_idx == TILE_IDX[str(tile)]:
+                        discard_index = i
+                        break
+                if player.player_deck[discard_index].is_disabled:
+                    print(
+                        "Chii kuikae: ",
+                        rank_tile,
+                        torch.topk(logits_discard, rank_tile).indices,
+                        discard_index,
+                        player.player_deck[discard_index],
+                    )
+                    tile_kind_idx = int(
+                        torch.topk(logits_discard, rank_tile).indices[-1]
+                    )
+                    rank_tile += 1
+                else:
+                    suitable_tile_found = True
+
+        else:
+            # This is a 5-tile kind (4, 13, or 22), so we must check for Akadora prioritization.
+            non_akadora_indices = []
+            akadora_index = -1
+
+            for i, tile in enumerate(player.player_deck):
+                if tile_kind_idx == TILE_IDX[str(tile)]:
+                    if str(tile) in AKA_DORA_TILES:
+                        akadora_index = i
+                    else:
+                        non_akadora_indices.append(i)
+
+            if non_akadora_indices:
+                # Discard a regular 5-tile first.
+                discard_index = non_akadora_indices[0]
+            elif akadora_index != -1:
+                # Only discard the Akadora if no regular 5-tiles of that kind exist.
+                discard_index = akadora_index
+            else:
+                raise ValueError(
+                    f"Consistency check failed for tile kind {tile_kind_idx}."
+                )
+
+        tile = player.player_deck[discard_index]
+        tile.clicked()

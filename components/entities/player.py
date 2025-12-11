@@ -3,6 +3,7 @@ from components.entities.call import Call
 from utils.enums import CallType, TileSource, TileType, ActionType
 from pygame import Surface
 import typing
+from typing import Optional
 from utils.enums import Direction
 from components.entities.fields.discard_field import DiscardField
 from components.entities.fields.deck_field import DeckField
@@ -62,14 +63,14 @@ class Player:
         player_idx: int,
         direction: Direction,
         full_deck: list[Tile],
-        player_deck: list[Tile] = None,
-        discard_tiles: list[Tile] = None,
-        already_discard_tiles: list[Tile] = None,
-        call_tiles_list: list[Tile] = None,
-        call_list: list[Call] = None,
+        player_deck: list[Tile] = None, # Player's **HAND**
+        discard_tiles: list[Tile] = None, # List of Discarded Tiles to display
+        already_discard_tiles: list[Tile] = None, # List of all Discarded Tiles for furiten check
+        call_tiles_list: list[Tile] = None, # List of Called Tiles
+        call_list: list[Call] = None, # List of Calls
         draw_tile: Tile = None,
-        can_call: list[Call] = [],
-        callable_tiles_list: list[list[Tile]] = [],
+        can_call: list[Call] = [], # List of possible CallTypes
+        callable_tiles_list: list[list[Tile]] = [], # List of Callable Tile Lists
         is_riichi: bool = False,
         riichi_turn: int = None,
         points: int = None,
@@ -164,21 +165,31 @@ class Player:
             )
         return self.__draw_tile
 
-    def build_chii(self, tile: Tile):
+    def build_chii(self, tile: Tile) -> None:
+        """
+        Build possible chii calls with the given tile, append into ``self.callable_tiles_list``.
+        :param tile: Discarded tile to build chii with.
+        :return: None
+        """
         self.callable_tiles_list = []
 
         first_tile = self.find_tile(tile.type, tile.number - 2)
         second_tile = self.find_tile(tile.type, tile.number - 1)
         third_tile = self.find_tile(tile.type, tile.number + 1)
-        forth_tile = self.find_tile(tile.type, tile.number + 2)
+        fourth_tile = self.find_tile(tile.type, tile.number + 2)
         if first_tile and second_tile:
             self.callable_tiles_list.append([first_tile, second_tile, tile])
         if second_tile and third_tile:
             self.callable_tiles_list.append([second_tile, tile, third_tile])
-        if third_tile and forth_tile:
-            self.callable_tiles_list.append([tile, third_tile, forth_tile])
+        if third_tile and fourth_tile:
+            self.callable_tiles_list.append([tile, third_tile, fourth_tile])
 
-    def build_pon(self, tile: Tile):
+    def build_pon(self, tile: Tile) -> None:
+        """
+        Build possible pon calls with the given tile, append into ``self.callable_tiles_list``.
+        :param tile: Discarded tile to build pon with.
+        :return: None
+        """
         self.callable_tiles_list = []
 
         self.callable_tiles_list.append(
@@ -192,11 +203,16 @@ class Player:
             + [tile]
         )
 
-    def build_kan(self, tile: Tile) -> tuple[bool, "Player"]:
+    def build_kan(self, tile: Tile) -> tuple[bool, int]:
+        """
+        Build possible kan calls with the given tile, append into ``self.callable_tiles_list``.
+        :param tile: Discarded tile to build kan with.
+        :return: A tuple indicating if it's a kakan and the player index from whom the tile was taken.
+        """
         self.callable_tiles_list = []
         is_kakan = False
-        from_player: Player = None
-        if tile.source == TileSource.PLAYER:
+        from_player: Optional[int] = None
+        if tile.source == TileSource.PLAYER: # Minkan
             callable_tiles_list = list(
                 filter(
                     lambda player_tile: tile.number == player_tile.number
@@ -206,6 +222,7 @@ class Player:
             ) + [tile]
             self.callable_tiles_list.append(callable_tiles_list)
         else:
+            # Check for kakan, ankan
             already_pon_list = list(
                 filter(
                     lambda call: call.type == CallType.PON
@@ -221,7 +238,7 @@ class Player:
                             called_tile.type == tile.type
                             and called_tile.number == tile.number
                             for called_tile in call.tiles
-                        ]
+                        ] # Check if the pon call matches the tile
                     ):
                         callable_tiles_list = call.tiles + [tile]
                         self.callable_tiles_list.append(callable_tiles_list)
@@ -242,9 +259,8 @@ class Player:
                             self.player_deck,
                         )
                     )
-                    + ([tile] if tile not in self.player_deck else [])
                 )
-        return (is_kakan, from_player)
+        return is_kakan, from_player
 
     def call(
         self,
@@ -255,7 +271,12 @@ class Player:
         is_kakan: bool = False,
     ):
         """
-        Create init call
+        Handle player's call.
+        :param tile: The tile being called on.
+        :param call_list: The list of tiles involved in the call.
+        :param call_type: The type of call being made.
+        :param player: The player being called.
+        :param is_kakan: Whether the call is a kakan (added kan to existing pon).
         """
         if player and not is_kakan:
             tile.source = TileSource.PLAYER
@@ -268,42 +289,66 @@ class Player:
             player.discard_tiles.remove(tile)
             self.player_deck.append(tile)
 
+        # Check kuikae
         for hand_tile in self.player_deck:
-            if hand_tile.type == tile.type and hand_tile.number == tile.number:
+            tile_idx = call_list.index(tile) # Get index of stolen tile in call list
+            another_kuikae_tile = None # Find the other tile that affected by kuikae
+            if tile_idx == 0:
+                another_kuikae_tile = self.find_tile(
+                    call_list[-1].type, call_list[-1].number + 1
+                )
+            elif tile_idx == 1:
+                pass
+            elif tile_idx == 2:
+                another_kuikae_tile = self.find_tile(
+                    call_list[0].type, call_list[0].number - 1
+                )
+            if (
+                another_kuikae_tile
+                and hand_tile.type == another_kuikae_tile.type
+                and hand_tile.number == another_kuikae_tile.number
+            ):
+                hand_tile.disabled()
+            if hand_tile.type == tile.type and hand_tile.number == tile.number: # Disable stolen tile looksalike
                 hand_tile.disabled()
 
+        # Remove called tiles from player's hand
         for tmp_tile in call_list:
             if tmp_tile in self.player_deck:
                 self.player_deck.remove(tmp_tile)
                 tmp_tile.enabled()
 
+        # Add call to call list
         self.call_list.append(
             Call(
                 call_type,
                 call_list,
                 self.player_idx,
-                player.player_idx if player else self.player_idx,
+                player.player_idx if player else self.player_idx, # Player's absolute index
                 is_kakan,
             )
         )
 
+        # Add called tiles to called tiles list
         for called_tile in call_list:
             if called_tile not in self.call_tiles_list:
                 self.call_tiles_list.append(called_tile)
 
+        # Add meld
         self.melds.append(self.call_list[-1].meld)
         self.rearrange_deck()
         self.deck_field.build_field_surface(self)
         self.deck_field.build_tiles_position(self)
 
-    def discard(self, tile: Tile, game_manager: "GameManager" = None):
-        if self.is_riichi() < 0:
+    def discard(self, tile: Tile, game_manager: "GameManager" = None) -> Tile:
+        if self.is_riichi() < 0: # Not riichi
             for hand_tile in self.player_deck:
                 hand_tile.enabled()
-        if self.is_riichi() >= 0:
+        if self.is_riichi() >= 0: # Riichi
             for deck_tile in self.player_deck:
                 deck_tile.disabled()
 
+        # Check if there's a riichi sideway discard
         if game_manager.prev_action == ActionType.RIICHI or (
             self.__is_riichi
             and not any(
@@ -322,7 +367,7 @@ class Player:
         self.player_deck.remove(tile)
         self.discard_tiles.append(tile)
         self.__already_discard_tiles.append(tile)
-        game_manager.latest_discarded_tile = tile
+        game_manager.latest_discarded_tile = tile # For checking calls
         game_manager.start_discarded_animation(tile)
         self.turn += 1
         self.temporary_furiten = False
@@ -339,9 +384,11 @@ class Player:
     def make_move(self, action: ActionType = None) -> ActionType:
         from random import randint
 
+        # AI Agent move
         if self.agent is not None and not self.__is_riichi:
             return self.agent.make_move(self)
 
+        # Riichi priority
         if self.__is_riichi:
             if self.player_idx == 0:
                 return action
@@ -349,8 +396,11 @@ class Player:
                 return ActionType.RON
             if CallType.TSUMO in self.can_call:
                 return ActionType.TSUMO
-            tile = self.pick_tile()
-            tile.clicked()
+            try:
+                list(map(lambda player_tile: player_tile.is_clicked, self.player_deck))[0]
+            except:
+                tile = self.pick_tile()
+                tile.clicked()
             return ActionType.DISCARD
 
         if action:
@@ -367,6 +417,10 @@ class Player:
         return ActionType.DISCARD
 
     def pick_tile(self) -> Tile:
+        """
+        Brute-force pick a tile to discard that minimizes shanten points.
+        :return: The Tile object to discard.
+        """
         import sys
 
         minimum_shanten = 14
@@ -394,11 +448,16 @@ class Player:
         return self.__draw_tile
 
     def total_tiles(self) -> int:
-        return len(self.deck_field.get_tiles_list()) + len(
-            self.call_field.get_tiles_list()
-        )
+        return len(self.deck_field.get_tiles_list()) + len(self.call_field.get_tiles_list())
 
     def find_tile(self, type: TileType, number: int) -> Tile | None:
+        """
+        Find a tile in the player's deck by type and number. Gets the first found tile.
+        :param type: The type of the tile to find.
+        :param number: The number of the tile to find.
+        :return: The found Tile object or None if not found.
+        :rtype: Tile | None
+        """
         try:
             return list(
                 filter(
@@ -424,7 +483,7 @@ class Player:
         :param check_chii: Whether to check for chii call.
         :return: None
         """
-        print("----- Start cheking call -----")
+        print("----- Start checking call -----")
         self.can_call = []
 
         self.__build_winning_tiles()
@@ -454,6 +513,11 @@ class Player:
         print("----- Done checking call -----")
 
     def check_yao9(self) -> bool:
+        """
+        Check if the player has at least 9 different terminal and honor tiles.
+        :return: True if the player has at least 9 different terminal and honor tiles, False otherwise.
+        :rtype: bool
+        """
         tile_yao9_list: list[Tile] = []
 
         for tile in self.player_deck:
@@ -478,7 +542,11 @@ class Player:
     def skip_yao9(self):
         self.__skip_yao9 = True
 
-    def __build_winning_tiles(self):
+    def __build_winning_tiles(self) -> None:
+        """
+        Build the list of winning tiles for the current hand by brute-forcing every possible tile.
+        :return: None
+        """
         self.__winning_tiles = []
         shanten_calculator = Shanten()
         before_draw_player_deck = self.player_deck.copy()
@@ -524,6 +592,8 @@ class Player:
         ):
             return True
 
+        return False
+
     def is_pon_able(self, tile: Tile) -> bool:
         return (
             convert_tiles_list_to_hand34(self.player_deck)[tile.hand34_idx] >= 2
@@ -541,11 +611,13 @@ class Player:
                         for call_tile in call.tiles
                     ]
                 )
-            ):
+            ): # Kakan from Pon
                 return True
         if tile in self.player_deck:
+            # Ankan
             return convert_tiles_list_to_hand34(self.player_deck)[tile.hand34_idx] == 4
         else:
+            # Minkan
             return convert_tiles_list_to_hand34(self.player_deck)[tile.hand34_idx] == 3
 
     def is_ron_able(self, tile: Tile, round_wind: Direction) -> bool:
@@ -661,7 +733,7 @@ class Player:
 
     def is_riichi(self) -> int:
         """
-        Return the turn number called riichi
+        Return the turn number called riichi, -1 if not riichi.
         """
         if self.__is_riichi:
             return self.__riichi_turn

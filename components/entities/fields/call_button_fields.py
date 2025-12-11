@@ -311,4 +311,7 @@ class CallButtonField(Field):
                     game_manager.action = player.make_move(ActionType.RIICHI)
                 elif isinstance(button, Ryuukyoku):
                     game_manager.action = player.make_move(ActionType.RYUUKYOKU)
+                button.unhovered()
                 return button
+
+        return None

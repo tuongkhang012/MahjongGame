@@ -20,6 +20,14 @@ class Call:
         from_player_idx: int,
         is_kakan: bool = False,
     ):
+        """
+        Initialize a Call object representing a Mahjong call (naki).
+        :param type: The type of call (CallType).
+        :param tiles: The list of tiles involved in the call.
+        :param current_player_idx: The index of the current player making the call.
+        :param from_player_idx: The index of the player from whom the tile is taken. (Absolute index)
+        :param is_kakan: Indicates if the call is a kakan (added kan).
+        """
         tiles.sort(key=lambda tile: (tile.type.value, tile.number))
         self.is_opened = True
         match type:
@@ -84,7 +92,7 @@ class Call:
             called_tile=self.another_player_tiles if self.is_opened else None,
             opened=self.is_opened,
             who=current_player_idx,
-            from_who=(from_player_idx - current_player_idx) % 4,
+            from_who=(from_player_idx - current_player_idx) % 4, # Relative index
         )
         self.is_kakan = is_kakan
 
