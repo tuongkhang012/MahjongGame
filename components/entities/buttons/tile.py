@@ -143,6 +143,16 @@ class Tile(Button):
     def is_discard_from_riichi(self):
         return self.__is_riichi_discard
 
+    def reset(self):
+        self.__is_riichi_discard = False
+        self.is_clicked = False
+        self.is_highlighted = False
+        self.is_hovered = False
+        self.is_disabled = False
+        self.hidden = True
+        self.source = None
+        self.from_death_wall = False
+
     def __eq__(self, other):
         if not isinstance(other, Tile):  # Optional: ensure comparison with same type
             return NotImplemented

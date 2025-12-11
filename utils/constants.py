@@ -165,6 +165,13 @@ INSTRUCTION_ASSETS = {
     "INSTRUCTION_TSUUIISOU": "public\\images\\intro\\tsuuiisou.png",
     "INSTRUCTION_WIND": "public\\images\\intro\\wind.png",
     "INSTRUCTION_YAKUHAI": "public\\images\\intro\\yakuhai.png",
+    "INSTRUCTION_GAME_FLOW_UI": "public\\images\\flow\\ui.png",
+    "INSTRUCTION_GAME_FLOW_CHII": "public\\images\\flow\\chii.png",
+    "INSTRUCTION_GAME_FLOW_PON": "public\\images\\flow\\pon.png",
+    "INSTRUCTION_GAME_FLOW_KAN": "public\\images\\flow\\kan.png",
+    "INSTRUCTION_GAME_FLOW_TSUMO": "public\\images\\flow\\tsumo.png",
+    "INSTRUCTION_GAME_FLOW_RON": "public\\images\\flow\\ron.png",
+    "INSTRUCTION_GAME_FLOW_RIICHI": "public\\images\\flow\\riichi.png",
 }
 
 

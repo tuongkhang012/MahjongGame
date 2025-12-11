@@ -10,6 +10,7 @@ class InstructionCardBody:
     :cvar content: The content of the instruction card. If type is "text", this is the text content.
     If type is "image", this is the name of the image.
     """
+
     type: Literal["text", "image"]
     content: str
 
@@ -21,16 +22,18 @@ class InstructionCard:
     :cvar title: The title of the instruction card.
     :cvar body: A list of body elements for the instruction card.
     """
+
     title: str
     body: list[InstructionCardBody]
 
 
 @dataclass
-class InstructionTutorialPage:
+class InstructionPageData:
     """
-    An instruction tutorial page containing a title and a dictionary of instruction cards.
-    :cvar title: The title of the instruction tutorial page.
+    An instruction page data containing a title and a dictionary of instruction cards.
+    :cvar title: The title of the instruction page data.
     :cvar cards: A dictionary of instruction cards, keyed by their identifiers.
     """
+
     title: str
     cards: dict[str, InstructionCard]
