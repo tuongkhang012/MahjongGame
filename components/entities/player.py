@@ -137,7 +137,16 @@ class Player:
         round_wind: Direction = None,
         tile: Tile = None,
         check_call: bool = True,
-    ):
+    ) -> Tile:
+        """
+        Draw a tile from the draw deck or draw the specified tile.
+        :param draw_deck:
+        :param round_wind:
+        :param tile:
+        :param check_call:
+        :return: The drawn Tile object.
+        :rtype: Tile
+        """
         if tile:
             self.__draw_tile = tile
             draw_deck.remove(tile)
@@ -147,7 +156,7 @@ class Player:
         self.__draw_tile.source = TileSource.DRAW
         self.player_deck.append(self.__draw_tile)
         self.__draw_tile.update_tile_surface(self.player_idx)
-        if check_call:
+        if check_call: # To check for tsumo/ankan/riichi
             self.check_call(
                 self.__draw_tile,
                 is_current_turn=True,
@@ -407,27 +416,35 @@ class Player:
         round_wind: Direction,
         check_chii: bool = False,
     ):
+        """
+        Checking for possible calls
+        :param tile: The tile to check call with.
+        :param is_current_turn: Whether it's the player's current turn.
+        :param round_wind: The current round wind.
+        :param check_chii: Whether to check for chii call.
+        :return: None
+        """
         print("----- Start cheking call -----")
         self.can_call = []
 
         self.__build_winning_tiles()
-        if is_current_turn and self.is_tsumo_able(tile, round_wind):
+        if is_current_turn and self.is_tsumo_able(tile, round_wind): # Tsumo
             self.can_call.append(CallType.TSUMO)
 
-        if not is_current_turn and self.is_ron_able(tile, round_wind):
+        if not is_current_turn and self.is_ron_able(tile, round_wind): # Ron
             self.can_call.append(CallType.RON)
 
         if not self.__is_riichi:
-            if self.is_riichi_able() and is_current_turn:
+            if self.is_riichi_able() and is_current_turn: # Riichi
                 self.can_call.append(CallType.RIICHI)
 
-            if self.is_kan_able(tile):
+            if self.is_kan_able(tile): # Kan
                 self.can_call.append(CallType.KAN)
 
-            if self.is_pon_able(tile):
+            if self.is_pon_able(tile): # Pon
                 self.can_call.append(CallType.PON)
 
-            if self.is_chii_able(tile) and check_chii:
+            if self.is_chii_able(tile) and check_chii: # Chii
                 self.can_call.append(CallType.CHII)
 
         if len(self.can_call) > 0:

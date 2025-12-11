@@ -82,6 +82,13 @@ class ImageCutter:
         standing: bool,
         player_idx: int = 1,
     ) -> Surface:
+        """
+        Cut hidden tile surface based on player index and standing/lay-down position.
+        :param standing: Whether the tile is standing (True) or lay-down (False).
+        :param player_idx: Player index (0-3).
+        :return: Surface of the hidden tile.
+        :rtype: Surface
+        """
         line = 2
         match player_idx:
             case 0:

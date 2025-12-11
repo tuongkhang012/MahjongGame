@@ -230,8 +230,10 @@ class GameBuilder:
             game_manager.round_direction = Direction(0)
             game_manager.round_direction_number = 1
             return
+
         if keep_direction:
             return
+
         if game_manager.round_direction_number == 4:
             game_manager.round_direction = Direction(
                 (game_manager.round_direction.value + 1) % 4
@@ -241,8 +243,14 @@ class GameBuilder:
             game_manager.round_direction_number += 1
 
     def init_game(self, players: list[Player] = None, keep_direction: bool = False):
-        self.deck.clear_seed()
-        self.deck.create_new_deck(start_data=self.start_data)
+        """
+        Initialize the game with players and deck setup.
+        :param players:
+        :param keep_direction:
+        :return:
+        """
+        self.deck.clear_seed() # Clear previous seed
+        self.deck.create_new_deck(start_data=self.start_data) # Create new deck
 
         # Create player
         if not players:

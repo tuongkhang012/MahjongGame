@@ -9,6 +9,23 @@ import sys
 
 
 class Tile(Button):
+    """
+    Represents a Mahjong tile with properties and behaviors.
+    Inherits from Button to utilize button functionalities.
+
+    :cvar source: The source of the tile (drawn or from another player).
+    :cvar from_death_wall: Indicates if the tile is from the dead wall.
+    :cvar type: The type of the tile
+    :cvar number: The number of the tile.
+    :cvar aka: Indicates if the tile is a red (aka) tile.
+    :cvar hand136_idx: The index of the tile in a 136-tile representation.
+    :cvar hand34_idx: The index of the tile in a 34-tile representation.
+    :cvar name: The name of the tile for naming in Mahjong.
+    :cvar hover_offset_y: The vertical offset for hovering animation.
+    :cvar animation_speed: The speed of the hovering animation.
+    :cvar animation_duration: The duration of the tile animation.
+    :cvar __is_riichi_discard: Indicates if the tile is a riichi discard.
+    """
     source: TileSource
     from_death_wall: bool = False
 
@@ -97,6 +114,13 @@ class Tile(Button):
         reveal_surface: Surface = None,
         hidden_surface: Surface = None,
     ) -> None:
+        """
+        Update the tile's surface based on its visibility and player index.
+        :param player_idx: Who is possessing the tile.
+        :param reveal_surface: The surface to use when the tile is revealed.
+        :param hidden_surface: The surface to use when the tile is hidden.
+        :return: None
+        """
         if hidden_surface is None and player_idx is not None:
             hidden_surface = self.tiles_cutter.cut_hidden_tiles(True, player_idx)
 
