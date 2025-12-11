@@ -172,7 +172,7 @@ def get_config() -> SettingConfig:
     return config
 
 
-def get_data_from_file(file_name: str):
+def get_data_from_file(file_name: str) -> dict:
     import json
 
     data = None

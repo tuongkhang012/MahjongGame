@@ -59,10 +59,10 @@ class GameBuilder:
             elif (
                 getattr(game_manager, f"bot_{player.player_idx}_model") == "aggressive"
             ):
-                player.agent = game_manager.ai_agent_SMART
+                player.agent = game_manager.ai_agent_MID
                 print(f"Assigning bot {player.player_idx} with agent MID")
             elif getattr(game_manager, f"bot_{player.player_idx}_model") == "passive":
-                player.agent = game_manager.ai_agent_MID
+                player.agent = game_manager.ai_agent_SMART
                 print(f"Assigning bot {player.player_idx} with agent SMART")
 
         # Assign Turn and player to game manager

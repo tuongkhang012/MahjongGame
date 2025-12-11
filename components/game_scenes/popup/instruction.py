@@ -550,7 +550,7 @@ class Instruction(Popup):
             start_height += surface.get_height() + y_offset
         return font_surface
 
-    def handle_event(self, event: Event):
+    def handle_event(self, event: Event) -> str | Button | None:
         match event.type:
             case pygame.MOUSEBUTTONDOWN:
                 if not self.check_collide(event.pos):
@@ -590,9 +590,6 @@ class Instruction(Popup):
                     return self.section_tutorial_button
                 if self.section_yaku_overview_button.check_collidepoint(mouse_pos):
                     return self.section_yaku_overview_button
-                match self.section:
-                    case InstructionSection.TUTORIAL:
-                        pass
 
                 if Rect(
                     0,
