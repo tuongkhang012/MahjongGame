@@ -152,8 +152,7 @@ class GameManager:
                 ActionType.DORA, self.deck.death_wall[self.deck.current_dora_idx]
             )
         else:
-            if self.game_history.data["end_game"] == True:
-                self.builder
+            if self.game_history.data["end_game"]:
                 for i in range(0, 4):
                     self.builder.deck.clear_seed()
                     self.builder.deck.create_new_deck()

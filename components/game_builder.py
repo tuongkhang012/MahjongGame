@@ -362,21 +362,19 @@ class GameBuilder:
             player.deck_field.build_field_surface(player)
             player.deck_field.build_tiles_position(player)
 
-        main_player = player_list[direction.index(Direction(0))] # Main player is
-        main_player.deck_field.build_tiles_position(main_player)
         player_list[0].reveal_hand()
 
-        return (direction, player_list, self.deck)
+        return direction, player_list, self.deck
 
+    @staticmethod
     def custom_deck(
-        self,
         man: str | None,
         sou: str | None,
         pin: str | None,
         honors: str | None,
         player: Player,
         draw_deck: list[Tile],
-    ) -> list[int]:
+    ) -> None:
         """
         Create a custom deck for a player based on provided tile strings.
         """
@@ -437,8 +435,8 @@ class GameBuilder:
                 f"Init deck invalid because the tiles from starter deck are lower than 13! Player {player.player_idx} have {len(player.player_deck)}"
             )
 
+    @staticmethod
     def calculate_player_score(
-        self,
         player: Player = None,
         round_wind: Direction = None,
         win_tile: Tile = None,
@@ -459,6 +457,10 @@ class GameBuilder:
         kyoutaku_number: int = 0,
         ura_dora: list[Tile] = [],
     ) -> HandResponse:
+        """
+        Calculate the player's score based on the current hand and game state.
+        :return: HandResponse object containing the result of the hand calculation
+        """
 
         # Init hand config for calculator
         config = HandConfig(
@@ -483,7 +485,7 @@ class GameBuilder:
 
         calculator = HandCalculator()
 
-        if is_nagashi_mangan:
+        if is_nagashi_mangan: # Handle nagashi mangan case
             result = calculator.estimate_hand_value(
                 tiles=[], win_tile=None, config=config
             )
@@ -493,12 +495,11 @@ class GameBuilder:
             if win_tile not in copy_player_deck:
                 copy_player_deck.append(win_tile)
 
-            hands = copy_player_deck + player.call_tiles_list
+            hands = copy_player_deck + player.call_tiles_list # Add melds to hand for calculation
 
             copy_dora_list = deck.dora.copy()
             if len(ura_dora) > 0:
                 copy_dora_list += ura_dora
-            print(config.is_rinshan)
             result = calculator.estimate_hand_value(
                 list(map(lambda tile: tile.hand136_idx, hands)),
                 win_tile.hand136_idx,
@@ -506,8 +507,10 @@ class GameBuilder:
                 list(map(lambda tile: tile.hand136_idx, copy_dora_list)),
                 config=config,
             )
-        print(result, result.yaku, result.cost)
-        print(
-            f"FINAL RESULT: {result} {result.yaku} and player scores: {result.cost['total']}"
-        )
+
+        if result:
+            print(result, result.yaku, result.cost)
+            print(
+                f"FINAL RESULT: {result} {result.yaku} and player scores: {result.cost['total']}"
+            )
         return result
