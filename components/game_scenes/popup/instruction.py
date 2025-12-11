@@ -11,7 +11,7 @@ from utils.constants import (
 )
 from pygame import Surface, Color, Rect
 from pygame.event import Event
-from utils.instruction_data_dict import InstructionCard, InstructionTutorialPage
+from utils.instruction_data_dict import InstructionCard, InstructionPageData
 from components.game_scenes.popup.popup import Popup
 from utils.enums import InstructionSection
 from pygame.freetype import Font
@@ -174,13 +174,38 @@ class Instruction(Popup):
         self.wind = pygame.image.load(INSTRUCTION_ASSETS["INSTRUCTION_WIND"])
         self.yakuhai = pygame.image.load(INSTRUCTION_ASSETS["INSTRUCTION_YAKUHAI"])
 
+        self.game_flow_ui = pygame.image.load(
+            INSTRUCTION_ASSETS["INSTRUCTION_GAME_FLOW_UI"]
+        )
+        self.game_flow_chii = pygame.image.load(
+            INSTRUCTION_ASSETS["INSTRUCTION_GAME_FLOW_CHII"]
+        )
+        self.game_flow_pon = pygame.image.load(
+            INSTRUCTION_ASSETS["INSTRUCTION_GAME_FLOW_PON"]
+        )
+        self.game_flow_kan = pygame.image.load(
+            INSTRUCTION_ASSETS["INSTRUCTION_GAME_FLOW_KAN"]
+        )
+        self.game_flow_tsumo = pygame.image.load(
+            INSTRUCTION_ASSETS["INSTRUCTION_GAME_FLOW_TSUMO"]
+        )
+        self.game_flow_ron = pygame.image.load(
+            INSTRUCTION_ASSETS["INSTRUCTION_GAME_FLOW_RON"]
+        )
+        self.game_flow_riichi = pygame.image.load(
+            INSTRUCTION_ASSETS["INSTRUCTION_GAME_FLOW_RIICHI"]
+        )
+
         with open("data/instruction_tutorial.json", "r") as file:
-            self.instruction_tutorial_data: dict[str, InstructionTutorialPage] = (
-                json.load(file)
+            self.instruction_tutorial_data: dict[str, InstructionPageData] = json.load(
+                file
             )
 
         with open("data/instruction_yaku.json", "r") as file:
-            self.instruction_yaku_data: dict[str, InstructionTutorialPage] = json.load(
+            self.instruction_yaku_data: dict[str, InstructionPageData] = json.load(file)
+
+        with open("data/instruction_game_flow.json", "r") as file:
+            self.instruction_game_flow_data: dict[str, InstructionPageData] = json.load(
                 file
             )
 
@@ -199,8 +224,12 @@ class Instruction(Popup):
         self.section = InstructionSection.TUTORIAL
         self.page = 0
         self.yaku_page = 0
+        self.game_flow_page = 0
         self.max_instruction_tutorial_page = len(self.instruction_tutorial_data.keys())
         self.max_instruction_yaku_page = len(self.instruction_yaku_data.keys())
+        self.max_instruction_game_flow_page = len(
+            self.instruction_game_flow_data.keys()
+        )
 
     def change_section(self, section: InstructionSection):
         self.section = section
@@ -218,10 +247,13 @@ class Instruction(Popup):
         )
         self.draw_surface_border_radius(self.section_surface)
         # Build body surface
-        if section == InstructionSection.TUTORIAL:
-            self.build_surface_tutorial(page)
-        elif section == InstructionSection.YAKU_OVERVIEW:
-            self.build_surface_yaku_overview(page)
+        match section:
+            case InstructionSection.TUTORIAL:
+                self.build_surface_tutorial(page)
+            case InstructionSection.YAKU_OVERVIEW:
+                self.build_surface_yaku_overview(page)
+            case InstructionSection.GAME_FLOW:
+                self.build_surface_game_flow(page)
 
         # Build section tab button
         self.section_tab_surface = Surface(
@@ -229,6 +261,7 @@ class Instruction(Popup):
             pygame.SRCALPHA,
         )
 
+        # region Create Tutorial Section Button
         # ----- Create Tutorial Section Button -----
         self.section_tutorial_button = Button(
             text="Tutorial",
@@ -244,7 +277,7 @@ class Instruction(Popup):
         self.section_tutorial_button.set_surface(
             Surface(
                 (
-                    self.section_tab_surface.get_width() / 5,
+                    self.section_tab_surface.get_width() / 7,
                     self.section_tab_surface.get_height(),
                 ),
                 pygame.SRCALPHA,
@@ -253,9 +286,11 @@ class Instruction(Popup):
         self.draw_button_surface(self.section_tutorial_button)
 
         self.section_tutorial_button.update_position(
-            self.section_tab_surface.get_width() / 5, 0
+            self.section_tab_surface.get_width() / 7, 0
         )
+        # endregion Create Yaku Section Button
 
+        # region Create Yaku Section Button
         # ----- Create Yaku Section Button -----
         self.section_yaku_overview_button = Button(
             text="Yaku Overview",
@@ -271,7 +306,7 @@ class Instruction(Popup):
         self.section_yaku_overview_button.set_surface(
             Surface(
                 (
-                    self.section_tab_surface.get_width() / 5,
+                    self.section_tab_surface.get_width() / 7,
                     self.section_tab_surface.get_height(),
                 ),
                 pygame.SRCALPHA,
@@ -280,12 +315,42 @@ class Instruction(Popup):
         self.draw_button_surface(self.section_yaku_overview_button)
 
         self.section_yaku_overview_button.update_position(
-            3 * self.section_tab_surface.get_width() / 5, 0
+            3 * self.section_tab_surface.get_width() / 7, 0
+        )
+        # endregion Create Yaku Section Button
+
+        # region Create Game Flow Section Button
+        # ----- Create Game Flow Button ------
+        self.section_game_flow_button = Button(
+            text="Game Flow",
+            font=Font(BETTER_VCR_FONT, 15),
+            text_color=COLOR_BLACK,
+            bg_color=(
+                COLOR_WHITE
+                if self.section == InstructionSection.GAME_FLOW
+                else POPUP_BACKGROUND_COLOR
+            ),
         )
 
+        self.section_game_flow_button.set_surface(
+            Surface(
+                (
+                    self.section_tab_surface.get_width() / 7,
+                    self.section_tab_surface.get_height(),
+                ),
+                pygame.SRCALPHA,
+            )
+        )
+        self.draw_button_surface(self.section_game_flow_button)
+
+        self.section_game_flow_button.update_position(
+            5 * self.section_tab_surface.get_width() / 7, 0
+        )
+        # endregion Create Game Flow Button
         # ----- Render All Section Button
         self.section_tutorial_button.render(self.section_tab_surface)
         self.section_yaku_overview_button.render(self.section_tab_surface)
+        self.section_game_flow_button.render(self.section_tab_surface)
 
         # Close Button
         self.close_button.update_position(
@@ -298,14 +363,19 @@ class Instruction(Popup):
         self.close_button.render(self.section_surface)
 
         # Changing page area
-        if self.section == InstructionSection.TUTORIAL:
-            page_number_surface = self.build_font_surface(
-                str(self.page + 1), text_color=COLOR_WHITE
-            )
-        if self.section == InstructionSection.YAKU_OVERVIEW:
-            page_number_surface = self.build_font_surface(
-                str(self.yaku_page + 1), text_color=COLOR_WHITE
-            )
+        match self.section:
+            case InstructionSection.TUTORIAL:
+                page_number_surface = self.build_font_surface(
+                    str(self.page + 1), text_color=COLOR_WHITE
+                )
+            case InstructionSection.YAKU_OVERVIEW:
+                page_number_surface = self.build_font_surface(
+                    str(self.yaku_page + 1), text_color=COLOR_WHITE
+                )
+            case InstructionSection.GAME_FLOW:
+                page_number_surface = self.build_font_surface(
+                    str(self.game_flow_page + 1), text_color=COLOR_WHITE
+                )
 
         max_height = max(
             page_number_surface.get_height(),
@@ -412,11 +482,27 @@ class Instruction(Popup):
             title = "Not yet implement data!!!"
         self.build_page_information_surface(title, body_surface)
 
+    def build_surface_game_flow(self, page: int):
+        try:
+            body_surface = getattr(self, f"build_page_{page+1}_game_flow")()
+        except Exception as e:
+            print(e.args, "Hello")
+            body_surface = Surface((0, 0), pygame.SRCALPHA)
+
+        try:
+            title = self.instruction_game_flow_data[str(self.game_flow_page)]["title"]
+        except:
+            title = "Not yet implement data!!!"
+        self.build_page_information_surface(title, body_surface)
+
     def render(self, screen: Surface):
-        if self.section == InstructionSection.TUTORIAL:
-            self.build_surface(self.section, self.page)
-        else:
-            self.build_surface(self.section, self.yaku_page)
+        match self.section:
+            case InstructionSection.TUTORIAL:
+                self.build_surface(self.section, self.page)
+            case InstructionSection.YAKU_OVERVIEW:
+                self.build_surface(self.section, self.yaku_page)
+            case InstructionSection.GAME_FLOW:
+                self.build_surface(self.section, self.game_flow_page)
 
         center_pos = build_center_rect(screen, self._surface)
         screen.blit(self._surface, (center_pos.x, center_pos.y))
@@ -475,11 +561,14 @@ class Instruction(Popup):
             if context["type"] == "image":
                 image = self.__getattribute__(context["content"])
                 if context.get("resize") is None or (
-                    context.get("resize") is not None and context.get("resize")
+                    context.get("resize") is not None and not context.get("resize")
                 ):
                     context_surfaces.append(pygame.transform.scale_by(image, 2.5))
                 else:
-                    context_surfaces.append(image)
+                    context_surfaces.append(
+                        pygame.transform.scale_by(image, float(context.get("resize")))
+                    )
+
                 image_surface_idx.append(idx)
 
         max_width = max(
@@ -562,7 +651,8 @@ class Instruction(Popup):
                     self.section = InstructionSection.TUTORIAL
                 if self.section_yaku_overview_button.check_collidepoint(mouse_pos):
                     self.section = InstructionSection.YAKU_OVERVIEW
-
+                if self.section_game_flow_button.check_collidepoint(mouse_pos):
+                    self.section = InstructionSection.GAME_FLOW
                 if Rect(
                     0,
                     self.section_tab_surface.get_height(),
@@ -590,10 +680,8 @@ class Instruction(Popup):
                     return self.section_tutorial_button
                 if self.section_yaku_overview_button.check_collidepoint(mouse_pos):
                     return self.section_yaku_overview_button
-                match self.section:
-                    case InstructionSection.TUTORIAL:
-                        pass
-
+                if self.section_game_flow_button.check_collidepoint(mouse_pos):
+                    return self.section_game_flow_button
                 if Rect(
                     0,
                     self.section_tab_surface.get_height(),
@@ -641,12 +729,20 @@ class Instruction(Popup):
             self.page = (self.page - 1) % (self.max_instruction_tutorial_page)
         elif self.section == InstructionSection.YAKU_OVERVIEW:
             self.yaku_page = (self.yaku_page - 1) % (self.max_instruction_yaku_page)
+        elif self.section == InstructionSection.GAME_FLOW:
+            self.game_flow_page = (self.game_flow_page - 1) % (
+                self.max_instruction_game_flow_page
+            )
 
     def __turn_next_page(self):
         if self.section == InstructionSection.TUTORIAL:
             self.page = (self.page + 1) % (self.max_instruction_tutorial_page)
         elif self.section == InstructionSection.YAKU_OVERVIEW:
             self.yaku_page = (self.yaku_page + 1) % (self.max_instruction_yaku_page)
+        elif self.section == InstructionSection.GAME_FLOW:
+            self.game_flow_page = (self.game_flow_page + 1) % (
+                self.max_instruction_game_flow_page
+            )
 
     def draw_button_surface(self, button: Button):
         pygame.draw.rect(
@@ -675,6 +771,31 @@ class Instruction(Popup):
             2,
         )
 
+    def build_normal_page_surface(
+        self, data: InstructionPageData, padding_x: int = 0, padding_y: int = 0
+    ) -> Surface:
+        surface_list: list[Surface] = []
+        for key in data["cards"].keys():
+            surface = self.build_instruction_card_surface(data["cards"][f"{key}"])
+            surface_list.append(surface)
+
+        body_surface = Surface(
+            (
+                max(list(map(lambda surface: surface.get_width(), surface_list))),
+                sum(list(map(lambda surface: surface.get_height(), surface_list)))
+                + padding_y * (len(surface_list) - 1),
+            ),
+            pygame.SRCALPHA,
+        )
+
+        start_height = 0
+        for surface in surface_list:
+            body_surface.blit(surface, (0, start_height))
+            start_height += padding_y + surface.get_height()
+
+        return body_surface
+
+    # region Tutorial Page
     # ---------- BUILDING FOR EACH TUTORIAL PAGE ----------
 
     def build_page_1_tutorial_surface(self):
@@ -954,530 +1075,142 @@ class Instruction(Popup):
         draw_hitbox(body_surface)
         return body_surface
 
+    # endregion Tutorial Page
+
+    # region Yaku Overview Page
     # ---------- BUILDING FOR EACH YAKU PAGE ----------
 
     def build_page_1_yaku_surface(self):
         PADDING_Y = 2
         PAGE_DATA = self.instruction_yaku_data["0"]
-
-        riichi_surface = self.build_instruction_card_surface(
-            PAGE_DATA["cards"]["riichi"]
-        )
-        tanyao_surface = self.build_instruction_card_surface(
-            PAGE_DATA["cards"]["tanyao"]
-        )
-        menzen_tsumo_surface = self.build_instruction_card_surface(
-            PAGE_DATA["cards"]["menzen_tsumo"]
-        )
-        surface_list = [riichi_surface, tanyao_surface, menzen_tsumo_surface]
-
-        body_surface = Surface(
-            (
-                max(list(map(lambda surface: surface.get_width(), surface_list))),
-                sum(list(map(lambda surface: surface.get_height(), surface_list)))
-                + PADDING_Y * (len(surface_list) - 1),
-            ),
-            pygame.SRCALPHA,
-        )
-
-        start_height = 0
-        for surface in surface_list:
-            body_surface.blit(surface, (0, start_height))
-            start_height += PADDING_Y + surface.get_height()
-
-        return body_surface
+        return self.build_normal_page_surface(PAGE_DATA, padding_y=PADDING_Y)
 
     def build_page_2_yaku_surface(self):
         PADDING_Y = 10
         PAGE_DATA = self.instruction_yaku_data["1"]
-
-        jikaze_surface = self.build_instruction_card_surface(
-            PAGE_DATA["cards"]["jikaze"]
-        )
-        bakaze_surface = self.build_instruction_card_surface(
-            PAGE_DATA["cards"]["bakaze"]
-        )
-        sangenpai_surface = self.build_instruction_card_surface(
-            PAGE_DATA["cards"]["sangenpai"]
-        )
-        surface_list = [jikaze_surface, bakaze_surface, sangenpai_surface]
-
-        body_surface = Surface(
-            (
-                max(list(map(lambda surface: surface.get_width(), surface_list))),
-                sum(list(map(lambda surface: surface.get_height(), surface_list)))
-                + PADDING_Y * (len(surface_list) - 1),
-            ),
-            pygame.SRCALPHA,
-        )
-
-        start_height = 0
-        for surface in surface_list:
-            body_surface.blit(surface, (0, start_height))
-            start_height += PADDING_Y + surface.get_height()
-
-        return body_surface
+        return self.build_normal_page_surface(PAGE_DATA, padding_y=PADDING_Y)
 
     def build_page_3_yaku_surface(self):
         PADDING_Y = 5
         PAGE_DATA = self.instruction_yaku_data["2"]
 
-        pinfu_surface = self.build_instruction_card_surface(PAGE_DATA["cards"]["pinfu"])
-        iipeikou_surface = self.build_instruction_card_surface(
-            PAGE_DATA["cards"]["iipeikou"]
-        )
-        chankan_surface = self.build_instruction_card_surface(
-            PAGE_DATA["cards"]["chankan"]
-        )
-        surface_list = [pinfu_surface, iipeikou_surface, chankan_surface]
-
-        body_surface = Surface(
-            (
-                max(list(map(lambda surface: surface.get_width(), surface_list))),
-                sum(list(map(lambda surface: surface.get_height(), surface_list)))
-                + PADDING_Y * (len(surface_list) - 1),
-            ),
-            pygame.SRCALPHA,
-        )
-
-        start_height = 0
-        for surface in surface_list:
-            body_surface.blit(surface, (0, start_height))
-            start_height += PADDING_Y + surface.get_height()
-
-        return body_surface
+        return self.build_normal_page_surface(PAGE_DATA, padding_y=PADDING_Y)
 
     def build_page_4_yaku_surface(self):
         PADDING_Y = 25
         PAGE_DATA = self.instruction_yaku_data["3"]
 
-        rinshan_kaihou_surface = self.build_instruction_card_surface(
-            PAGE_DATA["cards"]["rinshan_kaihou"]
-        )
-        haitei_raoyue_surface = self.build_instruction_card_surface(
-            PAGE_DATA["cards"]["haitei_raoyue"]
-        )
-
-        houtei_raoyui_surface = self.build_instruction_card_surface(
-            PAGE_DATA["cards"]["houtei_raoyui"]
-        )
-        ippatsu_riichi_surface = self.build_instruction_card_surface(
-            PAGE_DATA["cards"]["ippatsu_riichi"]
-        )
-        surface_list = [
-            rinshan_kaihou_surface,
-            haitei_raoyue_surface,
-            houtei_raoyui_surface,
-            ippatsu_riichi_surface,
-        ]
-
-        body_surface = Surface(
-            (
-                max(list(map(lambda surface: surface.get_width(), surface_list))),
-                sum(list(map(lambda surface: surface.get_height(), surface_list)))
-                + PADDING_Y * (len(surface_list) - 1),
-            ),
-            pygame.SRCALPHA,
-        )
-
-        start_height = 0
-        for surface in surface_list:
-            body_surface.blit(surface, (0, start_height))
-            start_height += PADDING_Y + surface.get_height()
-
-        return body_surface
+        return self.build_normal_page_surface(PAGE_DATA, padding_y=PADDING_Y)
 
     def build_page_5_yaku_surface(self):
         PADDING_Y = 30
         PAGE_DATA = self.instruction_yaku_data["4"]
 
-        dora_surface = self.build_instruction_card_surface(PAGE_DATA["cards"]["dora"])
-        akadora_surface = self.build_instruction_card_surface(
-            PAGE_DATA["cards"]["akadora"]
-        )
-        surface_list = [
-            dora_surface,
-            akadora_surface,
-        ]
-
-        body_surface = Surface(
-            (
-                max(list(map(lambda surface: surface.get_width(), surface_list))),
-                sum(list(map(lambda surface: surface.get_height(), surface_list)))
-                + PADDING_Y * (len(surface_list) - 1),
-            ),
-            pygame.SRCALPHA,
-        )
-
-        start_height = 0
-        for surface in surface_list:
-            body_surface.blit(surface, (0, start_height))
-            start_height += PADDING_Y + surface.get_height()
-
-        return body_surface
+        return self.build_normal_page_surface(PAGE_DATA, padding_y=PADDING_Y)
 
     def build_page_6_yaku_surface(self):
         PADDING_Y = 30
         PAGE_DATA = self.instruction_yaku_data["5"]
 
-        double_riichi_surface = self.build_instruction_card_surface(
-            PAGE_DATA["cards"]["double_riichi"]
-        )
-        sanshoku_doukou_surface = self.build_instruction_card_surface(
-            PAGE_DATA["cards"]["sanshoku_doukou"]
-        )
-        sankantsu_surface = self.build_instruction_card_surface(
-            PAGE_DATA["cards"]["sankantsu"]
-        )
-
-        surface_list = [
-            double_riichi_surface,
-            sanshoku_doukou_surface,
-            sankantsu_surface,
-        ]
-
-        body_surface = Surface(
-            (
-                max(list(map(lambda surface: surface.get_width(), surface_list))),
-                sum(list(map(lambda surface: surface.get_height(), surface_list)))
-                + PADDING_Y * (len(surface_list) - 1),
-            ),
-            pygame.SRCALPHA,
-        )
-
-        start_height = 0
-        for surface in surface_list:
-            body_surface.blit(surface, (0, start_height))
-            start_height += PADDING_Y + surface.get_height()
-
-        return body_surface
+        return self.build_normal_page_surface(PAGE_DATA, padding_y=PADDING_Y)
 
     def build_page_7_yaku_surface(self):
         PADDING_Y = 15
         PAGE_DATA = self.instruction_yaku_data["6"]
 
-        toitoi_surface = self.build_instruction_card_surface(
-            PAGE_DATA["cards"]["toitoi"]
-        )
-        sanankou_surface = self.build_instruction_card_surface(
-            PAGE_DATA["cards"]["sanankou"]
-        )
-        shousangen_surface = self.build_instruction_card_surface(
-            PAGE_DATA["cards"]["shousangen"]
-        )
-
-        surface_list = [
-            toitoi_surface,
-            sanankou_surface,
-            shousangen_surface,
-        ]
-
-        body_surface = Surface(
-            (
-                max(list(map(lambda surface: surface.get_width(), surface_list))),
-                sum(list(map(lambda surface: surface.get_height(), surface_list)))
-                + PADDING_Y * (len(surface_list) - 1),
-            ),
-            pygame.SRCALPHA,
-        )
-
-        start_height = 0
-        for surface in surface_list:
-            body_surface.blit(surface, (0, start_height))
-            start_height += PADDING_Y + surface.get_height()
-
-        return body_surface
+        return self.build_normal_page_surface(PAGE_DATA, padding_y=PADDING_Y)
 
     def build_page_8_yaku_surface(self):
         PADDING_Y = 5
         PAGE_DATA = self.instruction_yaku_data["7"]
 
-        honroutou_surface = self.build_instruction_card_surface(
-            PAGE_DATA["cards"]["honroutou"]
-        )
-        chiitoitsu_surface = self.build_instruction_card_surface(
-            PAGE_DATA["cards"]["chiitoitsu"]
-        )
-        chanta_surface = self.build_instruction_card_surface(
-            PAGE_DATA["cards"]["chanta"]
-        )
-
-        surface_list = [
-            honroutou_surface,
-            chiitoitsu_surface,
-            chanta_surface,
-        ]
-
-        body_surface = Surface(
-            (
-                max(list(map(lambda surface: surface.get_width(), surface_list))),
-                sum(list(map(lambda surface: surface.get_height(), surface_list)))
-                + PADDING_Y * (len(surface_list) - 1),
-            ),
-            pygame.SRCALPHA,
-        )
-
-        start_height = 0
-        for surface in surface_list:
-            body_surface.blit(surface, (0, start_height))
-            start_height += PADDING_Y + surface.get_height()
-
-        return body_surface
+        return self.build_normal_page_surface(PAGE_DATA, padding_y=PADDING_Y)
 
     def build_page_9_yaku_surface(self):
-        PADDING_Y = 5
         PAGE_DATA = self.instruction_yaku_data["8"]
 
-        sanshoku_doujun_surface = self.build_instruction_card_surface(
-            PAGE_DATA["cards"]["sanshoku_doujun"]
-        )
-
-        return sanshoku_doujun_surface
+        return self.build_normal_page_surface(PAGE_DATA)
 
     def build_page_10_yaku_surface(self):
         PADDING_Y = 5
         PAGE_DATA = self.instruction_yaku_data["9"]
 
-        ryanpeikou_surface = self.build_instruction_card_surface(
-            PAGE_DATA["cards"]["ryanpeikou"]
-        )
-        junchan_surface = self.build_instruction_card_surface(
-            PAGE_DATA["cards"]["junchan"]
-        )
-        honitsu_surface = self.build_instruction_card_surface(
-            PAGE_DATA["cards"]["honitsu"]
-        )
-
-        surface_list = [
-            ryanpeikou_surface,
-            junchan_surface,
-            honitsu_surface,
-        ]
-
-        body_surface = Surface(
-            (
-                max(list(map(lambda surface: surface.get_width(), surface_list))),
-                sum(list(map(lambda surface: surface.get_height(), surface_list)))
-                + PADDING_Y * (len(surface_list) - 1),
-            ),
-            pygame.SRCALPHA,
-        )
-
-        start_height = 0
-        for surface in surface_list:
-            body_surface.blit(surface, (0, start_height))
-            start_height += PADDING_Y + surface.get_height()
-
-        return body_surface
+        return self.build_normal_page_surface(PAGE_DATA, padding_y=PADDING_Y)
 
     def build_page_11_yaku_surface(self):
         PAGE_DATA = self.instruction_yaku_data["10"]
 
-        chinitsu_surface = self.build_instruction_card_surface(
-            PAGE_DATA["cards"]["chinitsu"]
-        )
-
-        return chinitsu_surface
-
-    def build_page_11_yaku_surface(self):
-        PAGE_DATA = self.instruction_yaku_data["10"]
-
-        chinitsu_surface = self.build_instruction_card_surface(
-            PAGE_DATA["cards"]["chinitsu"]
-        )
-
-        return chinitsu_surface
+        return self.build_normal_page_surface(PAGE_DATA)
 
     def build_page_12_yaku_surface(self):
         PAGE_DATA = self.instruction_yaku_data["11"]
 
-        nagashi_mangan_surface = self.build_instruction_card_surface(
-            PAGE_DATA["cards"]["nagashi_mangan"]
-        )
-
-        return nagashi_mangan_surface
+        return self.build_normal_page_surface(PAGE_DATA)
 
     def build_page_13_yaku_surface(self):
         PADDING_Y = 5
         PAGE_DATA = self.instruction_yaku_data["12"]
 
-        tenhou_surface = self.build_instruction_card_surface(
-            PAGE_DATA["cards"]["tenhou"]
-        )
-        chihou_surface = self.build_instruction_card_surface(
-            PAGE_DATA["cards"]["chihou"]
-        )
-        daisangen_surface = self.build_instruction_card_surface(
-            PAGE_DATA["cards"]["daisangen"]
-        )
-        suuankou_surface = self.build_instruction_card_surface(
-            PAGE_DATA["cards"]["suuankou"]
-        )
-        surface_list = [
-            tenhou_surface,
-            chihou_surface,
-            daisangen_surface,
-            suuankou_surface,
-        ]
-
-        body_surface = Surface(
-            (
-                max(list(map(lambda surface: surface.get_width(), surface_list))),
-                sum(list(map(lambda surface: surface.get_height(), surface_list)))
-                + PADDING_Y * (len(surface_list) - 1),
-            ),
-            pygame.SRCALPHA,
-        )
-
-        start_height = 0
-        for surface in surface_list:
-            body_surface.blit(surface, (0, start_height))
-            start_height += PADDING_Y + surface.get_height()
-
-        return body_surface
+        return self.build_normal_page_surface(PAGE_DATA, padding_y=PADDING_Y)
 
     def build_page_14_yaku_surface(self):
-        PADDING_Y = 5
+        PADDING_Y = 10
         PAGE_DATA = self.instruction_yaku_data["13"]
-
-        tsuuiisou_surface = self.build_instruction_card_surface(
-            PAGE_DATA["cards"]["tsuuiisou"]
-        )
-        ryuuiisou_surface = self.build_instruction_card_surface(
-            PAGE_DATA["cards"]["ryuuiisou"]
-        )
-        chinroutou_surface = self.build_instruction_card_surface(
-            PAGE_DATA["cards"]["chinroutou"]
-        )
-
-        surface_list = [
-            tsuuiisou_surface,
-            ryuuiisou_surface,
-            chinroutou_surface,
-        ]
-
-        body_surface = Surface(
-            (
-                max(list(map(lambda surface: surface.get_width(), surface_list))),
-                sum(list(map(lambda surface: surface.get_height(), surface_list)))
-                + PADDING_Y * (len(surface_list) - 1),
-            ),
-            pygame.SRCALPHA,
-        )
-
-        start_height = 0
-        for surface in surface_list:
-            body_surface.blit(surface, (0, start_height))
-            start_height += PADDING_Y + surface.get_height()
-
-        return body_surface
+        return self.build_normal_page_surface(PAGE_DATA, padding_y=PADDING_Y)
 
     def build_page_15_yaku_surface(self):
         PADDING_Y = 5
         PAGE_DATA = self.instruction_yaku_data["14"]
 
-        kokushi_musou_surface = self.build_instruction_card_surface(
-            PAGE_DATA["cards"]["kokushi_musou"]
-        )
-        shousuushi_surface = self.build_instruction_card_surface(
-            PAGE_DATA["cards"]["shousuushi"]
-        )
-        suukantsu_surface = self.build_instruction_card_surface(
-            PAGE_DATA["cards"]["suukantsu"]
-        )
-
-        surface_list = [
-            kokushi_musou_surface,
-            shousuushi_surface,
-            suukantsu_surface,
-        ]
-
-        body_surface = Surface(
-            (
-                max(list(map(lambda surface: surface.get_width(), surface_list))),
-                sum(list(map(lambda surface: surface.get_height(), surface_list)))
-                + PADDING_Y * (len(surface_list) - 1),
-            ),
-            pygame.SRCALPHA,
-        )
-
-        start_height = 0
-        for surface in surface_list:
-            body_surface.blit(surface, (0, start_height))
-            start_height += PADDING_Y + surface.get_height()
-
-        return body_surface
+        return self.build_normal_page_surface(PAGE_DATA, padding_y=PADDING_Y)
 
     def build_page_16_yaku_surface(self):
-        PADDING_Y = 5
         PAGE_DATA = self.instruction_yaku_data["15"]
 
-        chuuren_poutou_surface = self.build_instruction_card_surface(
-            PAGE_DATA["cards"]["chuuren_poutou"]
-        )
-
-        return chuuren_poutou_surface
+        return self.build_normal_page_surface(PAGE_DATA)
 
     def build_page_17_yaku_surface(self):
         PADDING_Y = 20
         PAGE_DATA = self.instruction_yaku_data["16"]
 
-        suuankou_tanki_surface = self.build_instruction_card_surface(
-            PAGE_DATA["cards"]["suuankou_tanki"]
-        )
-        kokushi_musou_13_men_machi_surface = self.build_instruction_card_surface(
-            PAGE_DATA["cards"]["kokushi_musou_13_men_machi"]
-        )
-
-        surface_list = [
-            suuankou_tanki_surface,
-            kokushi_musou_13_men_machi_surface,
-        ]
-
-        body_surface = Surface(
-            (
-                max(list(map(lambda surface: surface.get_width(), surface_list))),
-                sum(list(map(lambda surface: surface.get_height(), surface_list)))
-                + PADDING_Y * (len(surface_list) - 1),
-            ),
-            pygame.SRCALPHA,
-        )
-
-        start_height = 0
-        for surface in surface_list:
-            body_surface.blit(surface, (0, start_height))
-            start_height += PADDING_Y + surface.get_height()
-
-        return body_surface
+        return self.build_normal_page_surface(PAGE_DATA, padding_y=PADDING_Y)
 
     def build_page_18_yaku_surface(self):
         PADDING_Y = 20
         PAGE_DATA = self.instruction_yaku_data["17"]
 
-        junsei_chuuren_poutou_surface = self.build_instruction_card_surface(
-            PAGE_DATA["cards"]["junsei_chuuren_poutou"]
-        )
-        daisuushi_surface = self.build_instruction_card_surface(
-            PAGE_DATA["cards"]["daisuushi"]
-        )
+        return self.build_normal_page_surface(PAGE_DATA, padding_y=PADDING_Y)
 
-        surface_list = [
-            junsei_chuuren_poutou_surface,
-            daisuushi_surface,
-        ]
+    # endregion Yaku Overview Page
 
-        body_surface = Surface(
-            (
-                max(list(map(lambda surface: surface.get_width(), surface_list))),
-                sum(list(map(lambda surface: surface.get_height(), surface_list)))
-                + PADDING_Y * (len(surface_list) - 1),
-            ),
-            pygame.SRCALPHA,
-        )
+    # region Game Flow Page
+    # ----- BUILDING FOR EACH GAME FLOW PAGE
+    def build_page_1_game_flow(self):
+        PAGE_DATA = self.instruction_game_flow_data["0"]
+        return self.build_normal_page_surface(PAGE_DATA)
 
-        start_height = 0
-        for surface in surface_list:
-            body_surface.blit(surface, (0, start_height))
-            start_height += PADDING_Y + surface.get_height()
+    def build_page_2_game_flow(self):
+        PAGE_DATA = self.instruction_game_flow_data["1"]
+        return self.build_normal_page_surface(PAGE_DATA)
 
-        return body_surface
+    def build_page_3_game_flow(self):
+        PAGE_DATA = self.instruction_game_flow_data["2"]
+        return self.build_normal_page_surface(PAGE_DATA)
+
+    def build_page_4_game_flow(self):
+        PAGE_DATA = self.instruction_game_flow_data["3"]
+        return self.build_normal_page_surface(PAGE_DATA)
+
+    def build_page_5_game_flow(self):
+        PAGE_DATA = self.instruction_game_flow_data["4"]
+        return self.build_normal_page_surface(PAGE_DATA)
+
+    def build_page_6_game_flow(self):
+        PAGE_DATA = self.instruction_game_flow_data["5"]
+        return self.build_normal_page_surface(PAGE_DATA)
+
+    def build_page_7_game_flow(self):
+        PAGE_DATA = self.instruction_game_flow_data["6"]
+        return self.build_normal_page_surface(PAGE_DATA)
+
+    # endregion Game Flow Page

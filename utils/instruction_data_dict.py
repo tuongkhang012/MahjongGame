@@ -15,6 +15,6 @@ class InstructionCard(TypedDict):
     body: list[InstructionCardBody]
 
 
-class InstructionTutorialPage(TypedDict):
+class InstructionPageData(TypedDict):
     title: str
     cards: dict[str, InstructionCard]

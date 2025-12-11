@@ -103,3 +103,4 @@ class GamePopup(Enum):
 class InstructionSection(Enum):
     TUTORIAL = 0
     YAKU_OVERVIEW = 1
+    GAME_FLOW = 2
