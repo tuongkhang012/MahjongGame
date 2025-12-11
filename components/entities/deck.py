@@ -4,8 +4,6 @@ from utils.enums import TileType, TileSource, CallType
 from utils.game_history_data_dict import GameHistoryData
 from components.entities.call import Call
 from utils.helper import (
-    roll_dices,
-    get_data_from_file,
     parse_string_tile,
     split_every_n_chars,
     find_suitable_tile_in_list,
