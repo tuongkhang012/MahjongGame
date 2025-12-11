@@ -1,9 +1,6 @@
-from typing import TypedDict, Literal
-from enum import Enum
-from mahjong.meld import Meld
+from typing import TypedDict, Literal, Optional
 from utils.enums import ActionType, CallType
 import typing
-from mahjong.tile import TilesConverter
 from utils.game_history_data_dict import GameHistoryData
 import os
 import datetime
@@ -68,7 +65,16 @@ class GameEventLog:
         self.round = None
         self.events = []
 
-    def end_round(self, player_list: list["Player"], deltas: list[int] = None):
+    def end_round(self, player_list: list["Player"], deltas: Optional[list[int]] = None):
+        """
+        Finalize the current round and store the turns and deltas.
+        Then append the round to the rounds list.
+        :param player_list: List of players in the game
+        :type player_list: list[Player]
+        :param deltas: List of score changes for each player
+        :type deltas: Optional[list[int]]
+        :return: None
+        """
         self.round["turns"] = []
         for player in player_list:
             self.round["turns"].append(player.turn)

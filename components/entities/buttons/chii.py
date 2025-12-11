@@ -6,9 +6,6 @@ from utils.constants import (
     CALL_BUTTON_COLORS,
     CALL_TEXT_COLOR,
 )
-from pygame import Surface, Rect
-import pygame
-from utils.helper import build_center_rect
 
 
 class Chii(CallButton):

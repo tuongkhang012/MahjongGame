@@ -1,9 +1,8 @@
 from components.entities.fields.field import Field
-from pygame import Surface, Rect, Color
-from pygame.event import Event
+from pygame import Surface, Rect
 import pygame
 import random
-from utils.constants import CALL_BUTTON_SIZE, SMOKE_PARTICLE_IMAGE_LINK, COLOR_BLUE
+from utils.constants import CALL_BUTTON_SIZE, COLOR_BLACK
 from utils.enums import CallType, ActionType
 from utils.helper import build_center_rect, draw_hitbox
 
@@ -28,6 +27,25 @@ if typing.TYPE_CHECKING:
 
 
 class CallButtonField(Field):
+    """
+    Field that holds call buttons for the player to interact with.
+    :ivar screen: Surface: The main game screen surface.
+    :ivar __chii_button: Chii: The Chii call button.
+    :ivar __kan_button: Kan: The Kan call button.
+    :ivar __pon_button: Pon: The Pon call button.
+    :ivar __ron_button: Ron: The Ron call button.
+    :ivar __skip_button: Skip: The Skip call button.
+    :ivar __tsumo_button: Tsumo: The Tsumo call button.
+    :ivar __riichi_button: Riichi: The Riichi call button.
+    :ivar __ryuukyoku_button: Ryuukyoku: The Ryuukyoku call button.
+    :ivar __all_button: list[CallButton]: List of all call buttons.
+    :ivar space_between_each_button: int: Space between each button.
+    :ivar render_button_list: list[CallButton]: List of buttons to render.
+    :ivar _hovered_button: CallButton | None: The currently hovered button.
+    :ivar _smoke_spawn_timer: float: Timer for spawning smoke particles.
+    :ivar _smoke_spawn_interval: float: Interval between smoke particle spawns.
+    :ivar _particles: list[SmokeParticle]: List of active smoke particles.
+    """
     def __init__(
         self,
         screen: Surface,
@@ -70,8 +88,8 @@ class CallButtonField(Field):
         self.build_surface(call_list)
         render_surface = Surface(
             (self.screen.get_width(), CALL_BUTTON_SIZE[1]), pygame.SRCALPHA
-        )
-        center_pos = build_center_rect(render_surface, self.surface)
+        ) # Transparent surface to render buttons onto
+        center_pos = build_center_rect(render_surface, self.surface) # Center position to render buttons
         self.update_relative_position(center_pos)
         render_surface.blit(self.surface, (center_pos.x, center_pos.y))
         draw_hitbox(render_surface)
@@ -146,17 +164,22 @@ class CallButtonField(Field):
             )
         )
 
-    def build_surface(self, call_list: list[CallType]) -> Surface:
+    def build_surface(self, call_list: list[CallType]) -> None:
+        """
+        Build the surface with the given call buttons. Then render them onto the surface.
+        :param call_list: list[CallType]: List of call types to render buttons for.
+        :return: None
+        """
         self.render_button_list = []
         self.surface = Surface(
-            (
+            size=( # x = total button width + space between each
                 CALL_BUTTON_SIZE[0] * len(call_list)
                 + self.space_between_each_button * (len(call_list) - 1),
                 CALL_BUTTON_SIZE[1],
             ),
-            pygame.SRCALPHA,
+            flags=pygame.SRCALPHA,
         )
-        draw_hitbox(self.surface, (0, 0, 0))
+        draw_hitbox(self.surface, COLOR_BLACK)
         self.build_button_position(call_list)
 
         for button in self.render_button_list:
@@ -164,12 +187,16 @@ class CallButtonField(Field):
             button.hidden = False
             self.hidden = False
 
-    def build_button_position(self, call_list: list[CallType]):
+    def build_button_position(self, call_list: list[CallType]) -> None:
+        """
+        Assign the position of each button based on the call list.
+        :param call_list: list[CallType]: List of call types to render buttons for.
+        :return: None
+        """
         for idx, call_type in enumerate(call_list):
             button_x = idx * (CALL_BUTTON_SIZE[0] + self.space_between_each_button)
             button_y = 0
-            button_width = CALL_BUTTON_SIZE[0]
-            button_height = CALL_BUTTON_SIZE[1]
+            button_width, button_height = CALL_BUTTON_SIZE
             match call_type:
                 case CallType.SKIP:
                     self.__skip_button.update_position(

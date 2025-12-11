@@ -8,14 +8,15 @@ from shared.image_cutter import ImageCutter
 
 
 class CallButton(Button):
-    _smoke_base_frames: list[Surface] | None = None # Shared smoke frames for all call buttons
+    _smoke_base_frames: list[Surface] | None = None  # Shared smoke frames for all call buttons
+
     def __init__(self, text: str, font: Font, text_color: Color, bg_color: Color):
         super().__init__(text, font, text_color)
 
         # Text Color
         self.text_color = text_color
 
-        # Backgroun color
+        # Background color
         self.bg_color = bg_color
         self.smoke_frames: list[Surface] = self._build_smoke_frames()
 

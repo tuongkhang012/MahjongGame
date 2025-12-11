@@ -4,31 +4,31 @@ from utils.constants import (
     WINDOW_SIZE,
     FPS_LIMIT,
     HISTORY_PATH,
-    SETTING_CONFIG_PATH,
     ICON_LINK,
     COLOR_WHITE,
+    LOG_PATH,
 )
 from utils.game_data_dict import AfterMatchData
 import pygame
 from pygame import Surface
 import typing
 from typing import Any
-from utils.helper import build_center_rect, get_data_from_file, get_config
+from utils.helper import get_config, get_data_from_file
 from components.game_scenes.popup.after_match import AfterMatchPopup
 from components.entities.mouse import Mouse
 from components.game_history import GameHistory
 from components.entities.deck import Deck
 from components.game_scenes.game_manager import GameManager
+from components.game_scenes.main_menu import MainMenu
 import os
 import json
 from components.game_scenes.popup.instruction import Instruction
 from components.entities.buttons.button import Button
 from components.mixer.mixer import Mixer
 from components.game_scenes.popup.setting import Setting
-from pathlib import Path
+from typing import Optional
 
 if typing.TYPE_CHECKING:
-    from components.game_scenes.main_menu import MainMenu
     from components.entities.buttons.button import Button
     from components.game_scenes.popup.popup import Popup
 
@@ -38,42 +38,27 @@ class ScenesController:
     Scenes Controller to manage different game scenes.
 
     :cvar __scene: Current game scene.
-    :type __scene: GameScene
     :cvar __screen: Current surface to draw on.
-    :type __screen: Surface
-    :cvar __popup_screen: Current popup screen, if any.
-    :type __popup_screen: Popup | None
-
+    :cvar __popup_renderer: Current popup screen, if any.
     :cvar game_manager: GameManager instance for the game scene.
-    :type game_manager: GameManager | None
 
     :ivar __default_screen: The main display surface to draw ``__screen`` on.
-    :type __default_screen: Surface
     :ivar clock: Pygame clock to manage frame rate.
-    :type clock: pygame.time.Clock
     :ivar mouse: Mouse entity for cursor management.
-    :type mouse: Mouse
     :ivar history: GameHistory object containing previous game data.
-    :type history: GameHistory
     :ivar deck: Deck instance for managing the game deck.
-    :type deck: Deck
     :ivar instruction_manager: Instruction popup manager.
-    :type instruction_manager: Instruction
     :ivar hints_button: The button for hints in the game manager.
-    :type hints_button: Button
     :ivar setting_button: The button for open up settings in the game manager.
-    :type setting_button: Button
     :ivar mixer: Mixer instance for audio management.
-    :type mixer: Mixer
-
     """
 
     __scene: GameScene
     __screen: Surface
-    __popup_screen: "Popup" = None
+    __popup_renderer: Optional[AfterMatchPopup | Instruction | Setting] = None
 
-    game_manager: "GameManager" = None
-    start_menu: "MainMenu" = None
+    game_manager: Optional[GameManager] = None
+    start_menu: Optional[MainMenu] = None
 
     def __init__(self, history: GameHistory) -> None:
         """
@@ -145,7 +130,7 @@ class ScenesController:
     def get_render_surface(self) -> Surface:
         return self.__screen
 
-    def popup(self, game_popup: GamePopup, data: AfterMatchData) -> None:
+    def popup(self, game_popup: GamePopup, data: AfterMatchData | None) -> None:
         """
         Creates and displays a popup screen based on the specified game popup type.
         :param game_popup: The type of game popup to display.
@@ -156,18 +141,18 @@ class ScenesController:
         """
         match game_popup:
             case GamePopup.AFTER_MATCH:
-                self.__popup_screen = self.__create_after_match_popup(data)
+                self.__popup_renderer = self.__create_after_match_popup(data)
             case GamePopup.INSTRUCTION:
-                self.__popup_screen = self.__create_instruction_popup()
+                self.__popup_renderer = self.__create_instruction_popup()
             case GamePopup.SETTING:
-                self.__popup_screen = self.__create_setting_popup()
+                self.__popup_renderer = self.__create_setting_popup()
 
     def close_popup(self) -> None:
         """
         Closes the current popup screen and resumes the game if it was paused.
         :return: None
         """
-        self.__popup_screen = None
+        self.__popup_renderer = None
         if self.game_manager and (self.game_manager.pause is True):
             self.game_manager.pause = False
 
@@ -185,22 +170,36 @@ class ScenesController:
             flags=pygame.SRCALPHA,
         )
 
-    def render_popup(self):
-        if self.__popup_screen:
+    def render_popup(self) -> None:
+        """
+        Renders the current popup screen on top of the ``__screen`` with a semi-transparent overlay.
+        If there is no popup, this method does nothing.
+        :return: None
+        """
+        if self.__popup_renderer:
+            # Create semi-transparent overlay
             overlay = self.__screen.copy().convert_alpha()
             overlay.fill(
-                pygame.Color(0, 0, 0, int(255 / 2)), None, pygame.BLEND_RGBA_MULT
+                color=pygame.Color(0, 0, 0, int(255 / 2)),
+                rect=None,
+                special_flags=pygame.BLEND_RGBA_MULT
             )
 
-            self.__screen.blit(overlay, (0, 0))
-            self.__popup_screen.render(self.__screen)
+            self.__screen.blit(overlay, dest=(0, 0))
+            self.__popup_renderer.render(self.__screen)
 
-    def update_render_surface(self, surface: Surface):
+    def update_render_surface(self, surface: Surface) -> None:
         self.__screen = surface
 
-    def render(self):
+    def render(self) -> bool:
+        """
+        Act as both the render loop and event listener for the game scenes.
+        :return: A boolean indicating whether to continue running the game.
+        :rtype: bool
+        """
         self.mixer.play_queue()
 
+        # Let the current scene render itself
         match self.__scene:
             case GameScene.GAME:
                 self.__screen = self.game_manager.render()
@@ -211,18 +210,20 @@ class ScenesController:
                 self.__screen = self.start_menu.render()
 
         # Mixer controller
-        if self.__popup_screen and isinstance(self.__popup_screen, AfterMatchPopup):
+        if self.__popup_renderer and isinstance(self.__popup_renderer, AfterMatchPopup):
+            # Stop BGM during after match popup
             self.mixer.play_background_music(None)
         else:
             match self.__scene:
                 case GameScene.GAME:
-                    if self.game_manager.is_main_riichi:
+                    if self.game_manager.is_main_riichi: # If main player declared riichi (prioritized)
                         self.mixer.play_background_music("riichi")
-                    elif self.game_manager.is_oppo_riichi:
+                    elif self.game_manager.is_oppo_riichi: # If any opponent declared riichi
                         self.mixer.play_background_music("oppo_riichi")
-                    else:
+                    else: # Normal game BGM
                         self.mixer.play_background_music("game")
                 case GameScene.START:
+                    # Play main menu BGM
                     self.mixer.play_background_music("main_menu")
 
         self.render_popup()
@@ -230,46 +231,58 @@ class ScenesController:
 
         # Listen user event
         event = self.listenEvent()
-        if event["exit"] == True:
+        if event["exit"]:
             return False
         else:
             return True
 
     def listenEvent(self) -> dict[str, bool]:
+        """
+        Listens for user events and handles them accordingly based on the current scene and popup state.
+        :return: A dictionary indicating whether to exit the game.
+        :rtype: dict[str, bool]
+        """
         for event in pygame.event.get():
             match event.type:
                 case pygame.QUIT:
                     while (
                         self.game_manager
                         and self.game_manager.animation_tile is not None
+                        # Wait for animation to finish
                     ):
                         self.game_manager.render()
                     else:
                         if self.game_manager:
+                            # Finalize and export game log
                             self.game_manager.game_log.end_round(
                                 self.game_manager.player_list
                             )
                             self.game_manager.game_log.export()
 
+                            # Update and export game history
                             data = self.game_manager.__dict__()
                             data["from_log_name"] = f"{self.game_manager.game_log.name}"
                             self.history.update(data)
                             self.history.export()
 
-                        if self.__popup_screen and isinstance(
-                            self.__popup_screen, Setting
+                        # Export settings if in setting popup
+                        if self.__popup_renderer and isinstance(
+                            self.__popup_renderer, Setting
                         ):
-                            self.__popup_screen.export()
+                            self.__popup_renderer.export()
                         return {"exit": True}
                 case pygame.MOUSEBUTTONDOWN:
-                    if self.__popup_screen:
-                        button = self.__popup_screen.handle_event(event)
+                    if self.__popup_renderer:
+                        # Let the corresponding popup handle the event first
+                        button = self.__popup_renderer.handle_event(event)
                         if button == "close":
+                            # Close the popup and change mouse back to default
                             self.mouse.default()
                             self.close_popup()
                         elif button:
                             match button.text:
                                 case "Main Menu":
+                                    # Main menu button in after match popup
                                     self.close_popup()
                                     self.start_menu.continue_button.enabled()
                                     self.change_scene(GameScene.START)
@@ -277,6 +290,7 @@ class ScenesController:
                                     self.mouse.default()
 
                                 case "New Game":
+                                    # New game button in after match popup
                                     self.close_popup()
                                     self.change_scene(GameScene.GAME)
                                     self.game_manager.new_game()
@@ -284,9 +298,12 @@ class ScenesController:
                                     self.mouse.default()
 
                                 case "Quit":
+                                    # Quit button in after match popup
                                     self.game_manager.game_log.export()
                                     return {"exit": True}
                         return {"exit": False}
+
+                    # Let the current scene handle the event, only if no popup is active
                     match self.__scene:
                         case GameScene.GAME:
                             if self.game_manager.animation_tile is None:
@@ -295,6 +312,7 @@ class ScenesController:
                             action = self.start_menu.handle_event(event)
                             log_name = None
                             end_game = False
+                            # Get previous log name if exist
                             if self.history.data:
                                 log_name = (
                                     self.history.data["from_log_name"]
@@ -302,29 +320,36 @@ class ScenesController:
                                     else None
                                 )
 
-                            if action == "New Game":
+                            if action == "New Game": # Starting a new game, need to clear previous history
+                                # Clear previous game history if exist
                                 self.deck.random_seed = None
                                 if self.history.data:
+                                    # Check if previous game is ended
                                     end_game = self.history.data["end_game"]
                                 self.history.data = None
+                                # Delete all history files
                                 for entry in os.listdir(HISTORY_PATH):
                                     file_path = os.path.join(HISTORY_PATH, entry)
                                     if os.path.isfile(file_path):
                                         os.remove(file_path)
                                 if log_name:
-                                    with open(f".log/{log_name}.json", "r") as file:
+                                    log_path = os.path.join(LOG_PATH, f"{log_name}.json")
+                                    with open(log_path, "r") as file:
                                         json_data = json.load(file)
                                         if (
                                             len(json_data["rounds"]) > 0
                                             and not end_game
                                         ):
+                                            # If the previous game is not ended, remove the last round
                                             json_data["rounds"].remove(
                                                 json_data["rounds"][-1]
                                             )
                                     if len(json_data["rounds"]) == 0:
-                                        os.remove(f".log/{log_name}.json")
+                                        # If there is no round in the log, delete the log file
+                                        os.remove(log_path)
                                     else:
-                                        with open(f".log/{log_name}.json", "w") as file:
+                                        # Update the log file
+                                        with open(log_path, "w") as file:
                                             json.dump(json_data, file)
 
                             if action == "New Game" or action == "Continue":
@@ -334,25 +359,29 @@ class ScenesController:
                                 self.change_scene(GameScene.GAME)
                             elif action == "Setting":
                                 self.mouse.default()
-                                self.popup(GamePopup.SETTING, None)
+                                self.popup(GamePopup.SETTING, data=None)
                             elif action == "Instruction":
                                 self.mouse.default()
-                                self.popup(GamePopup.INSTRUCTION, None)
+                                self.popup(GamePopup.INSTRUCTION, data=None)
                             elif action == "Quit":
                                 return {"exit": True}
 
                 case pygame.MOUSEBUTTONUP:
-                    if self.__popup_screen:
-                        self.__popup_screen.handle_event(event)
+                    # Let the popup handle dragging
+                    if self.__popup_renderer:
+                        self.__popup_renderer.handle_event(event)
 
                 case pygame.MOUSEMOTION:
-                    if self.__popup_screen:
-                        button = self.__popup_screen.handle_event(event)
+                    # Let the popup handle hover events
+                    if self.__popup_renderer:
+                        button = self.__popup_renderer.handle_event(event)
                         if button:
                             self.mouse.hover()
                         else:
                             self.mouse.default()
                         return {"exit": False}
+
+                    # Let the current scene handle hover events, only if no popup is active
                     match self.__scene:
                         case GameScene.GAME:
                             self.game_manager.handle_event(event)
@@ -360,12 +389,14 @@ class ScenesController:
                             self.start_menu.handle_event(event)
 
                 case pygame.KEYDOWN:
-                    if self.__popup_screen and isinstance(
-                        self.__popup_screen, Instruction
-                    ):
-                        action = self.__popup_screen.handle_event(event)
+                    if self.__popup_renderer and isinstance(
+                        self.__popup_renderer, Instruction
+                    ): # Let instruction popup handle key events
+                        action = self.__popup_renderer.handle_event(event)
                         if action and action == "close":
                             self.close_popup()
+
+                    # Let the current scene handle key events, only if no popup is active
                     match self.__scene:
                         case GameScene.GAME:
                             self.game_manager.handle_event(event)
@@ -377,8 +408,7 @@ class ScenesController:
     def create_game_manager(self):
         import sys
 
-        # Run game
-        if len(sys.argv) > 1 and any([argv.startswith("data=") for argv in sys.argv]):
+        if len(sys.argv) > 1 and any([argv.startswith("data=") for argv in sys.argv]): # If there is data argument
             data = get_data_from_file(
                 list(filter(lambda argv: argv.startswith("data="), sys.argv))[0].split(
                     "="
@@ -391,7 +421,7 @@ class ScenesController:
                 hints_button=self.hints_button,
                 setting_button=self.setting_button,
                 game_history=self.history,
-                start_data=data,
+                start_data=data, # Preset data from file
             )
         else:
             self.game_manager = GameManager(
@@ -402,21 +432,47 @@ class ScenesController:
                 setting_button=self.setting_button,
                 game_history=self.history,
             )
+        # Assign the game manager to the scene controller
         self.handle_scene(GameScene.GAME, self.game_manager)
 
-    def __create_after_match_popup(self, data: AfterMatchData) -> Surface:
+    def __create_after_match_popup(self, data: AfterMatchData) -> AfterMatchPopup:
+        """
+        Creates an AfterMatchPopup with the given data.
+        :param data: AfterMatchData object containing match results.
+        :type data: AfterMatchData
+        :return: the After Match Popup instance.
+        :rtype: AfterMatchPopup
+        """
         surface = self.create_popup_surface(0.9)
-        surface.fill(pygame.Color(0, 0, 0, int(255 * 0.8)))
+        surface.fill(pygame.Color(0, 0, 0, int(255 * 0.8))) # The after match popup is a black translucent surface
         return AfterMatchPopup(surface, data)
 
-    def __create_instruction_popup(self) -> Surface:
+    def __create_instruction_popup(self) -> Instruction:
+        """
+        Creates an Instruction popup.
+        :return: the Instruction popup instance.
+        :rtype: Instruction
+        """
         return self.instruction_manager
 
-    def __create_setting_popup(self) -> Surface:
+    def __create_setting_popup(self) -> Setting:
+        """
+        Creates a Setting popup.
+        :return: the Setting popup instance.
+        :rtype: Setting
+        """
         surface = self.create_popup_surface(0.6)
         return Setting(surface, get_config(), self.mixer)
 
-    def __create_game_manager_button(self, image_path: str) -> Button:
+    @staticmethod
+    def __create_game_manager_button(image_path: str) -> Button:
+        """
+        Creates a button for the game manager with the given image. (Used for hints and settings buttons)
+        :param image_path: Path to the button image.
+        :type image_path: str
+        :return: the Button instance.
+        :rtype: Button
+        """
         button = Button()
         button_surface = pygame.transform.scale_by(pygame.image.load(image_path), 1.4)
 

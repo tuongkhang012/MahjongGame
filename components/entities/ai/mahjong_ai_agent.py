@@ -13,7 +13,6 @@ from utils.enums import TileSource
 
 if typing.TYPE_CHECKING:
     from components.entities.player import Player
-    from components.game_scenes.game_manager import GameManager
 
 
 class MahjongAIAgent:

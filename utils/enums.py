@@ -33,6 +33,18 @@ class TileSource(Enum):
 
 
 class CallType(Enum):
+    """
+    Type of call (naki)
+
+    - TSUMO: self-draw
+    - RON: win by discard
+    - RIICHI: riichi declaration
+    - KAN: kan call
+    - PON: pon call
+    - CHII: chii call
+    - RYUUKYOKU: draw game
+    - SKIP: no call
+    """
     TSUMO = 0
     RON = 1
     RIICHI = 2
@@ -46,6 +58,7 @@ class CallType(Enum):
 class CallName(Enum):
     """
     Name of call (naki) for easier definition
+
     - CHII: chii
     - PON: pon
     - DAMINKAN: Daminkan
@@ -57,7 +70,7 @@ class CallName(Enum):
 
     CHII = "chii"
     PON = "pon"
-    DAMINKAN = "damikan"
+    DAIMINKAN = "daiminkan"
     ANKAN = "ankan"
     KAKAN = "kakan"
     AGARI = "agari"

@@ -1,14 +1,10 @@
-from pygame import Rect, Surface
+from pygame import Surface
 from components.entities.fields.field import Field
-import pygame
 import typing
 from pygame.event import Event
-from utils.enums import ActionType
 
 if typing.TYPE_CHECKING:
-    from components.entities.player import Player
     from components.entities.buttons.tile import Tile
-    from components.game_scenes.game_manager import GameManager
 
 
 class TilesField(Field):
@@ -30,16 +26,16 @@ class TilesField(Field):
         self.__full_tiles_list = full_tiles_list
         self.player_idx = player_idx
 
-    def click(self, mouse_pos: tuple[int, int]):
-
+    def click(self, mouse_pos: tuple[int, int]) -> list["Tile"]:
+        # Unclick all tiles
         for tile in self.get_tiles_list():
             tile.unclicked()
 
         # Check for collide tiles
         collide_tiles = list(
             filter(
-                lambda tile: tile.check_collidepoint(self.build_local_mouse(mouse_pos))
-                and not tile.hidden,
+                lambda _tile: _tile.check_collidepoint(self.build_local_mouse(mouse_pos))
+                and not _tile.hidden,
                 self.get_tiles_list(),
             )
         )
@@ -48,9 +44,6 @@ class TilesField(Field):
             return collide_tiles
 
         return None
-
-    def unclicked(self, event: Event):
-        pass
 
     def hover(self, mouse_pos: tuple[int, int]) -> list["Tile"]:
         # Check for collide tiles
@@ -72,6 +65,7 @@ class TilesField(Field):
 
             # Unhighlight all tiles
             for tmp_tile in self.__full_tiles_list:
+                # If tile is highlighted, unhighlight it
                 tmp_tile.is_highlighted and tmp_tile.unhighlighted()
 
             tile.update_hover()
