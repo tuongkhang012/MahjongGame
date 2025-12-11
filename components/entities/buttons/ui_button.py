@@ -46,9 +46,9 @@ class UIButton(Button):
 
     def init_button(self):
         self.hidden = True
-        self.surface = self.__create_new_surface()
+        self.__create_new_surface()
 
-    def __create_new_surface(self) -> Surface:
+    def __create_new_surface(self) -> None:
         reveal_surface = Surface(self.button_size, pygame.SRCALPHA)
 
         text_surface = self._build_text_surface()
