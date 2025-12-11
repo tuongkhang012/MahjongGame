@@ -65,7 +65,8 @@ class Encoder:
         return plane
 
     # ---------------- main encoder ----------------
-    def encode_now(self, X: np.ndarray, game_state: "GameManager"):
+    def encode_now(self, X: np.ndarray, game_state: "GameManager") -> None:
+        """Encode current game state into planes."""
         player_list = game_state.player_list
         # Plane 0: Own hand tiles
         X[0, :, :] = self._from_arr_to_plane(player_list[self.pov_seat].player_deck)
@@ -117,7 +118,7 @@ class Encoder:
         own_wind = str(player_list[self.pov_seat].direction)[0]
         fill_row(X[27, :, :], TILE_IDX[own_wind])
 
-    def encode_history(self, X: np.ndarray, history: list["HistoryLayer"]):
+    def encode_history(self, X: np.ndarray, history: list["HistoryLayer"]) -> None:
         """Encode past 6 steps of .history into planes. 13 planes for first step, 9 planes for each subsequent step."""
         # .history[-1] is the most recent past step, each frame views store from 0~3, the self.pov_order store the order:
         # [POV, right of POV, opposite of POV, left of POV]

@@ -5,7 +5,6 @@ from utils.game_history_data_dict import GameHistoryData
 from utils.constants import HISTORY_PATH
 import os
 import json
-from pathlib import Path
 
 if typing.TYPE_CHECKING:
     from components.entities.call import Call
@@ -69,15 +68,25 @@ class GameHistory:
     def clear(self):
         self.data = None
 
-    def export(self):
+    def export(self) -> None:
+        """
+        Export the current game history data to a new JSON file in the history directory.
+        The file is named with the next available number based on existing files.
+        :return: None
+        """
         files = []
         directory = HISTORY_PATH
+        # Append all files in the directory to the list
         for entry in os.listdir(directory):
             full_path = os.path.join(directory, entry)
             if os.path.isfile(full_path):
                 files.append(files)
 
-        file_path = Path(HISTORY_PATH + f"{len(files)}.json")
+        # Create a new file with the next number
+        file_path = os.path.join(
+            directory, f"{len(files)}.json"
+        )
 
+        # Write the data to the file
         with open(file_path, "w+") as file:
-            json.dump(self.data, file, indent=2)
+            json.dump(self.data, file, indent=4)

@@ -22,6 +22,10 @@ import json
 
 
 class Instruction(Popup):
+    """
+    Instruction Popup Class. Its class attributes are all the instruction images.
+    """
+
     akadora: Surface
     ankan: Surface
     bakaze: Surface
@@ -639,7 +643,7 @@ class Instruction(Popup):
             start_height += surface.get_height() + y_offset
         return font_surface
 
-    def handle_event(self, event: Event):
+    def handle_event(self, event: Event) -> str | Button | None:
         match event.type:
             case pygame.MOUSEBUTTONDOWN:
                 if not self.check_collide(event.pos):

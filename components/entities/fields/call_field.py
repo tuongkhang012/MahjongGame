@@ -1,6 +1,5 @@
 from components.entities.fields.tiles_field import TilesField
 from pygame import Rect, Surface
-from pygame.event import Event
 import pygame
 import typing
 from components.entities.call import Call
@@ -8,11 +7,20 @@ from utils.enums import CallType, TileSource
 from utils.helper import draw_hitbox
 
 if typing.TYPE_CHECKING:
-    from components.entities.player import Player
     from components.entities.buttons.tile import Tile
 
 
 class CallField(TilesField):
+    """
+    Field that holds calls made by the player.
+
+    :ivar __call_list: The list of calls made by the player.
+    :ivar __call_surface: The list of surfaces for each call.
+    :ivar __call_surface_position: The list of positions for each call surface.
+    :ivar max_height: The maximum height of the call field.
+    :ivar max_width: The maximum width of the call field.
+    :ivar field_offset: The offset of the field from the screen edges.
+    """
     def __init__(
         self,
         screen: Surface,
@@ -200,7 +208,7 @@ class CallField(TilesField):
                     call_field_height += call_surface.get_height()
 
         self.surface = Surface((call_field_width, call_field_height), pygame.SRCALPHA)
-        draw_hitbox(self.surface, (228, 208, 10))
+        draw_hitbox(self.surface)
 
         # Render each call_surface on surface
         start_width = 0

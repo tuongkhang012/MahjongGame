@@ -735,7 +735,7 @@ class AfterMatchPopup(Popup):
             pygame.SRCALPHA,
         )
 
-    def handle_event(self, event: Event) -> Button:
+    def handle_event(self, event: Event) -> Button | None:
         match event.type:
             case pygame.MOUSEBUTTONDOWN | pygame.MOUSEMOTION:
                 if self.check_collide(event.pos):

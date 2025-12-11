@@ -2,6 +2,15 @@ from pygame import Surface, Rect
 
 
 class Field:
+    """
+    Base class for all fields.
+    :cvar is_hovered: Whether the field is being hovered over.
+    :cvar is_clicked: Whether the field is being clicked.
+    :cvar surface: The surface of the field.
+    :cvar _relative_position: The relative position of the field.
+    :cvar _absolute_position: The absolute position of the field.
+    :cvar player_idx: The index of the player owning the field.
+    """
     is_hovered: bool
     is_clicked: bool
     surface: Surface
@@ -20,7 +29,12 @@ class Field:
             else False
         )
 
-    def build_local_mouse(self, mouse_pos: tuple[float, float]):
+    def build_local_mouse(self, mouse_pos: tuple[float, float]) -> tuple[float, float]:
+        """
+        Build local mouse position relative to the field.
+        :param mouse_pos: The mouse position.
+        :return: The local mouse position.
+        """
         return (
             mouse_pos[0] - self._absolute_position.x,
             mouse_pos[1] - self._absolute_position.y,
