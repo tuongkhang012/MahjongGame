@@ -1,3 +1,4 @@
+import os
 import pygame
 from utils.constants import (
     INSTRUCTION_ASSETS,
@@ -8,6 +9,7 @@ from utils.constants import (
     INSTRUCTION_CARD_TITLE_COLOR,
     INSTRUCTION_CARD_BODY_COLOR,
     POPUP_BACKGROUND_COLOR,
+    ICON_BUTTON_LINK,
 )
 from pygame import Surface, Color, Rect
 from pygame.event import Event
@@ -213,14 +215,14 @@ class Instruction(Popup):
                 file
             )
 
-        arrow = pygame.image.load("public/images/buttons/arrow_up.png")
+        arrow = pygame.image.load(os.path.join(ICON_BUTTON_LINK, "arrow_up.png"))
         self.next_button = Button()
         self.next_button.set_surface(pygame.transform.rotate(arrow, -90))
         self.prev_button = Button()
         self.prev_button.set_surface(pygame.transform.rotate(arrow, 90))
         self.close_button = Button()
         self.close_button.set_surface(
-            pygame.image.load("public/images/buttons/close_button.png")
+            pygame.image.load(os.path.join(ICON_BUTTON_LINK, "close_button.png"))
         )
 
         self.tutorial_button = Button()

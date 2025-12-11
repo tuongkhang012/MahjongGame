@@ -19,6 +19,7 @@ DIRECTION_WIDTH = 32
 DIRECTION_HEIGHT = 32
 
 SMOKE_PARTICLE_IMAGE_LINK = "public/images/particles/smoke/"
+ICON_BUTTON_LINK = "public/images/buttons/"
 ICON_LINK = "public/images/icon/"
 DISCARD_MODEL = "public/model/mahjong_cnn_discard_best.pth"
 CHI_MODEL = "public/model/mahjong_cnn_chi_best.pth"

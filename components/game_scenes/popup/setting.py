@@ -11,7 +11,7 @@ from utils.constants import (
     COLOR_WHITE,
     POPUP_BACKGROUND_COLOR,
     SETTING_CONFIG_PATH,
-    ICON_LINK,
+    ICON_BUTTON_LINK,
 )
 from components.entities.buttons.button import Button
 from utils.setting_config import SettingConfig
@@ -54,7 +54,7 @@ class Setting(Popup):
         self.mixer = mixer
         self.close_button = Button()
         self.close_button.set_surface(
-            pygame.image.load(os.path.join(ICON_LINK, "close_button.png"))
+            pygame.image.load(os.path.join(ICON_BUTTON_LINK, "close_button.png"))
         )
 
     def render(self, screen: Surface):
