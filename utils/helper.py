@@ -39,8 +39,7 @@ def map_call_to_action(call_type: CallType) -> ActionType:
 def map_action_to_call(action: ActionType) -> CallType | None:
     try:
         return CallType(action.value)
-    except Exception as e:
-        print(f"Error mapping action to call: {e}")
+    except:
         return None
 
 

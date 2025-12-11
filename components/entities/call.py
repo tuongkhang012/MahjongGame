@@ -1,11 +1,8 @@
-from utils.enums import CallType, TileSource, CallName
+from utils.enums import CallType, TileSource
 from components.entities.buttons.tile import Tile
 import typing
 from mahjong.meld import Meld
 from utils.helper import map_call_type_to_meld_type
-
-if typing.TYPE_CHECKING:
-    from components.entities.player import Player
 
 
 class Call:
@@ -36,7 +33,10 @@ class Call:
                         f"Wrong Kan format! The tiles are {list(map(lambda tile: tile.__str__(), tiles))} which are not the correct for Kan"
                     )
                 if current_player_idx == from_player_idx and not is_kakan:
+                    # Ankan
                     self.is_opened = False
+
+                # Minkan
                 match (current_player_idx - from_player_idx) % 4:
                     case 1:
                         tiles = self.__rearrange_list(tiles, 0)
@@ -53,6 +53,7 @@ class Call:
                     raise ValueError(
                         f"Wrong Pon format! The tiles are {list(map(lambda tile: tile.__str__(True), tiles))} which are not the correct for Pon"
                     )
+
                 match (current_player_idx - from_player_idx) % 4:
                     case 1:
                         tiles = self.__rearrange_list(tiles, 0)
@@ -74,7 +75,7 @@ class Call:
 
         self.type = type
         self.tiles = tiles
-        self.from_who = (from_player_idx - current_player_idx + 4) % 4
+        self.from_who = (from_player_idx - current_player_idx) % 4
         self.who = current_player_idx
         self.another_player_tiles = self.__get_another_player_tile(tiles)
         self.meld = Meld(
@@ -83,11 +84,12 @@ class Call:
             called_tile=self.another_player_tiles if self.is_opened else None,
             opened=self.is_opened,
             who=current_player_idx,
-            from_who=(from_player_idx - current_player_idx + 4) % 4,
+            from_who=(from_player_idx - current_player_idx) % 4,
         )
         self.is_kakan = is_kakan
 
-    def __rearrange_list(self, tiles: list[Tile], position: int) -> list[Tile]:
+    @staticmethod
+    def __rearrange_list(tiles: list[Tile], position: int) -> list[Tile]:
         """
         Rearrage list of tile to make the another tile from another player insert to corresponding position
         """
@@ -109,10 +111,17 @@ class Call:
             tiles_list.sort(key=lambda tile: (tile.type.value, tile.number))
             return tiles_list
 
-    def __check_having_another_player_tile(self, tiles: list[Tile]) -> bool:
+    @staticmethod
+    def __check_having_another_player_tile(tiles: list[Tile]) -> bool:
+        """
+        Check if there is exactly one tile taken from another player in the call.
+        :param tiles: The list of tiles in the call.
+        :return: True if there is exactly one tile taken from another player, False otherwise.
+        """
         number_of_tiles_from_another_player = len(
             list(filter(lambda tile: tile.source == TileSource.PLAYER, tiles))
         )
+
         if number_of_tiles_from_another_player > 1:
             raise ValueError(
                 "The number of tiles can take from another player when calling must be below 1!"
@@ -123,20 +132,41 @@ class Call:
 
         return True
 
+    @staticmethod
     def __check_having_same_amount_of_tiles(
-        self, tiles: list[Tile], number: int
+        tiles: list[Tile], number: int
     ) -> bool:
+        """
+        Check if all tiles have the same type and number, and the amount of tiles is equal to the given number.
+        :param tiles: The list of tiles to check.
+        :param number: The required number of tiles.
+        :return: True if all tiles have the same type and number,
+        and the amount of tiles is equal to the given number, False otherwise.
+        """
         return len(tiles) == number and all(
             tile.type == tiles[0].type and tile.number == tiles[0].number
             for tile in tiles
         )
 
-    def __check_consecutive_numbers(self, tiles: list[Tile]) -> bool:
+    @staticmethod
+    def __check_consecutive_numbers(tiles: list[Tile]) -> bool:
+        """
+        Check if the tiles have consecutive numbers.
+        :param tiles: The list of tiles to check.
+        :return: True if the tiles have consecutive numbers, False otherwise.
+        """
         return all(
             tiles[i].number - tiles[i - 1].number == 1 for i in range(1, len(tiles))
         )
 
-    def __get_another_player_tile(self, tiles: list[Tile]) -> Tile | None:
+    @staticmethod
+    def __get_another_player_tile(tiles: list[Tile]) -> Tile | None:
+        """
+        Get the tile taken from another player in the call.
+        :param tiles: The list of tiles in the call.
+        :return: The tile taken from another player, or None if not found.
+        :rtype: Tile | None
+        """
         try:
             return list(filter(lambda tile: tile.source == TileSource.PLAYER, tiles))[0]
         except:

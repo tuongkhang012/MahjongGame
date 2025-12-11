@@ -30,7 +30,6 @@ from typing import Optional
 
 if typing.TYPE_CHECKING:
     from components.entities.buttons.button import Button
-    from components.game_scenes.popup.popup import Popup
 
 
 class ScenesController:

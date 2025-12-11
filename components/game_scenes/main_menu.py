@@ -201,7 +201,8 @@ class MainMenu:
                     pygame.image.save(self.render(), "main_menu_screenshot.png")
                     print("Main menu screenshot saved!")
 
-    def draw_border(self, surface: Surface, bg_color: Color, border_color: Color):
+    @staticmethod
+    def draw_border(surface: Surface, bg_color: Color, border_color: Color):
         pygame.draw.rect(
             surface,
             bg_color,

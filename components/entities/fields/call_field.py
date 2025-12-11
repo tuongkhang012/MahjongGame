@@ -243,7 +243,13 @@ class CallField(TilesField):
                     self.surface.blit(call_surface, surface_position)
             self.__call_surface_position.append(surface_position)
 
-    def __build_tiles_position(self, call: Call, surface: Surface):
+    def __build_tiles_position(self, call: Call, surface: Surface) -> None:
+        """
+        Update tiles position relative to call surface.
+        :param call: The call object containing tiles and call information.
+        :param surface: The surface to update tile positions on.
+        :return: None
+        """
         start_width = 0
         start_height = 0
 
@@ -295,9 +301,9 @@ class CallField(TilesField):
         else:
             one_drawn_tile = list(
                 filter(lambda tile: tile.source == TileSource.DRAW, call.tiles)
-            )[-1]
+            )[-1] # Get the self-drawn tile for Kakan
 
-            tmp_tile_list = call.tiles.copy()
+            tmp_tile_list = call.tiles.copy() # List without the self-drawn tile
             tmp_tile_list.remove(one_drawn_tile)
 
             match self.player_idx:
@@ -371,7 +377,11 @@ class CallField(TilesField):
                         one_drawn_tile.get_surface().get_height(),
                     )
 
-    def build_call_surface(self):
+    def build_call_surface(self) -> None:
+        """
+        Build the call surfaces for one call.
+        :return: None
+        """
         self.__call_surface = []
         for call in self.__call_list:
             # If not ANKAN, update sideway surface for tile
@@ -382,8 +392,10 @@ class CallField(TilesField):
                     )
                     tile.update_tile_surface(reveal_surface=reveal_surface)
                     tile.hidden = False
+                # Turn the stolen tile to sideway
                 call.another_player_tiles.update_tile_surface((self.player_idx - 1) % 4)
             else:
+                # ANKAN
                 for idx, tile in enumerate(call.tiles):
                     hidden_surface = tile.tiles_cutter.cut_hidden_tiles(
                         False, self.player_idx
@@ -394,6 +406,7 @@ class CallField(TilesField):
                     tile.update_tile_surface(
                         reveal_surface=reveal_surface, hidden_surface=hidden_surface
                     )
+                    # Update first and last tile to hidden
                     if idx == 0 or idx == len(call.tiles) - 1:
                         tile.hidden = True
                     else:
@@ -413,7 +426,12 @@ class CallField(TilesField):
         for tile in call.tiles:
             self.get_tiles_list().append(tile)
 
-    def __build_surface_size_based_on_player_idx(self, call: Call):
+    def __build_surface_size_based_on_player_idx(self, call: Call) -> tuple[int, int]:
+        """
+        Build surface size based on player index and call tiles for a single call.
+        :param call: The call object containing tiles and call information.
+        :return: A tuple representing the width and height of the surface.
+        """
         surface_width = 0
         surface_height = 0
 
@@ -423,17 +441,19 @@ class CallField(TilesField):
                     for tile in call.tiles:
                         surface_width += tile.get_surface().get_width()
                 else:
+                    # Handle Kakan (1 sideway tile + 2 normal tiles)
                     surface_width += call.another_player_tiles.get_surface().get_width()
                     for tile in [
                         tmp_tile
                         for tmp_tile in call.tiles
-                        if tmp_tile != call.another_player_tiles
+                        if tmp_tile != call.another_player_tiles # Exclude the stolen tile
                         and tmp_tile.get_surface().get_size()
-                        != call.another_player_tiles.get_surface().get_size()
+                        != call.another_player_tiles.get_surface().get_size() # Exclude the sideway tile
                     ][0:2]:
-
                         surface_width += tile.get_surface().get_width()
+
                 try:
+                    # Get the height of the stolen tile (from another player) and double it
                     target_tile_height = list(
                         filter(
                             lambda tile: tile.source == TileSource.PLAYER, call.tiles
@@ -441,6 +461,7 @@ class CallField(TilesField):
                     )[0]
                     surface_height = target_tile_height.get_surface().get_height() * 2
                 except:
+                    # Get the height of the first tile as default (Ankan)
                     surface_height = call.tiles[0].get_surface().get_height()
                 self.max_height = max(self.max_height, surface_height)
             case 1 | 3:

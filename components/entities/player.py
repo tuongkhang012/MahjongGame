@@ -651,7 +651,12 @@ class Player:
         else:
             return -1
 
-    def renew_deck(self):
+    def renew_deck(self) -> None:
+        """
+        Reset player deck and fields. Also reset turn, riichi and furiten status.
+        :return: None
+        """
+
         # Tile deck field init
         self.player_deck = []
         self.discard_tiles = []

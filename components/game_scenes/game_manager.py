@@ -44,12 +44,11 @@ from components.entities.fields.call_button_fields import CallButtonField
 if typing.TYPE_CHECKING:
     from components.game_scenes.scenes_controller import ScenesController
     from components.entities.buttons.button import Button
-    from components.game_scenes.popup.setting import PickerDataType, BotModelType
+    from components.game_scenes.popup.setting import BotModelType
 
 
 class GameManager:
     screen: Surface
-    hints_button: "Button"
     scenes_controller: "ScenesController"
     pause: bool = False
     popup: Popup = None
@@ -119,10 +118,7 @@ class GameManager:
         # Display setting
         self.main_screen = screen
         self.screen = screen.copy()
-        self.clock = (
-            pygame.time.Clock()
-        )  # TODO: Maybe don't need it since scene_controller has one
-        self.clock.tick(FPS_LIMIT)  # limits FPS to 60
+        self.clock = scenes_controller.clock
         self.last_time = pygame.time.get_ticks()  # For calculating delta time
 
         # Game log
@@ -189,6 +185,7 @@ class GameManager:
             PADDING_HINTS_BUTTON_Y,
         )
 
+        # Setting button init
         self.setting_button = setting_button
         self.setting_button.update_position(
             self.screen.get_width()

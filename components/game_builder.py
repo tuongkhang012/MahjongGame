@@ -20,6 +20,14 @@ if typing.TYPE_CHECKING:
 
 
 class GameBuilder:
+    """
+    Game Builder class to initialize and manage game setup
+
+    :ivar screen: Pygame Surface for rendering
+    :ivar clock: Pygame Clock for managing time
+    :ivar start_data: Optional data for starting the game
+    :ivar deck: Deck object representing the game deck
+    """
     def __init__(
         self, screen: Surface, clock, deck: Deck, start_data: Any | None = None
     ):
@@ -29,13 +37,16 @@ class GameBuilder:
         self.deck = deck
 
     def direction(self) -> list[Direction]:
+        """
+        Randomly determine player directions
+        :return: List of Directions for players
+        """
         import random
 
         current_direction = random.randint(0, 3)
         standard = [Direction.EAST, Direction.SOUTH, Direction.WEST, Direction.NORTH]
         current_idx = standard.index(Direction(current_direction))
-        return standard[current_idx:] + standard[:current_idx]
-        # return standard
+        return standard[current_idx:] + standard[:current_idx] # Return list with current direction first
 
     def new(self, game_manager: "GameManager", keep_direction: bool = False):
         direction, player_list, deck = self.init_game(
@@ -251,7 +262,7 @@ class GameBuilder:
         # Create player
         if not players:
             # Choose direction for player
-            if self.start_data and self.start_data["direction"]:
+            if self.start_data and self.start_data["direction"]: # Custom direction
                 direction: list[Direction] = []
                 for direction_char in list(self.start_data["direction"]):
                     match direction_char:
@@ -263,7 +274,7 @@ class GameBuilder:
                             direction.append(Direction.EAST)
                         case "N":
                             direction.append(Direction.NORTH)
-            else:
+            else: # Random direction
                 direction = self.direction()
             print(f"Current player direction is {direction[0]}")
             player_list: list[Player] = []
@@ -271,12 +282,12 @@ class GameBuilder:
                 player_list.append(
                     Player(self.screen, i, direction[i], self.deck.full_deck)
                 )
-        else:
+        else: # Recurring game
             player_list = players
             direction: list[Direction] = []
             for i in range(4):
                 player_list[i].renew_deck()
-                if not keep_direction:
+                if not keep_direction: # Rotate direction counter-clockwise
                     player_list[i].direction = Direction(
                         (player_list[i].direction.value - 1) % 4
                     )
@@ -285,7 +296,7 @@ class GameBuilder:
                 else:
                     direction.append(player_list[i].direction)
 
-        if self.start_data and self.start_data["player_deck"]:
+        if self.start_data and self.start_data["player_deck"]: # Custom player deck
             if (
                 len(self.start_data["player_deck"]) < 4
                 and len(self.start_data["player_deck"]) != 0
@@ -334,12 +345,12 @@ class GameBuilder:
                     print("Error when creating custom deck! Regenerating deck...")
                     return self.init_game()
 
-        else:
+        else: # Standard player deck
             for i in range(4):
-                for k in range(4):
+                for k in range(4): # Draw 4 tiles for each player
                     player_idx = direction.index(Direction(k))
                     player = player_list[player_idx]
-                    if i == 3:
+                    if i == 3: # Last loop, draw only 1 tile
                         player.draw(self.deck.draw_deck, None, check_call=False)
                     else:
                         for j in range(4):
@@ -351,7 +362,7 @@ class GameBuilder:
             player.deck_field.build_field_surface(player)
             player.deck_field.build_tiles_position(player)
 
-        main_player = player_list[direction.index(Direction(0))]
+        main_player = player_list[direction.index(Direction(0))] # Main player is
         main_player.deck_field.build_tiles_position(main_player)
         player_list[0].reveal_hand()
 
@@ -366,6 +377,9 @@ class GameBuilder:
         player: Player,
         draw_deck: list[Tile],
     ) -> list[int]:
+        """
+        Create a custom deck for a player based on provided tile strings.
+        """
         tiles_list: list[dict] = []
 
         if man:

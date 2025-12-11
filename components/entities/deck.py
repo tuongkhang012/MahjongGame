@@ -54,7 +54,7 @@ class Deck:
         random_seed: str = None,
         data: GameHistoryData = None,
         start_data: Any | None = None,
-    ) -> dict[str, list[Tile]]:
+    ) -> None:
         # Create a random seed
         if random_seed:
             self.random_seed = random_seed
@@ -74,10 +74,10 @@ class Deck:
         # Build tiles wall
         new_deck = self.__create_init_deck()
 
-        # Role 2 dices (from 2 -> 12)
+        # Get dices score
         dices_score = sum(self.dices)
 
-        # Cut wall
+        # Reading from data
         if data:
             for tile in data["full_deck"]:
                 for tmp_tile in new_deck:
@@ -200,6 +200,8 @@ class Deck:
                     self.latest_discard_tile = each_tile
                     break
             return
+
+        # Generating a new deck
         cutting_points = 34 * ((dices_score - 1) % 4 + 1) - 2 * dices_score
 
         if start_data and start_data["draw_deck"]:
@@ -248,11 +250,17 @@ class Deck:
 
         self.current_dora_idx += 2
 
-    def __init_full_deck(self) -> list[Tile]:
+    @staticmethod
+    def __init_full_deck() -> list[Tile]:
+        """
+        Initialize full deck of 136 tiles.
+        :return: List of Tile objects representing the full deck.
+        """
         import math
 
         full_deck: list[Tile] = []
 
+        # Init all 136 tiles
         for i in range(136):
             hand34_idx = math.floor(i / 4)
             tile_number = None
