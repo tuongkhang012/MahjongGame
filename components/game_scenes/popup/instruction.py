@@ -22,6 +22,10 @@ import json
 
 
 class Instruction(Popup):
+    """
+    Instruction Popup Class. Its class attributes are all the instruction images.
+    """
+
     akadora: Surface
     ankan: Surface
     bakaze: Surface

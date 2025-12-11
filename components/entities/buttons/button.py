@@ -15,7 +15,7 @@ class Button:
 
     # Position of button
     _position: Rect
-    _base_position: Rect
+    _base_position: Rect # For storing base position for effects (like bobbing)
 
     # Button properties
     text: str
@@ -70,7 +70,12 @@ class Button:
             surface.fill(bgColor)
         self.surface = surface
 
-    def render(self, screen: Surface):
+    def render(self, screen: Surface) -> None:
+        """
+        Renders the button onto the given screen surface.
+        :param screen: The surface to render the button on.
+        :return: None
+        """
         if self.surface:
             text_surface = self._build_text_surface()
             if text_surface:
@@ -79,11 +84,12 @@ class Button:
 
             screen.blit(self.surface, (self.get_position().x, self.get_position().y))
 
-    def _build_text_surface(self) -> Surface:
+    def _build_text_surface(self) -> Surface | None:
         if self.font:
             text_surface, _ = self.font.render(self.text, self.text_color)
 
             return text_surface
+        return None
 
     def update_position(
         self,
@@ -146,16 +152,15 @@ class Button:
             else False
         )
 
+    @staticmethod
     def _create_highlight_surface(
-        self, surface: Surface, highlight_color: Color
+        surface: Surface, highlight_color: Color
     ) -> Surface:
         """Creates a highlighted version of the input surface."""
-        # Create a copy to draw on
-        # .convert_alpha() ensures it has the correct pixel format for transparency
+
         original_surface = surface.copy()
         mask = pygame.mask.from_surface(original_surface)
-        # Fill the surface with this color using an "ADD" blend mode.
-        # This brightens the image without washing it out.
+
         highlight_surface = mask.to_surface(
             setcolor=highlight_color, unsetcolor=(0, 0, 0, 0)
         )
@@ -182,5 +187,9 @@ class Button:
         )
 
         pygame.draw.rect(
-            self.surface, border_color, self.surface.get_rect(), 2, border_radius=10
+            self.surface,
+            border_color,
+            self.surface.get_rect(),
+            width=2,
+            border_radius=10
         )

@@ -6,10 +6,6 @@ from utils.constants import (
     CALL_TEXT_COLOR,
     CALL_BUTTON_COLORS,
 )
-from pygame import Surface, Rect
-import pygame
-from utils.helper import build_center_rect
-
 
 class Kan(CallButton):
     def __init__(self):

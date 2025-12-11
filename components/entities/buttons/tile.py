@@ -5,11 +5,7 @@ from shared.image_cutter import ImageCutter
 from utils.constants import TILES_IMAGE_LINK, TILE_ANIMATION_DURATION
 from utils.helper import draw_hitbox, convert_tile_to_hand34_index
 from components.entities.buttons.button import Button
-import typing
 import sys
-
-if typing.TYPE_CHECKING:
-    from components.game_scenes.game_manager import GameManager
 
 
 class Tile(Button):
@@ -22,7 +18,7 @@ class Tile(Button):
     aka: bool
     hand136_idx: int
     hand34_idx: int
-    name: str  # This is the name for naming in mahjong, not for AI, AI please use __str__()
+    name: str  # This is the name for naming in mahjong, use __str__ for AI
 
     # Hovering animation
     hover_offset_y: float = 12
@@ -81,10 +77,6 @@ class Tile(Button):
             self._position.y += distance_y * self.animation_speed
         else:
             self._position.y = self._base_position.y
-
-    # def __handle_clicked(self, game_manager: "GameManager"):
-    #     if self.is_clicked:
-    #         game_manager.start_discarded_animation(self)
 
     def render(self, screen: Surface):
         if self.hidden:

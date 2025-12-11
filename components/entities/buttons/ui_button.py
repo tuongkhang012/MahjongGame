@@ -1,9 +1,13 @@
 from components.entities.buttons.button import Button
 from pygame.freetype import Font
-from pygame import Surface, Rect, Color
-import sys
+from pygame import Surface, Color
 import pygame
-from utils.constants import UI_BUTTON_SIZE
+from utils.constants import (
+    UI_BUTTON_SIZE,
+    COLOR_YELLOW,
+    COLOR_BLACK,
+    COLOR_WHITE
+)
 from utils.helper import build_center_rect
 
 
@@ -44,10 +48,6 @@ class UIButton(Button):
         self.hidden = True
         self.surface = self.__create_new_surface()
 
-    def draw_hitbox(surface: Surface, color: Color = (255, 0, 0)) -> None:
-        if len(sys.argv) > 1 and "debug" in sys.argv:
-            pygame.draw.rect(surface, color, surface.get_rect(), 2)
-
     def __create_new_surface(self) -> Surface:
         reveal_surface = Surface(self.button_size, pygame.SRCALPHA)
 
@@ -57,13 +57,13 @@ class UIButton(Button):
 
         self._original_surface = reveal_surface
         self._highlight_surface = self._create_highlight_surface(
-            reveal_surface, pygame.Color(255, 247, 0, 160)
+            reveal_surface, pygame.Color(*COLOR_YELLOW, 160)
         )
         self._disable_surface = self._create_highlight_surface(
-            reveal_surface, pygame.Color(0, 0, 0, 128)
+            reveal_surface, pygame.Color(*COLOR_BLACK, 128)
         )
 
-    def draw_rect(self, border_color: Color = (255, 255, 255)):
+    def draw_rect(self, border_color: Color = COLOR_WHITE):
         pygame.draw.rect(
             self.surface,
             self.bg_color,
@@ -72,5 +72,9 @@ class UIButton(Button):
         )
 
         pygame.draw.rect(
-            self.surface, border_color, self.surface.get_rect(), 2, border_radius=10
+            self.surface,
+            border_color,
+            self.surface.get_rect(),
+            width=2,
+            border_radius=10
         )
