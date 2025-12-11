@@ -28,10 +28,10 @@ class InstructionCard:
 
 
 @dataclass
-class InstructionTutorialPage:
+class InstructionPageData:
     """
-    An instruction tutorial page containing a title and a dictionary of instruction cards.
-    :cvar title: The title of the instruction tutorial page.
+    An instruction page data containing a title and a dictionary of instruction cards.
+    :cvar title: The title of the instruction page data.
     :cvar cards: A dictionary of instruction cards, keyed by their identifiers.
     """
 
