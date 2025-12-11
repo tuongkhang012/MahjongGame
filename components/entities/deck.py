@@ -55,6 +55,13 @@ class Deck:
         data: GameHistoryData = None,
         start_data: Any | None = None,
     ) -> None:
+        """
+        Create a new deck of tiles, either from a random seed or from provided data.
+        :param random_seed: Random seed to generate the deck.
+        :param data: Continuation data to recreate a specific deck state.
+        :param start_data: Starting data for custom deck setup.
+        :return: None
+        """
         # Create a random seed
         if random_seed:
             self.random_seed = random_seed
@@ -253,7 +260,7 @@ class Deck:
     @staticmethod
     def __init_full_deck() -> list[Tile]:
         """
-        Initialize full deck of 136 tiles.
+        Initialize full deck of 136 tiles by generating each tile. This includes loading up images for the tiles.
         :return: List of Tile objects representing the full deck.
         """
         import math
@@ -311,6 +318,10 @@ class Deck:
         return self.__init_deck
 
     def __create_init_deck(self) -> list[Tile]:
+        """
+        Create initial deck based on random seed.
+        :return: List of Tile objects representing the full deck.
+        """
         from shared.reproduce_tenhou import reproduce_tenhou
 
         full_deck = []

@@ -48,7 +48,13 @@ class GameBuilder:
         current_idx = standard.index(Direction(current_direction))
         return standard[current_idx:] + standard[:current_idx] # Return list with current direction first
 
-    def new(self, game_manager: "GameManager", keep_direction: bool = False):
+    def new(self, game_manager: "GameManager", keep_direction: bool = False) -> None:
+        """
+        Initialize a new game
+        :param game_manager: GameManager instance
+        :param keep_direction: Whether to keep the current round direction
+        :return: None
+        """
         direction, player_list, deck = self.init_game(
             game_manager.player_list, keep_direction
         )
@@ -57,24 +63,8 @@ class GameBuilder:
         game_manager.player_list = player_list
         game_manager.deck = deck
 
-        for player in player_list:
-            player.game_manager = game_manager
-
-            if player.player_idx == 0:
-                continue
-
-            # Assign bot model
-            if getattr(game_manager, f"bot_{player.player_idx}_model") == "shanten":
-                player.agent = None
-                print(f"Assigning bot {player.player_idx} with no agent")
-            elif (
-                getattr(game_manager, f"bot_{player.player_idx}_model") == "aggressive"
-            ):
-                player.agent = game_manager.ai_agent_MID
-                print(f"Assigning bot {player.player_idx} with agent MID")
-            elif getattr(game_manager, f"bot_{player.player_idx}_model") == "passive":
-                player.agent = game_manager.ai_agent_SMART
-                print(f"Assigning bot {player.player_idx} with agent SMART")
+        # Assign bot model
+        self.assign_AI_agent(player_list, game_manager)
 
         # Assign Turn and player to game manager
         start_turn = Direction(0)
@@ -162,20 +152,9 @@ class GameBuilder:
         game_manager.player_list = player_list
         game_manager.deck = self.deck
 
-        for player in player_list:
-            player.game_manager = game_manager
+        # Assign bot model
+        self.assign_AI_agent(player_list, game_manager)
 
-            if (
-                hasattr(game_manager, "ai_seat_idx")
-                and player.player_idx in game_manager.ai_seat_idx
-            ):
-                print(f"Assigning AI agent to player {player.player_idx}")
-                if player.player_idx == 1:
-                    player.agent = game_manager.ai_agent_MID
-                else:
-                    player.agent = game_manager.ai_agent_SMART
-            else:
-                player.agent = None
         game_manager.latest_discarded_tile = self.deck.latest_discard_tile
         # Assign Turn and player to game manager
         game_manager.current_turn = Direction(
@@ -240,7 +219,13 @@ class GameBuilder:
 
     def assign_round_direction(
         self, game_manager: "GameManager", keep_direction: bool = False
-    ):
+    ) -> None:
+        """
+        Assign or update the round direction in the game manager.
+        :param game_manager: GameManager instance
+        :param keep_direction: Whether to keep the current round direction
+        :return: None
+        """
         if not game_manager.round_direction:
             game_manager.round_direction = Direction(0)
             game_manager.round_direction_number = 1
@@ -514,3 +499,29 @@ class GameBuilder:
                 f"FINAL RESULT: {result} {result.yaku} and player scores: {result.cost['total']}"
             )
         return result
+
+    @staticmethod
+    def assign_AI_agent(player_list: list[Player], game_manager: "GameManager") -> None:
+        """
+        Assign AI agents to players based on game manager settings.
+        :param player_list: List of Player objects
+        :param game_manager: GameManager instance
+        :return: None
+        """
+        for player in player_list:
+            player.game_manager = game_manager
+
+            if player.player_idx == 0:
+                continue
+
+            if getattr(game_manager, f"bot_{player.player_idx}_model") == "shanten":
+                player.agent = None
+                print(f"Assigning bot {player.player_idx} with no agent")
+            elif (
+                getattr(game_manager, f"bot_{player.player_idx}_model") == "aggressive"
+            ):
+                player.agent = game_manager.ai_agent_MID
+                print(f"Assigning bot {player.player_idx} with agent MID")
+            elif getattr(game_manager, f"bot_{player.player_idx}_model") == "passive":
+                player.agent = game_manager.ai_agent_SMART
+                print(f"Assigning bot {player.player_idx} with agent SMART")
