@@ -1,9 +1,7 @@
-from typing import Literal
-from dataclasses import dataclass
+from typing import Literal, TypedDict
 
 
-@dataclass
-class InstructionCardBody:
+class InstructionCardBody(TypedDict):
     """
     A body element of an instruction card, which can be either text or an image.
     :cvar type: Type of instruction card. Can be either "text" or "image".
@@ -15,8 +13,7 @@ class InstructionCardBody:
     content: str
 
 
-@dataclass
-class InstructionCard:
+class InstructionCard(TypedDict):
     """
     An instruction card containing a title and a list of body elements.
     :cvar title: The title of the instruction card.
@@ -27,8 +24,7 @@ class InstructionCard:
     body: list[InstructionCardBody]
 
 
-@dataclass
-class InstructionPageData:
+class InstructionPageData(TypedDict):
     """
     An instruction page data containing a title and a dictionary of instruction cards.
     :cvar title: The title of the instruction page data.

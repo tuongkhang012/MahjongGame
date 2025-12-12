@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import sys
 import json
 import torch
 import typing
@@ -58,9 +59,10 @@ class MahjongAIAgent:
             return ActionType.SKIP
 
         if CallType.RON in player.can_call:
-            return ActionType.RON
+            return self.skip_when_nagashi_mangan(ActionType.RON)
+
         if CallType.TSUMO in player.can_call:
-            return ActionType.TSUMO
+            return self.skip_when_nagashi_mangan(ActionType.TSUMO)
 
         if CallType.KAN in player.can_call:
             ANKAN_FLAG = False
@@ -78,7 +80,7 @@ class MahjongAIAgent:
 
             if ANKAN_FLAG:
                 print("Choosing ANKAN")
-                return ActionType.KAN
+                return self.skip_when_nagashi_mangan(ActionType.KAN)
             else:
                 print("Skipping KAN")
                 return ActionType.SKIP
@@ -108,7 +110,7 @@ class MahjongAIAgent:
             print("Test:", torch.softmax(out_pon, dim=-1))
             print("Pon probs:", probs_pon)
             if probs_pon[1].item() > 0.5:
-                return ActionType.PON
+                return self.skip_when_nagashi_mangan(ActionType.PON)
             else:
                 return ActionType.SKIP
 
@@ -121,14 +123,15 @@ class MahjongAIAgent:
             if prob_list.index(max(prob_list)) == 0:
                 return ActionType.SKIP
             else:
-                return ActionType.CHII
+                return self.skip_when_nagashi_mangan(ActionType.CHII)
 
         self.target_to_discard(player, x)
         return ActionType.DISCARD
 
-    def load_files(self):
+    @staticmethod
+    def load_files():
         """
-        Load json files from HISTORY PATH (0 being the oldest)
+        Load JSON files from HISTORY PATH (0 being the oldest)
         """
         files = []
         for entry in os.listdir(HISTORY_PATH):
@@ -140,7 +143,7 @@ class MahjongAIAgent:
 
     def read_files(self, files: list[str]):
         """
-        Read json files and store as HistoryLayer objects in self..history (0 being the oldest)
+        Read JSON files and store as HistoryLayer objects in self..history (0 being the oldest)
         """
         self.history = []
         for file_path in files:
@@ -208,6 +211,7 @@ class MahjongAIAgent:
             out_discard, _, _, _ = self.discard_model(x)
         logits_discard = out_discard[0]  # (34,)
         tile_kind_idx = int(torch.argmax(logits_discard).item())
+        discard_index = -1
 
         if tile_kind_idx not in AKA_DORA_KIND_INDICES:
             suitable_tile_found = False
@@ -256,5 +260,24 @@ class MahjongAIAgent:
                     f"Consistency check failed for tile kind {tile_kind_idx}."
                 )
 
+        if discard_index == -1:
+            raise ValueError("No valid tile found to discard.")
         tile = player.player_deck[discard_index]
         tile.clicked()
+
+    @staticmethod
+    def skip_when_nagashi_mangan(base_action: ActionType) -> ActionType:
+        """
+        Skip every call when "data=nm.json" is provided as a command line argument.
+        This is used to simulate Nagashi Mangan conditions.
+        :param base_action: The original action decided by the AI.
+        :return: Returns True if the strategy is activated via command line argument.
+        """
+        if (
+            len(sys.argv) > 1
+            and len(list(filter(lambda argv: "data=nm.json" in argv, sys.argv))) > 0
+        ):
+            print("Nagashi Mangan activated: Skipping call.")
+            return ActionType.SKIP
+        print("Nagashi Mangan not activated. Proceeding with base action.")
+        return base_action

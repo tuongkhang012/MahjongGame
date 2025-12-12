@@ -1,9 +1,7 @@
-from typing import Literal
-from dataclasses import dataclass
+from typing import Literal, TypedDict
 
 
-@dataclass
-class SettingConfig:
+class SettingConfig(TypedDict):
     """
     Configuration for game settings.
 

@@ -130,7 +130,6 @@ class DeckField(TilesField):
                 )
 
     def build_tiles_position(self, player: "Player"):
-
         for idx, tile in enumerate(self.get_tiles_list()):
             if tile.is_hovered == True:
                 continue

@@ -2,6 +2,7 @@ from components.entities.buttons.tile import Tile
 from components.entities.call import Call
 from utils.enums import CallType, TileSource, TileType, ActionType
 from pygame import Surface
+import sys
 import typing
 from typing import Optional
 from utils.enums import Direction
@@ -263,13 +264,13 @@ class Player:
         return is_kakan, from_player
 
     def call(
-        self,
+        self, # Automatically create a Meld object inside of Call object about to create.
         tile: Tile,
         call_list: list[Tile],
         call_type: CallType,
         player: "Player",
         is_kakan: bool = False,
-    ):
+    ) -> None:
         """
         Handle player's call.
         :param tile: The tile being called on.
@@ -393,13 +394,13 @@ class Player:
             if self.player_idx == 0:
                 return action
             if CallType.RON in self.can_call:
-                return ActionType.RON
+                return self.skip_when_nagashi_mangan(ActionType.RON)
             if CallType.TSUMO in self.can_call:
-                return ActionType.TSUMO
+                return self.skip_when_nagashi_mangan(ActionType.TSUMO)
             try:
                 list(map(lambda player_tile: player_tile.is_clicked, self.player_deck))[0]
             except:
-                tile = self.pick_tile()
+                tile = self.pick_tile() # Check shanten minimization discard
                 tile.clicked()
             return ActionType.DISCARD
 
@@ -445,6 +446,10 @@ class Player:
         return tile
 
     def get_draw_tile(self) -> Tile:
+        """
+        Get the currently drawn tile.
+        :return: The drawn Tile object.
+        """
         return self.__draw_tile
 
     def total_tiles(self) -> int:
@@ -568,6 +573,10 @@ class Player:
             hand_34[i] -= 1  # Remove it
 
     def reset_call(self):
+        """
+        Reset the can_call list.
+        :return: None
+        """
         self.can_call = []
 
     def is_chii_able(self, tile: Tile) -> bool:
@@ -817,3 +826,20 @@ class Player:
                 return "Middy"
             case 3:
                 return "Lefty"
+
+    @staticmethod
+    def skip_when_nagashi_mangan(base_action: ActionType) -> ActionType:
+        """
+        Skip every call when "data=nm.json" is provided as a command line argument.
+        This is used to simulate Nagashi Mangan conditions.
+        :param base_action: The original action decided by the AI.
+        :return: Returns True if the strategy is activated via command line argument.
+        """
+        if (
+            len(sys.argv) > 1
+            and len(list(filter(lambda argv: "data=nm.json" in argv, sys.argv))) > 0
+        ):
+            print("Nagashi Mangan activated: Skipping call.")
+            return ActionType.SKIP
+        print("Nagashi Mangan not activated. Proceeding with base action.")
+        return base_action

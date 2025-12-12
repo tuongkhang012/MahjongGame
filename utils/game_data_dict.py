@@ -1,5 +1,5 @@
-from dataclasses import dataclass
 import typing
+from typing import TypedDict, Optional
 from mahjong.hand_calculating.hand_response import HandResponse
 
 if typing.TYPE_CHECKING:
@@ -7,8 +7,7 @@ if typing.TYPE_CHECKING:
     from components.entities.player import Player
 
 
-@dataclass
-class AfterMatchData:
+class AfterMatchData(TypedDict):
     """
     Data class representing the state of the game after a match has concluded.
     :cvar player_deck: The tiles in the player's hand at the end of the match.
@@ -24,15 +23,15 @@ class AfterMatchData:
     :cvar ryuukyoku: Boolean indicating if the hand ended in a draw.
     :cvar ryuukyoku_reason: Reason for the draw, if applicable.
     """
-    player_deck: list["Tile"]
-    win_tile: "Tile"
+    player_deck: Optional[list["Tile"]]
+    win_tile: Optional["Tile"]
     dora: list["Tile"]
     ura_dora: list["Tile"]
-    call_tiles_list: list["Tile"]
-    result: HandResponse
+    call_tiles_list: Optional[list["Tile"]]
+    result: Optional[HandResponse]
     player_list: list["Player"]
     deltas: list[int]
     tsumi_number: int
     kyoutaku_number: int
     ryuukyoku: bool
-    ryuukyoku_reason: str | None
+    ryuukyoku_reason: Optional[str]
