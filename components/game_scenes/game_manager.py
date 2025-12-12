@@ -450,8 +450,8 @@ class GameManager:
                 same_tile_list = list(
                     filter(
                         lambda _tile: _tile.type == hover_tile.type
-                        and tile.number == hover_tile.number
-                        and not tile.hidden,
+                        and _tile.number == hover_tile.number
+                        and not _tile.hidden,
                         self.deck.full_deck,
                     )
                 )
@@ -1155,7 +1155,7 @@ class GameManager:
             is_riichi = True if riichi_turn >= 0 else False
             ura_dora = []
             if is_riichi:
-                start_ura_dora_idx = 4
+                start_ura_dora_idx = 4 - self.kan_count
                 for i in range(0, len(self.deck.dora)):
                     ura_dora.append(self.deck.death_wall[start_ura_dora_idx])
                     start_ura_dora_idx += 2
