@@ -88,11 +88,16 @@ class GameBuilder:
             game_manager.kyoutaku_number,
         )
 
-    def continue_game(self, game_manager: "GameManager"):
+    def continue_game(self, game_manager: "GameManager") -> None:
+        """
+        Continue a game from saved history
+        :param game_manager: GameManager instance
+        :return: None
+        """
         self.deck.create_new_deck(
             random_seed=game_manager.game_history.data["seed"],
             data=game_manager.game_history.data,
-        )
+        ) # Create the deck with saved seed and data
         direction = list(
             map(
                 lambda direction_value: Direction(direction_value),

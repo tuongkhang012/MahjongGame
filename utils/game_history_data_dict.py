@@ -1,8 +1,7 @@
-from dataclasses import dataclass
+from typing import TypedDict
 
 
-@dataclass
-class TileData:
+class TileData(TypedDict):
     """
     Data class for storing tile information.
     :cvar hand136_idx: The index of the tile in hand136 format.
@@ -18,29 +17,27 @@ class TileData:
     string: str
 
 
-@dataclass
-class MeldData:
+class MeldData(TypedDict):
     """
     Data class for storing meld information.
-    :cvar type: The type of meld (e.g., chi, pon, kan).
-    :cvar from_who: The player from whom the meld was called.
-    :cvar who: The player who made the meld.
+    :cvar type: The type idx of meld (e.g., chi, pon, kan).
+    :cvar from_who: The player from whom the meld was called. (relative direction)
+    :cvar who: The idx player who made the meld.
     :cvar tiles: The tiles involved in the meld.
     :cvar called_tile: The tile that was called to form the meld.
     :cvar opened: A flag indicating if the meld is opened.
     :cvar kakan: A flag indicating if the meld is a kakan (added kan).
     """
-    type: str
+    type: int
     from_who: str
-    who: str
+    who: int
     tiles: list[TileData]
-    called_tile: int
+    called_tile: int | None
     opened: bool
     kakan: bool
 
 
-@dataclass
-class GameHistoryData:
+class GameHistoryData(TypedDict):
     """
     Data class for storing game history information.
 
@@ -92,13 +89,13 @@ class GameHistoryData:
     call_order: list[int]
     current_direction: int
     direction: list[int]
-    action: int
-    prev_action: int
-    prev_called_player: int
-    prev_player: int
-    latest_discard_tile_hand136_idx: int
-    latest_called_tile_hand136_idx: int
-    calling_player: int
+    action: int | None
+    prev_action: int | None
+    prev_called_player: int | None
+    prev_player: int | None
+    latest_discard_tile_hand136_idx: int | None
+    latest_called_tile_hand136_idx: int | None
+    calling_player: int | None
     end_game: bool
     keep_direction: bool
     # Wind
