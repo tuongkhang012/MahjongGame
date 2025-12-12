@@ -30,6 +30,7 @@ from typing import Optional
 
 if typing.TYPE_CHECKING:
     from components.entities.buttons.button import Button
+    from components.game_scenes.popup.popup import Popup
 
 
 class ScenesController:
@@ -181,7 +182,7 @@ class ScenesController:
             overlay.fill(
                 color=pygame.Color(0, 0, 0, int(255 / 2)),
                 rect=None,
-                special_flags=pygame.BLEND_RGBA_MULT
+                special_flags=pygame.BLEND_RGBA_MULT,
             )
 
             self.__screen.blit(overlay, dest=(0, 0))
@@ -215,11 +216,15 @@ class ScenesController:
         else:
             match self.__scene:
                 case GameScene.GAME:
-                    if self.game_manager.is_main_riichi: # If main player declared riichi (prioritized)
+                    if (
+                        self.game_manager.is_main_riichi
+                    ):  # If main player declared riichi (prioritized)
                         self.mixer.play_background_music("riichi")
-                    elif self.game_manager.is_oppo_riichi: # If any opponent declared riichi
+                    elif (
+                        self.game_manager.is_oppo_riichi
+                    ):  # If any opponent declared riichi
                         self.mixer.play_background_music("oppo_riichi")
-                    else: # Normal game BGM
+                    else:  # Normal game BGM
                         self.mixer.play_background_music("game")
                 case GameScene.START:
                     # Play main menu BGM
@@ -319,7 +324,9 @@ class ScenesController:
                                     else None
                                 )
 
-                            if action == "New Game": # Starting a new game, need to clear previous history
+                            if (
+                                action == "New Game"
+                            ):  # Starting a new game, need to clear previous history
                                 # Clear previous game history if exist
                                 self.deck.random_seed = None
                                 if self.history.data:
@@ -332,7 +339,9 @@ class ScenesController:
                                     if os.path.isfile(file_path):
                                         os.remove(file_path)
                                 if log_name:
-                                    log_path = os.path.join(LOG_PATH, f"{log_name}.json")
+                                    log_path = os.path.join(
+                                        LOG_PATH, f"{log_name}.json"
+                                    )
                                     with open(log_path, "r") as file:
                                         json_data = json.load(file)
                                         if (
@@ -391,7 +400,7 @@ class ScenesController:
                 case pygame.KEYDOWN:
                     if self.__popup_renderer and isinstance(
                         self.__popup_renderer, Instruction
-                    ): # Let instruction popup handle key events
+                    ):  # Let instruction popup handle key events
                         action = self.__popup_renderer.handle_event(event)
                         if action and action == "close":
                             self.close_popup()
@@ -408,12 +417,14 @@ class ScenesController:
     def create_game_manager(self):
         import sys
 
-        if len(sys.argv) > 1 and any([argv.startswith("data=") for argv in sys.argv]):
+        if len(sys.argv) > 1 and any(
+            [argv.startswith("data=") for argv in sys.argv]
+        ):  # If there is data argument
             data = get_data_from_file(
                 list(filter(lambda argv: argv.startswith("data="), sys.argv))[0].split(
                     "="
                 )[-1]
-            ) # Init gamemanager with custom data from file
+            )  # Init gamemanager with custom data from file
             self.game_manager = GameManager(
                 self.get_render_surface(),
                 self,
@@ -421,7 +432,7 @@ class ScenesController:
                 hints_button=self.hints_button,
                 setting_button=self.setting_button,
                 game_history=self.history,
-                start_data=data, # Preset data from file
+                start_data=data,  # Preset data from file
             )
         else:
             # Init gamemanager with normal flow
@@ -445,7 +456,9 @@ class ScenesController:
         :rtype: AfterMatchPopup
         """
         surface = self.create_popup_surface(0.9)
-        surface.fill(pygame.Color(0, 0, 0, int(255 * 0.8))) # The after match popup is a black translucent surface
+        surface.fill(
+            pygame.Color(0, 0, 0, int(255 * 0.8))
+        )  # The after match popup is a black translucent surface
         return AfterMatchPopup(surface, data)
 
     def __create_instruction_popup(self) -> Instruction:
