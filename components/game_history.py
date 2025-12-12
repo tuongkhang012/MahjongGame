@@ -1,15 +1,7 @@
-import typing
-
-from utils.enums import Direction
 from utils.game_history_data_dict import GameHistoryData
 from utils.constants import HISTORY_PATH
 import os
 import json
-
-if typing.TYPE_CHECKING:
-    from components.entities.call import Call
-    from components.entities.player import Player
-    from components.entities.deck import Deck
 
 
 class GameHistory:

@@ -262,7 +262,7 @@ class ScenesController:
                             data = self.game_manager.__dict__()
                             data["from_log_name"] = f"{self.game_manager.game_log.name}"
                             self.history.update(data)
-                            self.history.export()
+                        self.history.export()
 
                         # Export settings if in setting popup
                         if self.__popup_renderer and isinstance(
@@ -407,12 +407,12 @@ class ScenesController:
     def create_game_manager(self):
         import sys
 
-        if len(sys.argv) > 1 and any([argv.startswith("data=") for argv in sys.argv]): # If there is data argument
+        if len(sys.argv) > 1 and any([argv.startswith("data=") for argv in sys.argv]):
             data = get_data_from_file(
                 list(filter(lambda argv: argv.startswith("data="), sys.argv))[0].split(
                     "="
                 )[-1]
-            )
+            ) # Init gamemanager with custom data from file
             self.game_manager = GameManager(
                 self.get_render_surface(),
                 self,
@@ -423,6 +423,7 @@ class ScenesController:
                 start_data=data, # Preset data from file
             )
         else:
+            # Init gamemanager with normal flow
             self.game_manager = GameManager(
                 self.get_render_surface(),
                 self,
