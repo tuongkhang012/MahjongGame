@@ -363,6 +363,7 @@ class ScenesController:
                                 self.mouse.default()
                                 self.popup(GamePopup.INSTRUCTION, data=None)
                             elif action == "Quit":
+                                self.history.export()
                                 return {"exit": True}
 
                 case pygame.MOUSEBUTTONUP:
