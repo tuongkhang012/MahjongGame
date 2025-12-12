@@ -109,7 +109,7 @@ class GameEventLog:
     def append_event(
         self,
         type: ActionType,
-        tile: "Tile",
+        tile: Optional["Tile"],
         player: "Player" = None,
         call: "Call" = None,
     ):
