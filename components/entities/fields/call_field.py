@@ -21,6 +21,7 @@ class CallField(TilesField):
     :ivar max_width: The maximum width of the call field.
     :ivar field_offset: The offset of the field from the screen edges.
     """
+
     def __init__(
         self,
         screen: Surface,
@@ -35,7 +36,7 @@ class CallField(TilesField):
         self.__call_surface_position: list[tuple[int, int]] = []
         self.max_height = 0
         self.max_width = 0
-        self.field_offset = (30, 30)
+        self.field_offset = (15, 15)
 
     def render(self, screen: Surface):
         self.build_call_surface()
@@ -301,9 +302,11 @@ class CallField(TilesField):
         else:
             one_drawn_tile = list(
                 filter(lambda tile: tile.source == TileSource.DRAW, call.tiles)
-            )[-1] # Get the self-drawn tile for Kakan
+            )[
+                -1
+            ]  # Get the self-drawn tile for Kakan
 
-            tmp_tile_list = call.tiles.copy() # List without the self-drawn tile
+            tmp_tile_list = call.tiles.copy()  # List without the self-drawn tile
             tmp_tile_list.remove(one_drawn_tile)
 
             match self.player_idx:
@@ -446,9 +449,10 @@ class CallField(TilesField):
                     for tile in [
                         tmp_tile
                         for tmp_tile in call.tiles
-                        if tmp_tile != call.another_player_tiles # Exclude the stolen tile
+                        if tmp_tile
+                        != call.another_player_tiles  # Exclude the stolen tile
                         and tmp_tile.get_surface().get_size()
-                        != call.another_player_tiles.get_surface().get_size() # Exclude the sideway tile
+                        != call.another_player_tiles.get_surface().get_size()  # Exclude the sideway tile
                     ][0:2]:
                         surface_width += tile.get_surface().get_width()
 

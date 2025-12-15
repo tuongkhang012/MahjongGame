@@ -64,14 +64,16 @@ class Player:
         player_idx: int,
         direction: Direction,
         full_deck: list[Tile],
-        player_deck: list[Tile] = None, # Player's **HAND**
-        discard_tiles: list[Tile] = None, # List of Discarded Tiles to display
-        already_discard_tiles: list[Tile] = None, # List of all Discarded Tiles for furiten check
-        call_tiles_list: list[Tile] = None, # List of Called Tiles
-        call_list: list[Call] = None, # List of Calls
+        player_deck: list[Tile] = None,  # Player's **HAND**
+        discard_tiles: list[Tile] = None,  # List of Discarded Tiles to display
+        already_discard_tiles: list[
+            Tile
+        ] = None,  # List of all Discarded Tiles for furiten check
+        call_tiles_list: list[Tile] = None,  # List of Called Tiles
+        call_list: list[Call] = None,  # List of Calls
         draw_tile: Tile = None,
-        can_call: list[Call] = [], # List of possible CallTypes
-        callable_tiles_list: list[list[Tile]] = [], # List of Callable Tile Lists
+        can_call: list[Call] = [],  # List of possible CallTypes
+        callable_tiles_list: list[list[Tile]] = [],  # List of Callable Tile Lists
         is_riichi: bool = False,
         riichi_turn: int = None,
         points: int = None,
@@ -158,7 +160,7 @@ class Player:
         self.__draw_tile.source = TileSource.DRAW
         self.player_deck.append(self.__draw_tile)
         self.__draw_tile.update_tile_surface(self.player_idx)
-        if check_call: # To check for tsumo/ankan/riichi
+        if check_call:  # To check for tsumo/ankan/riichi
             self.check_call(
                 self.__draw_tile,
                 is_current_turn=True,
@@ -213,7 +215,7 @@ class Player:
         self.callable_tiles_list = []
         is_kakan = False
         from_player: Optional[int] = None
-        if tile.source == TileSource.PLAYER: # Minkan
+        if tile.source == TileSource.PLAYER:  # Minkan
             callable_tiles_list = list(
                 filter(
                     lambda player_tile: tile.number == player_tile.number
@@ -239,7 +241,7 @@ class Player:
                             called_tile.type == tile.type
                             and called_tile.number == tile.number
                             for called_tile in call.tiles
-                        ] # Check if the pon call matches the tile
+                        ]  # Check if the pon call matches the tile
                     ):
                         callable_tiles_list = call.tiles + [tile]
                         self.callable_tiles_list.append(callable_tiles_list)
@@ -264,7 +266,7 @@ class Player:
         return is_kakan, from_player
 
     def call(
-        self, # Automatically create a Meld object inside of Call object about to create.
+        self,  # Automatically create a Meld object inside of Call object about to create.
         tile: Tile,
         call_list: list[Tile],
         call_type: CallType,
@@ -292,8 +294,8 @@ class Player:
 
         # Check kuikae
         for hand_tile in self.player_deck:
-            tile_idx = call_list.index(tile) # Get index of stolen tile in call list
-            another_kuikae_tile = None # Find the other tile that affected by kuikae
+            tile_idx = call_list.index(tile)  # Get index of stolen tile in call list
+            another_kuikae_tile = None  # Find the other tile that affected by kuikae
             if tile_idx == 0:
                 another_kuikae_tile = self.find_tile(
                     call_list[-1].type, call_list[-1].number + 1
@@ -310,7 +312,9 @@ class Player:
                 and hand_tile.number == another_kuikae_tile.number
             ):
                 hand_tile.disabled()
-            if hand_tile.type == tile.type and hand_tile.number == tile.number: # Disable stolen tile looksalike
+            if (
+                hand_tile.type == tile.type and hand_tile.number == tile.number
+            ):  # Disable stolen tile looksalike
                 hand_tile.disabled()
 
         # Remove called tiles from player's hand
@@ -325,7 +329,9 @@ class Player:
                 call_type,
                 call_list,
                 self.player_idx,
-                player.player_idx if player else self.player_idx, # Player's absolute index
+                (
+                    player.player_idx if player else self.player_idx
+                ),  # Player's absolute index
                 is_kakan,
             )
         )
@@ -342,10 +348,10 @@ class Player:
         self.deck_field.build_tiles_position(self)
 
     def discard(self, tile: Tile, game_manager: "GameManager" = None) -> Tile:
-        if self.is_riichi() < 0: # Not riichi
+        if self.is_riichi() < 0:  # Not riichi
             for hand_tile in self.player_deck:
                 hand_tile.enabled()
-        if self.is_riichi() >= 0: # Riichi
+        if self.is_riichi() >= 0:  # Riichi
             for deck_tile in self.player_deck:
                 deck_tile.disabled()
 
@@ -368,7 +374,7 @@ class Player:
         self.player_deck.remove(tile)
         self.discard_tiles.append(tile)
         self.__already_discard_tiles.append(tile)
-        game_manager.latest_discarded_tile = tile # For checking calls
+        game_manager.latest_discarded_tile = tile  # For checking calls
         game_manager.start_discarded_animation(tile)
         self.turn += 1
         self.temporary_furiten = False
@@ -398,9 +404,11 @@ class Player:
             if CallType.TSUMO in self.can_call:
                 return self.skip_when_nagashi_mangan(ActionType.TSUMO)
             try:
-                list(map(lambda player_tile: player_tile.is_clicked, self.player_deck))[0]
+                list(map(lambda player_tile: player_tile.is_clicked, self.player_deck))[
+                    0
+                ]
             except:
-                tile = self.pick_tile() # Check shanten minimization discard
+                tile = self.pick_tile()  # Check shanten minimization discard
                 tile.clicked()
             return ActionType.DISCARD
 
@@ -453,7 +461,9 @@ class Player:
         return self.__draw_tile
 
     def total_tiles(self) -> int:
-        return len(self.deck_field.get_tiles_list()) + len(self.call_field.get_tiles_list())
+        return len(self.deck_field.get_tiles_list()) + len(
+            self.call_field.get_tiles_list()
+        )
 
     def find_tile(self, type: TileType, number: int) -> Tile | None:
         """
@@ -492,24 +502,28 @@ class Player:
         self.can_call = []
 
         self.__build_winning_tiles()
-        if is_current_turn and self.is_tsumo_able(tile, round_wind): # Tsumo
+        if is_current_turn and self.is_tsumo_able(tile, round_wind):  # Tsumo
             self.can_call.append(CallType.TSUMO)
 
-        if not is_current_turn and self.is_ron_able(tile, round_wind): # Ron
+        if not is_current_turn and self.is_ron_able(tile, round_wind):  # Ron
             self.can_call.append(CallType.RON)
 
         if not self.__is_riichi:
-            if self.is_riichi_able() and is_current_turn: # Riichi
+            if self.is_riichi_able() and is_current_turn:  # Riichi
                 self.can_call.append(CallType.RIICHI)
 
-            if self.is_kan_able(tile): # Kan
+            if self.is_kan_able(tile):  # Kan
                 self.can_call.append(CallType.KAN)
 
-            if self.is_pon_able(tile): # Pon
+            if self.is_pon_able(tile):  # Pon
                 self.can_call.append(CallType.PON)
 
-            if self.is_chii_able(tile) and check_chii: # Chii
+            if self.is_chii_able(tile) and check_chii:  # Chii
                 self.can_call.append(CallType.CHII)
+
+        if self.__is_riichi:  # Specific check for ankan
+            if self.is_kan_able(tile):
+                self.can_call.append(CallType.KAN)
 
         if len(self.can_call) > 0:
             self.can_call.append(CallType.SKIP)
@@ -620,7 +634,7 @@ class Player:
                         for call_tile in call.tiles
                     ]
                 )
-            ): # Kakan from Pon
+            ):  # Kakan from Pon
                 return True
         if tile in self.player_deck:
             # Ankan
