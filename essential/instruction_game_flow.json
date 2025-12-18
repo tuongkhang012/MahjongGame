@@ -1,0 +1,145 @@
+{
+  "0": {
+    "title": "Game Flow",
+    "cards": {
+      "overview": {
+        "title": "Overview",
+        "body": [
+          {
+            "type": "text",
+            "content": "Upon starting the game, all participants draw an initial hand of 13 tiles. The turn sequence\nis initiated by the East player and continues counter-clockwise."
+          },
+          {
+            "type": "image",
+            "content": "game_flow_ui",
+            "resize": 0.5
+          },
+          {
+            "type": "text",
+            "content": "For each turn, you shall draw one tile and discard one tile to end your turn. Your discarded tile\nwill be put in the Discards field. You can call on opponent's discarded tiles to steal them."
+          }
+        ]
+      }
+    }
+  },
+  "1": {
+    "title": "Game Flow",
+    "cards": {
+      "pon": {
+        "title": "Calling Tiles: Chii",
+        "body": [
+          {
+            "type": "image",
+            "content": "game_flow_chii",
+            "resize": 0.55
+          },
+
+          {
+            "type": "text",
+            "content": "Chii is the call to complete a Sequence. You can Chii when the left player discarded a tile\nthat can form a Sequence with 2 tiles in your hand (Forming 7-8-9 Sou Sequence). Upon calling,\nyou shall open the Sequence formed on your side, then discard a tile from your hand."
+          }
+        ]
+      }
+    }
+  },
+  "2": {
+    "title": "Game Flow",
+    "cards": {
+      "pon": {
+        "title": "Calling Tiles: Pon",
+        "body": [
+          {
+            "type": "image",
+            "content": "game_flow_pon",
+            "resize": 0.55
+          },
+
+          {
+            "type": "text",
+            "content": "Pon is the call to complete a Triplet. You can Pon when any player discarded a tile\nthat can form a Triplet with 2 tiles in your hand (Forming West Wind Triplet). Upon calling,\nyou shall open the Triplet formed on your side, then discard a tile from your hand."
+          }
+        ]
+      }
+    }
+  },
+  "3": {
+    "title": "Game Flow",
+    "cards": {
+      "pon": {
+        "title": "Calling Tiles: Kan",
+        "body": [
+          {
+            "type": "image",
+            "content": "game_flow_kan",
+            "resize": 0.55
+          },
+
+          {
+            "type": "text",
+            "content": "Kan is the call to complete a Quad. Kan can be called on discarded tile\nfrom any player. You can also make a Kan call when you have four identical tiles in your hand\n(Closed Kan), or has a previously melded Triplet and then draw the fourth tile."
+          }
+        ]
+      }
+    }
+  },
+  "4": {
+    "title": "Game Flow",
+    "cards": {
+      "pon": {
+        "title": "Calling Tiles: Riichi",
+        "body": [
+          {
+            "type": "image",
+            "content": "game_flow_riichi",
+            "resize": 0.55
+          },
+
+          {
+            "type": "text",
+            "content": "When your hand only need 1 more tile to win, and you have never called in this round,\nyou can call Riichi to bet 1000 point and wait for your winning tile\n(You cannot change your hand during this)."
+          }
+        ]
+      }
+    }
+  },
+  "5": {
+    "title": "Game Flow",
+    "cards": {
+      "pon": {
+        "title": "Winning the Game: Tsumo",
+        "body": [
+          {
+            "type": "image",
+            "content": "game_flow_tsumo",
+            "resize": 0.55
+          },
+
+          {
+            "type": "text",
+            "content": "When you're only waiting for your winning tile, if you draw it youself, you can\ncall Tsumo declaring you have won by self-drawn. The game\nwill end and you can see your score."
+          }
+        ]
+      }
+    }
+  },
+  "6": {
+    "title": "Game Flow",
+    "cards": {
+      "pon": {
+        "title": "Winning the Game: Ron",
+        "body": [
+          {
+            "type": "image",
+            "content": "game_flow_ron",
+            "resize": 0.55
+          },
+
+          {
+            "type": "text",
+            "content": "When you're only waiting for your winning tile, if an opponent discard that tile,\nyou can call Ron declaring you have won by stealing the winning tile. The game\nwill end and you can see your score."
+          }
+        ]
+      }
+    }
+  }
+}
