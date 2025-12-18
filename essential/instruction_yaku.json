@@ -1,0 +1,658 @@
+{
+  "0": {
+    "title": "1 Han",
+    "cards": {
+      "riichi": {
+        "title": "Riichi (Menzenchin Only)",
+        "body": [
+          {
+            "type": "text",
+            "content": "Win a hand after declaring Riichi:\nYou may declare Riichi when you achieve Tenpai (ready hand) at Menzenchin (closed hand)."
+          },
+          {
+            "type": "image",
+            "content": "riichi_yaku"
+          }
+        ]
+      },
+      "tanyao": {
+        "title": "Tanyao",
+        "body": [
+          {
+            "type": "text",
+            "content": "Win a hand after declaring Riichi:\nYou may declare Riichi when you achieve Tenpai (ready hand) at Menzenchin (closed hand)."
+          },
+          {
+            "type": "image",
+            "content": "tanyao_yaku"
+          }
+        ]
+      },
+      "menzen_tsumo": {
+        "title": "Menzen Tsumo (Menzenchin Only)",
+        "body": [
+          {
+            "type": "text",
+            "content": "Win a hand by Tsumo (drawing the winning tile) at Menzenchin (closed hand)."
+          },
+          {
+            "type": "image",
+            "content": "menzentsumo"
+          }
+        ]
+      }
+    }
+  },
+  "1": {
+    "title": "1 Han",
+    "cards": {
+      "jikaze": {
+        "title": "Jikaze",
+        "body": [
+          {
+            "type": "text",
+            "content": "A form of Yakuhai. Win a hand with a Triplet of Player Wind."
+          },
+          {
+            "type": "image",
+            "content": "jikaze"
+          }
+        ]
+      },
+      "bakaze": {
+        "title": "Bakaze",
+        "body": [
+          {
+            "type": "text",
+            "content": "A form of Yakuhai. Win a hand with a Triplet of Round Wind."
+          },
+          {
+            "type": "image",
+            "content": "bakaze"
+          }
+        ]
+      },
+      "sangenpai": {
+        "title": "Sangenpai",
+        "body": [
+          {
+            "type": "text",
+            "content": "A form of Yakuhai. Win a hand with a Triplet of Dragon Tiles (White, Green, or Red)."
+          },
+          {
+            "type": "image",
+            "content": "sangenpai"
+          }
+        ]
+      }
+    }
+  },
+  "2": {
+    "title": "1 Han",
+    "cards": {
+      "pinfu": {
+        "title": "Pinfu (Menzenchin Only)",
+        "body": [
+          {
+            "type": "text",
+            "content": "Win a hand with four Sequences and one Non-Yakuhai pair,\nplus the potential winning tiles must be tiles from both side of a sequence."
+          },
+          {
+            "type": "image",
+            "content": "pinfu"
+          }
+        ]
+      },
+      "iipeikou": {
+        "title": "Iipeikou (Menzenchin Only)",
+        "body": [
+          {
+            "type": "text",
+            "content": "Win a hand with two identical Sequences."
+          },
+          {
+            "type": "image",
+            "content": "iipeikou"
+          }
+        ]
+      },
+      "chankan": {
+        "title": "chankan",
+        "body": [
+          {
+            "type": "text",
+            "content": "Call a Ron (declare winning) on another player's Kakan (only when you're in Tenpai)."
+          },
+          {
+            "type": "image",
+            "content": "chankan"
+          }
+        ]
+      }
+    }
+  },
+  "3": {
+    "title": "1 Han",
+    "cards": {
+      "rinshan_kaihou": {
+        "title": "Rinshan Kaihou",
+        "body": [
+          {
+            "type": "text",
+            "content": "Win a hand with the tile drawn from the Dead Wall after immediately."
+          }
+        ]
+      },
+      "haitei_raoyue": {
+        "title": "Haitei Raoyue",
+        "body": [
+          {
+            "type": "text",
+            "content": "Win a hand by Tsumo (drawing the winning tile) with the last tile drawn from the Wall."
+          }
+        ]
+      },
+      "houtei_raoyui": {
+        "title": "Houtei Raoyui",
+        "body": [
+          {
+            "type": "text",
+            "content": "Win a hand by calling Ron (declaring winning) on the last discard tile."
+          }
+        ]
+      },
+      "testing": {
+        "title": "Houtei Raoyui",
+        "body": [
+          {
+            "type": "text",
+            "content": "Win a hand by calling Ron (declaring winning) on the last discard tile."
+          }
+        ]
+      },
+      "ippatsu_riichi": {
+        "title": "Ippatsu Riichi",
+        "body": [
+          {
+            "type": "text",
+            "content": "Win a hand within 1 turn after declaring Riichi."
+          },
+          {
+            "type": "text",
+            "content": "In addition, draws/discards must not be interrupted by tile calls during that turn."
+          }
+        ]
+      }
+    }
+  },
+  "4": {
+    "title": "1 Han",
+    "cards": {
+      "dora": {
+        "title": "Dora",
+        "body": [
+          {
+            "type": "text",
+            "content": "The next tile immediately after the flipped Dora Indicator Tile.\nGain bonus by having this in your winning hand."
+          },
+          {
+            "type": "image",
+            "content": "dora"
+          }
+        ]
+      },
+      "akadora": {
+        "title": "Akadora",
+        "body": [
+          {
+            "type": "text",
+            "content": "Gain bonus by having this in your winning hand."
+          },
+          {
+            "type": "image",
+            "content": "akadora"
+          }
+        ]
+      }
+    }
+  },
+  "5": {
+    "title": "2 Han",
+    "cards": {
+      "double_riichi": {
+        "title": "Double Riichi",
+        "body": [
+          {
+            "type": "text",
+            "content": "Declare Riichi with your starting hand before any tiles are called."
+          }
+        ]
+      },
+      "sanshoku_doukou": {
+        "title": "Sanshoku Doukou",
+        "body": [
+          {
+            "type": "text",
+            "content": "Win a hand with three Triplets with the same number out of the Number Tiles (Man, Pin, Sou)."
+          },
+          {
+            "type": "image",
+            "content": "sanshokudoukou"
+          }
+        ]
+      },
+      "sankantsu": {
+        "title": "Sankantsu",
+        "body": [
+          {
+            "type": "text",
+            "content": "Win a hand with three Kans."
+          },
+          {
+            "type": "image",
+            "content": "sankantsu"
+          }
+        ]
+      }
+    }
+  },
+  "6": {
+    "title": "2 Han",
+    "cards": {
+      "toitoi": {
+        "title": "Toitoi",
+        "body": [
+          {
+            "type": "text",
+            "content": "Win a hand with four Triplets or Kans."
+          },
+          {
+            "type": "image",
+            "content": "toitoi"
+          }
+        ]
+      },
+      "sanankou": {
+        "title": "Sanankou",
+        "body": [
+          {
+            "type": "text",
+            "content": "Win a hand with three closed Triplets or closed Kans."
+          },
+          {
+            "type": "image",
+            "content": "sanankou"
+          }
+        ]
+      },
+      "shousangen": {
+        "title": "Shousangen",
+        "body": [
+          {
+            "type": "text",
+            "content": "Win a hand with two Triplets out of the Dragon Tiles (White, Green or Red),\nplus a Pair of the third Dragon Tile."
+          },
+          {
+            "type": "image",
+            "content": "shousangen"
+          }
+        ]
+      }
+    }
+  },
+  "7": {
+    "title": "2 Han",
+    "cards": {
+      "honroutou": {
+        "title": "Honroutou",
+        "body": [
+          {
+            "type": "text",
+            "content": "Win a hand with only Terminal Tiles or Honor Tiles \n(1-Man/9-Man, 1-Pin/9-Pin, 1-Sou/9-Sou, Wind Tiles, and Dragon Tiles)."
+          },
+          {
+            "type": "image",
+            "content": "honroutou"
+          }
+        ]
+      },
+      "chiitoitsu": {
+        "title": "Chiitoitsu (Menzenchin Only)",
+        "body": [
+          {
+            "type": "text",
+            "content": "Win a hand with 7 different pairs"
+          },
+          {
+            "type": "image",
+            "content": "chiitoitsu"
+          }
+        ]
+      },
+      "chanta": {
+        "title": "Chanta (-1 Han if Open Hand)",
+        "body": [
+          {
+            "type": "text",
+            "content": "Win a hand where every Sequence, Triplet, and Pair\ncontains at least one Terminal Tiles or Honor Tiles."
+          },
+          {
+            "type": "image",
+            "content": "chanta"
+          }
+        ]
+      }
+    }
+  },
+  "8": {
+    "title": "2 Han",
+    "cards": {
+      "sanshoku_doujun": {
+        "title": "Sanshoku Doujun (-1 Han if Open Hand)",
+        "body": [
+          {
+            "type": "text",
+            "content": "Win a hand with three Sequences with the same numbers out of three different number tiles."
+          },
+          {
+            "type": "image",
+            "content": "sanshokudoujun"
+          }
+        ]
+      }
+    }
+  },
+  "9": {
+    "title": "3 Han",
+    "cards": {
+      "ryanpeikou": {
+        "title": "Ryanpeikou (Menzenchin Only)",
+        "body": [
+          {
+            "type": "text",
+            "content": "Win a hand with two sets two identical Sequences."
+          },
+          {
+            "type": "image",
+            "content": "ryanpeikou"
+          }
+        ]
+      },
+      "junchan": {
+        "title": "Junchan (-1 Han if Open Hand)",
+        "body": [
+          {
+            "type": "text",
+            "content": "Win a hand with every Sequence, Triplet and Pair\ncontains at least one Terminal Tiles, not Honor Tiles."
+          },
+          {
+            "type": "image",
+            "content": "junchan"
+          }
+        ]
+      },
+      "honitsu": {
+        "title": "Honitsu (-1 Han if Open Hand)",
+        "body": [
+          {
+            "type": "text",
+            "content": "Win a hand with tiles from only one of the three number tiles and Honor Tiles."
+          },
+          {
+            "type": "image",
+            "content": "honitsu"
+          }
+        ]
+      }
+    }
+  },
+  "10": {
+    "title": "6 Han",
+    "cards": {
+      "chinitsu": {
+        "title": "Chinitsu (-1 Han if Open Hand)",
+        "body": [
+          {
+            "type": "text",
+            "content": "Win a hand with tiles from only one of the three number tiles."
+          },
+          {
+            "type": "image",
+            "content": "chinitsu"
+          }
+        ]
+      }
+    }
+  },
+  "11": {
+    "title": "Mangan",
+    "cards": {
+      "nagashi_mangan": {
+        "title": "Nagashi Mangan",
+        "body": [
+          {
+            "type": "text",
+            "content": "When a game ends in Exhaustive Draw, you win with this Yaku if\nall your discarded tiles are Terminal Tiles or Honor Tiles,\nand none were called by other players."
+          }
+        ]
+      }
+    }
+  },
+  "12": {
+    "title": "Yakuman",
+    "cards": {
+      "tenhou": {
+        "title": "Tenhou",
+        "body": [
+          {
+            "type": "text",
+            "content": "Win a hand by Tsumo as a dealer in the first turn\nwith the first draw, calls invalidate this."
+          }
+        ]
+      },
+      "chihou": {
+        "title": "Chihou",
+        "body": [
+          {
+            "type": "text",
+            "content": "Win a hand by Tsumo as a non-dealer in the first turn\nwith the first draw, calls invalidate this."
+          }
+        ]
+      },
+      "daisangen": {
+        "title": "Chihou",
+        "body": [
+          {
+            "type": "text",
+            "content": "Win a hand with three Triplets or Kans of all the three Dragon Tiles."
+          },
+          {
+            "type": "image",
+            "content": "daisangen"
+          }
+        ]
+      },
+      "suuankou": {
+        "title": "Suuankou (Menzenchin Only)",
+        "body": [
+          {
+            "type": "text",
+            "content": "Win a hand with four closed Triplets"
+          },
+          {
+            "type": "image",
+            "content": "suuankou"
+          }
+        ]
+      }
+    }
+  },
+  "13": {
+    "title": "Yakuman",
+    "cards": {
+      "tsuuiisou": {
+        "title": "Tsuuiisou",
+        "body": [
+          {
+            "type": "text",
+            "content": "Win a hand with four Triplets and a Pair of the Honor Tiles."
+          },
+          {
+            "type": "image",
+            "content": "tsuuiisou"
+          }
+        ]
+      },
+      "ryuuiisou": {
+        "title": "Ryuuiisou",
+        "body": [
+          {
+            "type": "text",
+            "content": "Win a hand with only green-colored tiles:\n2-Sou/3-Sou/4-Sou/6-Sou/8-Sou and/or the Green Dragon."
+          },
+          {
+            "type": "image",
+            "content": "ryuuiisou"
+          }
+        ]
+      },
+      "chinroutou": {
+        "title": "Chinroutou",
+        "body": [
+          {
+            "type": "text",
+            "content": "Win a hand with four Triplets and a Pair of 1 and 9 out of the number tiles."
+          },
+          {
+            "type": "image",
+            "content": "chinroutou"
+          }
+        ]
+      }
+    }
+  },
+  "14": {
+    "title": "Yakuman",
+    "cards": {
+      "kokushi_musou": {
+        "title": "Kokushi Musou (Menzenchin Only)",
+        "body": [
+          {
+            "type": "text",
+            "content": "Win a hand with one of each 13 Terminal Tiles and Honor Tiles, plus any tile matches one of them."
+          },
+          {
+            "type": "image",
+            "content": "kokushimusou"
+          }
+        ]
+      },
+      "shousuushi": {
+        "title": "Shousuushi",
+        "body": [
+          {
+            "type": "text",
+            "content": "Win a hand with three Triplets or Kans of the Wind Tiles, plus a Pair of the fourth wind."
+          },
+          {
+            "type": "image",
+            "content": "shousuushi"
+          }
+        ]
+      },
+      "suukantsu": {
+        "title": "Suukantsu",
+        "body": [
+          {
+            "type": "text",
+            "content": "Win a hand with four Kans"
+          },
+          {
+            "type": "image",
+            "content": "suukantsu"
+          }
+        ]
+      }
+    }
+  },
+  "15": {
+    "title": "Yakuman",
+    "cards": {
+      "chuuren_poutou": {
+        "title": "Chuuren Poutou (Menzenchin Only)",
+        "body": [
+          {
+            "type": "text",
+            "content": "Win a hand with tiles from only one of the three number tiles\nin the order of \"1112345678999\", plus any tile matches one of them."
+          },
+          {
+            "type": "image",
+            "content": "chuurenpoutou"
+          }
+        ]
+      }
+    }
+  },
+  "16": {
+    "title": "Double Yakuman",
+    "cards": {
+      "suuankou_tanki": {
+        "title": "Suuankou Tanki (Menzenchin Only)",
+        "body": [
+          {
+            "type": "text",
+            "content": "Achieve Tenpai with four Closed Triplets already drawn\n(waiting for one remaining tile to form a Pair)."
+          },
+          {
+            "type": "image",
+            "content": "suuankou"
+          }
+        ]
+      },
+      "kokushi_musou_13_men_machi": {
+        "title": "Kokushi Musou 13-Men Machi (Menzenchin Only)",
+        "body": [
+          {
+            "type": "text",
+            "content": "Achieve Tenpai with 13 different Terminal Tiles already drawn\n(waiting for 1 out of 13 possible tiles to win)."
+          },
+          {
+            "type": "image",
+            "content": "kokushimusou13menmachi"
+          }
+        ]
+      }
+    }
+  },
+  "17": {
+    "title": "Double Yakuman",
+    "cards": {
+      "junsei_chuuren_poutou": {
+        "title": " Junsei Chuuren Poutou (Menzenchin Only)",
+        "body": [
+          {
+            "type": "text",
+            "content": "Achieve Tenpai with tiles from only one of the three Number Tiles\nin the order of \"1112345678999\" (waiting for 1 out of 9 possible tiles to win)."
+          },
+          {
+            "type": "image",
+            "content": "junseichuurenpoutou"
+          }
+        ]
+      },
+      "daisuushi": {
+        "title": "Daisuushi",
+        "body": [
+          {
+            "type": "text",
+            "content": "Win a hand with four Triplets or Kans of the Wind Tiles."
+          },
+          {
+            "type": "image",
+            "content": "daisuushi"
+          }
+        ]
+      }
+    }
+  }
+}
