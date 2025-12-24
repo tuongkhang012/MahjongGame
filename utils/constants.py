@@ -90,8 +90,8 @@ ROUND_BUTTON_COLOR = (252, 177, 124)
 BAR_SIZE = (200, 5)
 SETTING_CONFIG_PATH = "data/config.json"
 CONSTANT_SETTING_CONFIG: "SettingConfig" = {
-    "bgm": 70,
-    "sfx": 70,
+    "bgm": 5,
+    "sfx": 5,
     "name": "",
     "player_1": "aggressive",
     "player_2": "shanten",

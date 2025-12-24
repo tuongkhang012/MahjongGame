@@ -221,7 +221,7 @@
           {
             "type": "image",
             "content": "kyotaku",
-            "resize": false
+            "resize": 1.2
           }
         ]
       }
@@ -240,7 +240,7 @@
           {
             "type": "image",
             "content": "kyotaku",
-            "resize": false
+            "resize": 1.2
           },
           {
             "type": "text",
