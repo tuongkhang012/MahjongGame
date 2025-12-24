@@ -567,14 +567,17 @@ class Instruction(Popup):
             if context["type"] == "image":
                 image = self.__getattribute__(context["content"])
                 if context.get("resize") is None or (
-                    context.get("resize") is not None and not context.get("resize")
+                        context.get("resize") is not None and context.get("resize")
                 ):
-                    context_surfaces.append(pygame.transform.scale_by(image, 2.5))
+                    resize_rate = 2.5
+                elif (
+                        context.get("resize") is not None and not context.get("resize")
+                ):
+                    resize_rate = 1.0
                 else:
-                    context_surfaces.append(
-                        pygame.transform.scale_by(image, float(context.get("resize")))
-                    )
+                    resize_rate = float(context.get("resize"))
 
+                context_surfaces.append(pygame.transform.scale_by(image, resize_rate))
                 image_surface_idx.append(idx)
 
         max_width = max(
