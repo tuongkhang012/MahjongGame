@@ -267,7 +267,8 @@ class ScenesController:
                             data = self.game_manager.__dict__()
                             data["from_log_name"] = f"{self.game_manager.game_log.name}"
                             self.history.update(data)
-                        self.history.export()
+                        if self.history.data:
+                            self.history.export()
 
                         # Export settings if in setting popup
                         if self.__popup_renderer and isinstance(
